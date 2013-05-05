@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!--
+
+Схема описания API в виде XML для автоматической генерации документации, клиентских либ и диспатчинга запросов.
+
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			targetNamespace="http://rest4j.com/api-description" xmlns="http://rest4j.com/api-description"
+			xmlns:api="http://rest4j.com/api-description"
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:element name="api" type="API">
+		<xsd:key name="model-pk"> <!-- models are keyed by their name -->
+			<xsd:selector xpath="api:model"/>
+			<xsd:field xpath="@name" />
+		</xsd:key>
+		<xsd:keyref name="complex-field-type" refer="model-pk">
+			<!-- a reference from a complex field of a model to another (or the same) model -->
+			<xsd:selector xpath="api:model/api:fields/api:complex"/>
+			<xsd:field xpath="@type"/>
+		</xsd:keyref>
+		<xsd:keyref name="body-or-response-type" refer="model-pk">
+			<xsd:selector xpath="api:endpoint/api:body|api:endpoint/api:response|api:endpoint/api:errors/api:error"/>
+			<xsd:field xpath=".//@type"/>
+		</xsd:keyref>
+	</xsd:element>
+
+	<xsd:complexType name="API">
+		<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+			<xsd:element name="endpoint" type="Endpoint" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation><xsd:documentation>
+					An endpoint is a combination of a request path and http method.
+				</xsd:documentation></xsd:annotation>
+				<xsd:key name="param"> <!-- parameters are keyed by their name -->
+					<xsd:selector xpath="api:parameters/api:parameter"/>
+					<xsd:field xpath="@name"/>
+				</xsd:key>
+				<xsd:keyref name="route-param-name" refer="param">
+					<!-- route/param should reference valid parameters in the parameters collection -->
+					<xsd:selector xpath="api:route/api:param" />
+					<xsd:field xpath="." />
+				</xsd:keyref>
+			</xsd:element>
+			<xsd:element name="model" type="Model" maxOccurs="unbounded" minOccurs="0">
+				<xsd:annotation><xsd:documentation>
+					A model is like a class describing JSON objects. In fact, models are mapped to Java classes with
+					the 'class' attribute. Models can be used to specify a type JSON request or response body.
+					An exception can also be mapped to a JSON model.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Endpoint">
+		<xsd:sequence maxOccurs="1">
+			<xsd:element name="route" type="StringWithParams" maxOccurs="1" minOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					A path template which can have named parameters. Example: /products/&lt;param>productId&lt;/param>.
+					Here, the path "/products/123" would match the template, and the parameter "productId" would
+					have been assigned the value "123". You must explicitly declare path parameters in the
+					&lt;parameters>...&lt;/parameters> section.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="Description" minOccurs="1" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					Documentation for this endpoint in English. Can contain HTML tags. Should not contain description of
+					a request/response body or any parameters, because this information is already presented elsewhere.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="parameters" type="Parameters" minOccurs="1" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					A list of path and querystring parameters this endpoint accepts.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="body" type="ContentType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					This tag describes the request body format. If absent, the request body is either
+					missing or irrelevant. GET endpoints should not contain this tag.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="response" type="ContentType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					This tag describes the response body format. If absent, the response body is either
+					missing or irrelevant.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="errors" type="Errors" minOccurs="1" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					Application-specific exceptions the service method can throw. Errors related to the framework
+					(like a missing mandatory parameter or a wrong request method) should
+					not be documented here. The 'type' attribute should reference a Java exception class.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="service" type="ServiceEntry" minOccurs="1" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					Specifies the name of the service and its method that processes this request.
+					The service object is looked up using a ServiceProvider, then its method is called.
+					<p>
+					The method that processes the request should accept input parameters and either
+					return an object corresponding to the &lt;response> tag, or throw an exception
+					according the exception list given in the &lt;errors> section.
+					The method's arguments can be one of the following:
+					<ul>
+						<li>A parameter with the same name and type as described in the &lt;parameters> section.</li>
+						<li>A simple field of the &lt;body> object, having the same name and type.</li>
+						<li>A Patch&lt;T> argument, which accepts the patched object when the endpoint contains
+							&lt;patch> in its &lt;body>.
+						T is the class referenced by the 'type' attribute of the &lt;patch> tag</li>
+						<li>A body argument with the type corresponding to the 'type' attribute of the &lt;json>
+							subtag of the &lt;body> tag</li>
+						<li>A value of type Params, which accepts all the declared parameters at once.</li>
+					</ul>
+					The method should return a value corresponding to the response/json/@type of this endpoint or
+						be void.
+					</p>
+					<p>
+					Method name defaults to a lower-case HTTP method name, e.g. 'get', 'post' etc.
+					</p>
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="http" type="HttpMethod" use="required">
+			<xsd:annotation><xsd:documentation>
+				HTTP method. One of 'GET', 'POST', 'PUT', 'DELETE'. Remember:
+				<ul>
+					<li>POST requests are not idempotent. They can be used to create new objects.</li>
+					<li>PUT and DELETE methods respectively change and remove the object that
+					can be found under the same URL using GET.</li>
+				</ul>
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="httpsonly" type="xsd:boolean" default="false">
+			<xsd:annotation><xsd:documentation>
+				Set to 'true' if you wish the endpoint to be only available through HTTPS, like for example
+				when a response contains non-public information. In order to disable
+				passing a secure parameter through an unsecured connection, use parameters/parameter/@httpsonly.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="Model">
+		<xsd:sequence>
+			<xsd:element name="description" type="Description" minOccurs="0" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					An HTML documentation of a model. Should not contain documentation of fields, because this
+					information is presented elsewhere.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fields" type="Fields" minOccurs="1" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					List possible fields of a JSON object. Nested &lt;simple> elements represent fields of primitive
+					types and arrays containing primitive types, while &lt;complex> elements represent fields
+					that reference other JSON objects and arrays of objects.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="identifier" use="required">
+			<xsd:annotation><xsd:documentation>
+				Name of a model. This is used as an unique ID for referencing (e.g. by the body/json/@type).
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="class" type="xsd:string" use="required">
+			<xsd:annotation><xsd:documentation>
+				A fully qualified Java class name that represents this model on a service level. Services
+				receive and return objects of this class. An exception can also be mapped to a JSON model.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="Fields">
+		<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="simple" type="SimpleField" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation><xsd:documentation>
+					&lt;simple> elements represent fields of primitive
+					types and arrays containing primitive types, while &lt;complex> elements represent fields
+					that reference other JSON objects and arrays of objects.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="complex" type="ComplexField" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation><xsd:documentation>
+					&lt;simple> elements represent fields of primitive
+					types and arrays containing primitive types, while &lt;complex> elements represent fields
+					that reference other JSON objects and arrays of objects.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Field">
+		<xsd:sequence>
+			<xsd:element name="description" type="Description" minOccurs="0" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					An HTML documentation of a JSON field. Should also describe the meaning of an absent optional field
+					(or null value).
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required">
+			<xsd:annotation><xsd:documentation>
+				The name of the JSON field. This name is used by default as a Java property name, but can be
+				overriden by 'prop' and 'mapping' attributes.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="optional" default="true" type="xsd:boolean" use="optional">
+			<xsd:annotation><xsd:documentation>
+				Set to 'false' if you want this field to be mandatory. It is a good idea to make all array fields
+				mandatory, unless you want null value to be distinguished from an empty array.
+				Fields are optional by default.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="array" type="xsd:boolean" default="false">
+			<xsd:annotation><xsd:documentation>
+				'true' if this field is an array of a specified type.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="prop" type="xsd:string" use="optional">
+			<xsd:annotation><xsd:documentation>
+				Property name in the target class.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="mapping" type="xsd:string" use="optional">
+			<xsd:annotation><xsd:documentation>
+				Method name in the CustomMapping that this field is mapped to. When reading a field value,
+				the method accepts a single argument of this model type (see model/@class) and returns an object
+				of this field's type.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="access" type="FieldAccessType" default="readwrite"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="ComplexField">
+		<xsd:complexContent>
+			<xsd:extension base="Field">
+				<xsd:attribute name="type" type="xsd:string" use="required">
+					<xsd:annotation><xsd:documentation>
+						Name of a model. Must reference /api/model/@name.
+					</xsd:documentation></xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="SimpleField">
+		<xsd:complexContent>
+			<xsd:extension base="Field">
+				<xsd:sequence>
+					<xsd:element name="values" type="Values" minOccurs="0" maxOccurs="1">
+						<xsd:annotation><xsd:documentation>
+							Possible string values. Only valid for type="string". This can be mapped to Java enums.
+						</xsd:documentation></xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="type" type="FieldType" use="optional" default="string">
+					<xsd:annotation><xsd:documentation>
+						A type of the field, one of 'number', 'string', 'boolean', 'date'. These types are mapped to
+						java types in the following way:
+						<table>
+							<tr><th>API type</th><th>Property type</th></tr>
+							<tr><td>number</td><td>java.lang.Number, or double/int/long plus boxed variants. </td></tr>
+							<tr><td>string</td><td>java.lang.String or an enum containing parameter/values/value constants</td></tr>
+							<tr><td>boolean</td><td>boolean or java.lang.Boolean</td></tr>
+							<tr><td>date</td><td>java.lang.Date or java.sql.Date</td></tr>
+						</table>
+					</xsd:documentation></xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="default" type="xsd:string">
+					<xsd:annotation><xsd:documentation>
+						For input objects, the value of an optional field that is assumed when the field value is missing.
+						For output objects, the value that the client should assume when the field value is missing.
+					</xsd:documentation></xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="value" type="xsd:string">
+					<xsd:annotation><xsd:documentation>
+						Constant value of a field. For output objects, the field value will always be set to this value.
+						For input objects, the field value is checked and error issued when the it does not match.
+						If the 'value' attribute is present, the 'default', 'values'
+					</xsd:documentation></xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<!-- path pattern, e.g. /<param>storeId</param>/products/<param>id</param> -->
+	<xsd:complexType name="StringWithParams" mixed="true">
+		<xsd:sequence>
+			<xsd:element name="param" type="xsd:string"  minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Parameters">
+		<xsd:sequence>
+			<xsd:element minOccurs="0" maxOccurs="unbounded" name="parameter" type="Parameter">
+				<xsd:annotation><xsd:documentation>
+					A parameter passed to the endpoint through the URL query string or URL path parameter (e.g.
+					/products/123, where 123 is the productId parameter). Path parameters should appear in the
+					&lt;route> tag surrounded by &lt;param>:
+					<pre>
+/products/&lt;param>productId&lt;/param>
+					</pre>
+					A parameter can be captured by a service method with an argument of the same name and type, or
+					an argument with Params type.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Parameter">
+		<xsd:sequence>
+			<xsd:element name="description" type="Description" minOccurs="0" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					Documentation for this parameter in English. Can contain HTML tags. Should contain the meaning
+					of an absent parameter, if the parameter is optional and does not have a default value.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="values" type="Values" minOccurs="0" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					This tag can list possible values of string parameters. If this tag is present, the corresponding
+					service method argument	can have enum type, in which case the enum should contain at least all the
+					values listed in the nesten &lt;value> tags.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required">
+			<xsd:annotation><xsd:documentation>
+				Parameter name as appears in the request querystring or endpoint/route/param subtag.
+				The name should also be used to lookup the param value in the Params object passed to the
+				service method, if there is a Params argument. A parameter can also be mapped to a service method
+				argument, in which case the argument should have exactly the same name and type as the parameter.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="default" type="xsd:string">
+			<xsd:annotation><xsd:documentation>
+				The value of an optional parameter assumed when there is no value given in the request.
+				Only have meaning for optional querystring parameters (with optional="true" attribute).
+				Boolean values are represented by literals 'true' and 'false'.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="optional" default="true" type="xsd:boolean" use="optional">
+			<xsd:annotation><xsd:documentation>
+				Set to 'false' if you want this parameter to be required. Default is 'true', i.e. all parameters
+				without the 'optional' attribute are treated as optional. You may want to set the default value
+				of optional parameters using the 'default' attribute.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="type" type="FieldType" use="optional" default="string">
+			<xsd:annotation><xsd:documentation>
+				A type of the parameter, one of 'number', 'string', 'boolean', 'date'. These types are mapped to
+				java types in the following way:
+				<table>
+				<tr><th>API type</th><th>In a Params object</th><th>As service method argument</th></tr>
+				<tr><td>number</td><td>java.lang.Number</td><td>java.lang.Number, or double/int/long plus boxed variants. </td></tr>
+				<tr><td>string</td><td>java.lang.String</td><td>java.lang.String or an enum containing parameter/values/value constants</td></tr>
+				<tr><td>boolean</td><td>java.lang.Boolean</td><td>boolean or java.lang.Boolean</td></tr>
+				<tr><td>date</td><td>java.lang.Date</td><td>java.lang.Date or java.sql.Date</td></tr>
+				</table>
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="httpsonly" type="xsd:boolean" default="false">
+			<xsd:annotation><xsd:documentation>
+				'true' if this parameter should only be passed via HTTPS. Attempt to pass the parameter's value via HTTP
+				results in 400 error.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="Errors">
+		<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="error" type="Error">
+				<xsd:annotation><xsd:documentation>
+					Describes a possible exception the service method can throw.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="Error">
+		<xsd:sequence>
+			<xsd:element name="description" type="Description" minOccurs="0" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					An HTML documentation of the exception.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="status" type="xsd:int" use="required">
+			<xsd:annotation><xsd:documentation>
+				An HTTP status code this exception should yield. There may be more then one exception
+				sharing the same status code.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="type" type="xsd:string">
+			<xsd:annotation><xsd:documentation>
+
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="Response">
+		<xsd:attribute name="type" type="xsd:string" use="optional">
+			<xsd:annotation><xsd:documentation>
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="code" type="xsd:int" use="optional" default="200">
+			<xsd:annotation><xsd:documentation>
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:simpleType name="HttpMethod">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="GET" />
+			<xsd:enumeration value="POST" />
+			<xsd:enumeration value="PUT" />
+			<xsd:enumeration value="DELETE" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="FieldType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="number" />
+			<xsd:enumeration value="string" />
+			<xsd:enumeration value="boolean" />
+			<xsd:enumeration value="date" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="identifier">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="[a-zA-Z]+[a-zA-Z_0-9\-]*" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="endpointIdentifier">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="[a-zA-Z]+[a-zA-Z_0-9\- ]*" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="Description" mixed="true">
+		<xsd:sequence>
+			<xsd:any namespace="http://www.w3.org/1999/xhtml"
+					minOccurs="0"
+					maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="Value">
+		<xsd:restriction base="xsd:string"></xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="Values">
+		<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+			<xsd:element name="value" type="Value"></xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="FieldAccessType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="readonly" />
+			<xsd:enumeration value="writeonly" />
+			<xsd:enumeration value="readwrite" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="ContentType">
+		<xsd:choice maxOccurs="1">
+			<xsd:element name="json" type="JsonType" />
+			<xsd:element name="patch" type="PatchType" />
+			<xsd:element name="text" />
+			<xsd:element name="binary" />
+		</xsd:choice>
+	</xsd:complexType>
+
+	<xsd:complexType name="JsonType">
+		<xsd:attribute name="type" type="xsd:string"/>
+		<xsd:attribute name="array" type="xsd:boolean" default="false"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="PatchType">
+		<xsd:attribute name="type" type="xsd:string"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="ServiceEntry">
+		<xsd:attribute name="name" type="identifier" use="required">
+			<xsd:annotation><xsd:documentation>
+				The name of the service that processes the request. The name is used to lookup
+				the specific service using the ServiceProvider.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="method" type="identifier" use="optional">
+			<xsd:annotation><xsd:documentation>
+				The name of the method of the Service that processes the request.
+				Method name defaults to a lower-case HTTP method name, e.g. 'get', 'post' etc.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+</xsd:schema>
