@@ -138,4 +138,17 @@
 		<errors></errors>
 		<service name="pets"/>
 	</endpoint>
+
+	<endpoint http="PATCH">
+		<route>/pets/<param>id</param></route>
+		<description></description>
+		<parameters>
+			<parameter name="id" optional="false" type="number"/>
+		</parameters>
+		<body>
+			<patch type="Pet"/>
+		</body>
+		<errors></errors>
+		<service name="pets"/>
+	</endpoint>
 </api>

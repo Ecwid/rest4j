@@ -4,13 +4,38 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+	<!--
+
+	To regenerate java files after api.xsd was changed:
+
+		mvn org.codehaus.mojo:jaxb2-maven-plugin:xjc
+	-->
+
+
     <groupId>com.rest4j</groupId>
     <artifactId>rest4j-core</artifactId>
     <version>0.1-SNAPSHOT</version>
 
 	<properties>
 		<spring.version>3.0.7.RELEASE</spring.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+
+	<build>
+	<plugins>
+	<plugin>
+	<groupId>org.codehaus.mojo</groupId>
+	<artifactId>jaxb2-maven-plugin</artifactId>
+	<version>1.5</version>
+		<configuration>
+			<outputDirectory>${project.basedir}/src/main/java</outputDirectory>
+			<schemaDirectory>${project.basedir}/src/main/resources/com/rest4j</schemaDirectory>
+			<packageName>com.rest4j.impl.model</packageName>
+			<clearOutputDir>false</clearOutputDir>
+		</configuration>
+	</plugin>
+	</plugins>
+	</build>
 
 	<dependencies>
 		<dependency>

@@ -56,6 +56,7 @@ public class APIImplUnitTest {
 	Pet created;
 	String type;
 	List<Pet> listedPets;
+	boolean patchCalled;
 
 	private Object pets = new Object() {
 		public List<Pet> list(String type) {
@@ -71,6 +72,10 @@ public class APIImplUnitTest {
 		public void put(int id, Patch<Pet> patch) {
 			patchedId = id;
 			APIImplUnitTest.this.patch = patch;
+		}
+		public void patch(int id, Patch<Pet> patch) {
+			patchCalled = true;
+			put(id, patch);
 		}
 	};
 	private boolean writeonly;
@@ -105,7 +110,7 @@ public class APIImplUnitTest {
 
 	@Test public void testConstructor_endpoints() throws NoSuchMethodException {
 		// check that endpoints are constructed correctly
-		assertEquals(5, api.endpoints.size());
+		assertEquals(6, api.endpoints.size());
 		APIImpl.EndpointImpl endpoint = api.endpoints.get(0);
 		assertSame(pets, endpoint.service);
 		assertEquals(pets.getClass().getDeclaredMethod("list", String.class), endpoint.method);
@@ -152,7 +157,7 @@ public class APIImplUnitTest {
 		when(request.method()).thenReturn("GET");
 		when(request.path()).thenReturn("/api/v2/pets/555");
 		List<String> allowedMethods = api.getAllowedMethods(request);
-		assertEquals("[DELETE, GET, PUT]", allowedMethods.toString());
+		assertEquals("[DELETE, GET, PUT, PATCH]", allowedMethods.toString());
 	}
 
 	@Test public void testParseParam_missing() {
@@ -242,7 +247,7 @@ public class APIImplUnitTest {
 		when(request.path()).thenReturn("/api/v2/pets/555");
 		APIResponse response = api.serve(request);
 		assertEquals("*", getHeader(response, "Access-Control-Allow-Origin"));
-		assertEquals("DELETE, GET, PUT, OPTIONS", getHeader(response, "Access-Control-Allow-Methods"));
+		assertEquals("DELETE, GET, PUT, PATCH, OPTIONS", getHeader(response, "Access-Control-Allow-Methods"));
 
 		when(request.path()).thenReturn("/api/v2/xxx");
 		try {
@@ -337,16 +342,28 @@ public class APIImplUnitTest {
 		when(request.method()).thenReturn("PUT");
 		when(request.path()).thenReturn("/api/v2/pets/555");
 		when(request.param("access_token")).thenReturn("xxx");
-		JSONObject json = new JSONObject();
-		json.put("id", 5); // can't change read-only prop
-		json.put("weight", 5.67);
+		JSONObject json = new JSONObject("{id:5,weight:5.67}");
 		when(request.objectInput()).thenReturn(json);
-		APIResponseImpl response = (APIResponseImpl) api.serve(request);
+		api.serve(request);
 
 		assertEquals(555, patchedId);
 		assertEquals(555, patch.getPatched().getId()); // shouldn't change
 		assertEquals(Collections.singletonList(666), patch.getPatched().getAte());
 		assertEquals(5.67, patch.getPatched().getPetWeight(), 1e-5);
+		assertFalse(patchCalled);
+	}
+
+	@Test public void testServe_patch() throws Exception {
+		APIRequest request = mock(APIRequest.class);
+		when(request.method()).thenReturn("PATCH");
+		when(request.path()).thenReturn("/api/v2/pets/555");
+		JSONObject json = new JSONObject("{id:5,weight:5.67}");
+		when(request.objectInput()).thenReturn(json);
+		api.serve(request);
+
+		assertEquals(555, patchedId);
+		assertEquals(555, patch.getPatched().getId()); // shouldn't change
+		assertTrue(patchCalled);
 	}
 
 	@Test public void testServe_put_as_object_and_params() throws Exception {
@@ -361,6 +378,7 @@ public class APIImplUnitTest {
 				APIImplUnitTest.this.patchedPet = patchedPet;
 				APIImplUnitTest.this.writeonly = writeonly;
 			}
+			public void patch(int id, Patch<Pet> patch) {}
 		};
 		api = new APIImpl(root, "/api/v2", customMapping, serviceProvider);
 

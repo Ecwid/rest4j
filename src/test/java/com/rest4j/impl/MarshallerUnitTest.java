@@ -260,6 +260,15 @@ public class MarshallerUnitTest {
 		};
 	}
 
+	@Test public void testMarshal_default_optional_field() throws Exception {
+		Pet pet = createBarsik();
+		JSONObject json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
+		assertEquals("cat", json.getString("type"));
+		pet.setType("dog");
+		json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
+		assertFalse(json.has("type"));
+	}
+
 	static JSONObject createBarsikJson() throws JSONException {
 		JSONObject pet = new JSONObject();
 		pet.put("id", 123);
@@ -267,7 +276,7 @@ public class MarshallerUnitTest {
 		pet.put("name", "Barsik");
 		pet.put("gender", "male");
 		pet.put("weight", 4.3);
-		pet.put("relations", new JSONArray("[{type:'friend', petId: 234}]"));
+		pet.put("relations", new JSONArray("[{petId: 234}]"));
 		pet.put("writeonly", true);
 		return pet;
 	}

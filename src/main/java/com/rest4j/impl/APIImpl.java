@@ -72,7 +72,7 @@ public class APIImpl implements API {
 	@Override
 	public APIResponse serve(APIRequest request) throws IOException, APIException {
 		if (!request.path().startsWith(pathPrefix)) {
-			throw new APIException(404, "Wrong path: "+ request.path() +", does not match the path prefix '"+pathPrefix+"'");
+			throw new APIException(404, "Wrong path: " + request.path() + ", does not match the path prefix '" + pathPrefix + "'");
 		}
 		if (request.method().equals("OPTIONS")) {
 			try {
@@ -82,7 +82,7 @@ public class APIImpl implements API {
 					throw apiex;
 				}
 			}
-			// разрешаем кроссдоменные запросы
+			// enable cross-domain queries
 			return new APIResponseImpl()
 					.addHeader("Access-Control-Allow-Origin", "*")
 					.addHeader("Access-Control-Allow-Methods", getAllowedMethodsString(request))
@@ -94,10 +94,10 @@ public class APIImpl implements API {
 			throw new APIException(400, "This request can only be sent over HTTPS.");
 		}
 		Object getResult = null;
-		if (request.method().equals("PUT") || request.method().equals("DELETE")) {
+		if (request.method().equals("PUT") || request.method().equals("PATCH") || request.method().equals("DELETE")) {
 			APIRequest get = changeMethod(request, "GET");
 			EndpointImpl getEndpoint = findEndpoint(get);
-			if (request.header("If-Match") != null || request.method().equals("PUT")) {
+			if (request.header("If-Match") != null || endpoint.isPatch()) {
 				// first perform GET, then decide if we should change the resource
 				getResult = getEndpoint.invokeRaw(request, null);
 			}
@@ -130,6 +130,7 @@ public class APIImpl implements API {
 		Method method;
 		ArgHandler[] args;
 		public boolean httpsonly;
+		private boolean patch;
 
 		EndpointImpl(Endpoint ep) throws ConfigurationException {
 			endpoint = ep;
@@ -137,6 +138,7 @@ public class APIImpl implements API {
 			httpMethod = ep.getHttp().name();
 			service = serviceProvider.lookup(ep.getService().getName());
 			httpsonly = ep.isHttpsonly();
+			patch = ep.getBody() != null && ep.getBody().getPatch() != null;
 			if (service == null) {
 				throw new ConfigurationException("No service with name "+ep.getService().getName());
 			}
@@ -403,6 +405,10 @@ public class APIImpl implements API {
 
 		public ContentType getResponseContentType() {
 			return endpoint.getResponse();
+		}
+
+		public boolean isPatch() {
+			return patch;
 		}
 	}
 

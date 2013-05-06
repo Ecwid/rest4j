@@ -83,6 +83,12 @@ class FieldImpl {
 
 	public Object marshal(Object val) throws APIException {
 		if (val == null) return JSONObject.NULL;
+		if (optional && type instanceof SimpleApiType && type.defaultValue() != null && val != null) {
+			if (((SimpleApiType) type).equals(type.defaultValue(), val)) {
+				// Don't serialize optional fields having default values
+				return null;
+			}
+		}
 		return type.marshal(val);
 	}
 

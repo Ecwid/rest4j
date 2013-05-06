@@ -17,7 +17,8 @@
   -->
 <!--
 
-Схема описания API в виде XML для автоматической генерации документации, клиентских либ и диспатчинга запросов.
+XML Scheme for API descriptors. API descriptors are XML documents that are used for generation of the
+documentation and client libraries, as well as for query dispatching.
 
 -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -426,6 +427,7 @@
 			<xsd:enumeration value="GET" />
 			<xsd:enumeration value="POST" />
 			<xsd:enumeration value="PUT" />
+			<xsd:enumeration value="PATCH" />
 			<xsd:enumeration value="DELETE" />
 		</xsd:restriction>
 	</xsd:simpleType>
