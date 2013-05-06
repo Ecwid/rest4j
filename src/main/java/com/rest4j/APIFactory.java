@@ -29,6 +29,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,25 +37,19 @@ import java.util.List;
  *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class APIFactory implements FactoryBean<API> {
+public class APIFactory {
 	URL apiDescriptionXml;
 	String pathPrefix;
 	CustomMapping customMapping;
-	ServiceProvider daoProvider;
+	ServiceProvider serviceProvider;
 	private JAXBContext context;
-	APIImpl api;
-	List<ObjectFactoryChain> factories;
+	List<ObjectFactoryChain> factories = new ArrayList<ObjectFactoryChain>();
 
-	public APIFactory(URL apiDescriptionXml, String pathPrefix, CustomMapping customMapping, ServiceProvider daoProvider) {
-		this(apiDescriptionXml, pathPrefix, customMapping, daoProvider, null);
-	}
-
-	public APIFactory(URL apiDescriptionXml, String pathPrefix, CustomMapping customMapping, ServiceProvider daoProvider,
-					  List<ObjectFactoryChain> factories) {
+	public APIFactory(URL apiDescriptionXml, String pathPrefix, CustomMapping customMapping, ServiceProvider serviceProvider) {
 		this.apiDescriptionXml = apiDescriptionXml;
 		this.pathPrefix = pathPrefix;
 		this.customMapping = customMapping;
-		this.daoProvider = daoProvider;
+		this.serviceProvider = serviceProvider;
 		try {
 			this.context = JAXBContext.newInstance("com.rest4j.impl.model");
 		} catch (JAXBException e) {
@@ -62,43 +57,35 @@ public class APIFactory implements FactoryBean<API> {
 		}
 	}
 
-	@Override
-	public synchronized API getObject() throws ConfigurationException {
-		if (api == null) {
-			try {
-				Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(getClass().getResource("api.xsd"));
+	public void addObjectFactory(ObjectFactoryChain of) {
+		factories.add(of);
+	}
 
-				Unmarshaller unmarshaller = context.createUnmarshaller();
-				unmarshaller.setSchema(schema);
-				JAXBElement<com.rest4j.impl.model.API> element = (JAXBElement<com.rest4j.impl.model.API>) unmarshaller.unmarshal(apiDescriptionXml);
-				com.rest4j.impl.model.API root = element.getValue();
-				api = new APIImpl(root, pathPrefix, customMapping, daoProvider);
-				if (factories != null) {
-					for (ObjectFactoryChain of: factories) api.addObjectFactory(of);
-				}
-			} catch (javax.xml.bind.UnmarshalException e) {
-				if (e.getLinkedException() instanceof SAXParseException) {
-					throw new ConfigurationException("Cannot parse "+apiDescriptionXml+": "+e.getLinkedException().getMessage());
-				}
-				throw new AssertionError(e);
-			} catch (ConfigurationException e) {
-				throw (ConfigurationException)e;
-			} catch (RuntimeException e) {
-				throw (RuntimeException)e;
-			} catch (Exception e) {
-				throw new AssertionError(e);
+	public API createAPI() throws ConfigurationException {
+		try {
+			Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(getClass().getResource("api.xsd"));
+
+			Unmarshaller unmarshaller = context.createUnmarshaller();
+			unmarshaller.setSchema(schema);
+			JAXBElement<com.rest4j.impl.model.API> element = (JAXBElement<com.rest4j.impl.model.API>) unmarshaller.unmarshal(apiDescriptionXml);
+			com.rest4j.impl.model.API root = element.getValue();
+			APIImpl api = new APIImpl(root, pathPrefix, customMapping, serviceProvider);
+			if (factories != null) {
+				for (ObjectFactoryChain of: factories) api.addObjectFactory(of);
 			}
+			return api;
+		} catch (javax.xml.bind.UnmarshalException e) {
+			if (e.getLinkedException() instanceof SAXParseException) {
+				throw new ConfigurationException("Cannot parse "+apiDescriptionXml+": "+e.getLinkedException().getMessage());
+			}
+			throw new AssertionError(e);
+		} catch (ConfigurationException e) {
+			throw (ConfigurationException)e;
+		} catch (RuntimeException e) {
+			throw (RuntimeException)e;
+		} catch (Exception e) {
+			throw new AssertionError(e);
 		}
-		return api;
 	}
 
-	@Override
-	public Class<?> getObjectType() {
-		return API.class;
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return true;
-	}
 }

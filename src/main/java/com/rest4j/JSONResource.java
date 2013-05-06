@@ -59,6 +59,7 @@ public class JSONResource implements Resource {
 			} else {
 				((JSONArray) object).write(writer);
 			}
+			writer.flush();
 		} catch (JSONException ex) {
 			if (ex.getCause() instanceof IOException) {
 				throw (IOException)ex.getCause();

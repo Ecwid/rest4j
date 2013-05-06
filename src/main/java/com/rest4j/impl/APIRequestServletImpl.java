@@ -34,14 +34,9 @@ import java.io.Reader;
  */
 public class APIRequestServletImpl extends APIRequest {
 	private final HttpServletRequest request;
-	private final String pathPrefix;
 
-	public APIRequestServletImpl(HttpServletRequest request, String pathPrefix) {
+	public APIRequestServletImpl(HttpServletRequest request) {
 		this.request = request;
-		this.pathPrefix = pathPrefix;
-		if (!request.getRequestURI().startsWith(pathPrefix)) {
-			throw new AssertionError();
-		}
 	}
 
 	@Override
@@ -51,7 +46,7 @@ public class APIRequestServletImpl extends APIRequest {
 
 	@Override
 	public String path() {
-		return request.getRequestURI().substring(pathPrefix.length());
+		return request.getRequestURI();
 	}
 
 	@Override

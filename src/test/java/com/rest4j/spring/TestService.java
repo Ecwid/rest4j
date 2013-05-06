@@ -15,33 +15,40 @@
  * limitations under the License.
  */
 
-package com.rest4j;
+package com.rest4j.spring;
 
-import com.rest4j.impl.APIRequestServletImpl;
-import org.json.JSONArray;
+import com.rest4j.APIException;
+import com.rest4j.Patch;
+import com.rest4j.impl.petapi.Pet;
+import com.rest4j.impl.petapi.UpdateResult;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public abstract class APIRequest {
-	public abstract String method();
-	public abstract String path();
-	public abstract String param(String name);
-	public abstract String header(String name);
-	public abstract JSONObject objectInput() throws IOException, APIException;
-	public abstract JSONArray arrayInput() throws IOException, APIException;
-	public abstract InputStream binaryInput() throws IOException, APIException;
-	public abstract Reader textInput() throws IOException, APIException;
-	public abstract boolean https();
-
-	public static APIRequest from(HttpServletRequest request) {
-		return new APIRequestServletImpl(request);
+public class TestService {
+	public List<Pet> list(String type) throws JSONException, APIException {
+		if (type == null) {
+			throw new APIException(400, "No type parameter", new JSONObject("{field:'type'}"));
+		}
+		Pet pet = new Pet();
+		pet.setType(type);
+		return Collections.singletonList(pet);
 	}
-
+	public Pet get(int id) {
+		return null;
+	}
+	public UpdateResult create(Pet newPet) {
+		return null;
+	}
+	public void delete(int id, String access_token) {
+	}
+	public void put(int id, Patch<Pet> patch) {
+	}
+	public void patch(int id, Patch<Pet> patch) {
+	}
 }

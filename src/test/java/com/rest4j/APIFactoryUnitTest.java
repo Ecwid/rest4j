@@ -53,7 +53,7 @@ public class APIFactoryUnitTest {
 
 	private void validate(String exceptionMessageSubstring, String xmlFile) {
 		try {
-			new APIFactory(getClass().getResource(xmlFile), "", null, provider).getObject();
+			new APIFactory(getClass().getResource(xmlFile), "", null, provider).createAPI();
 			fail();
 		} catch (ConfigurationException ex) {
 			assertTrue(ex.getMessage().contains(exceptionMessageSubstring));

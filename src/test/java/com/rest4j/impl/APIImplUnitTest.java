@@ -434,7 +434,7 @@ public class APIImplUnitTest {
 				APIImplUnitTest.this.testProp = testProp;
 			}
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("petapi1.xml"), "/api/v2", customMapping, serviceProvider).getObject();
+		api = (APIImpl) new APIFactory(getClass().getResource("petapi1.xml"), "/api/v2", customMapping, serviceProvider).createAPI();
 
 		APIRequest request = mock(APIRequest.class);
 		when(request.method()).thenReturn("PUT");
@@ -453,7 +453,7 @@ public class APIImplUnitTest {
 			public Pet get(int id, String access_token) { return null; }
 			public void put(int id, Pet patched) { }
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("securepetapi.xml"), "/api/v2", customMapping, serviceProvider).getObject();
+		api = (APIImpl) new APIFactory(getClass().getResource("securepetapi.xml"), "/api/v2", customMapping, serviceProvider).createAPI();
 
 		APIRequest request = mock(APIRequest.class);
 		when(request.method()).thenReturn("GET");
@@ -478,7 +478,7 @@ public class APIImplUnitTest {
 			public Pet get(int id, String access_token) { return null; }
 			public void put(int id, Pet patched) { }
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("securepetapi.xml"), "/api/v2", customMapping, serviceProvider).getObject();
+		api = (APIImpl) new APIFactory(getClass().getResource("securepetapi.xml"), "/api/v2", customMapping, serviceProvider).createAPI();
 
 		APIRequest request = mock(APIRequest.class);
 		when(request.method()).thenReturn("PUT");
@@ -503,7 +503,7 @@ public class APIImplUnitTest {
 				throw new PetIndisposedException("Barsik");
 			}
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("petapi-exceptions.xml"), "/api/v2", customMapping, serviceProvider).getObject();
+		api = (APIImpl) new APIFactory(getClass().getResource("petapi-exceptions.xml"), "/api/v2", customMapping, serviceProvider).createAPI();
 
 		APIRequest request = mock(APIRequest.class);
 		when(request.method()).thenReturn("GET");

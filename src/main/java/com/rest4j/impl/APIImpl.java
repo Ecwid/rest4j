@@ -94,7 +94,7 @@ public class APIImpl implements API {
 			throw new APIException(400, "This request can only be sent over HTTPS.");
 		}
 		Object getResult = null;
-		if (request.method().equals("PUT") || request.method().equals("PATCH") || request.method().equals("DELETE")) {
+		if (!request.method().equals("GET")) {
 			APIRequest get = changeMethod(request, "GET");
 			EndpointImpl getEndpoint = findEndpoint(get);
 			if (request.header("If-Match") != null || endpoint.isPatch()) {
