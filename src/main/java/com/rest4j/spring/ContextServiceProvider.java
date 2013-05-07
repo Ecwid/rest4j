@@ -19,6 +19,7 @@ package com.rest4j.spring;
 
 import com.rest4j.ServiceProvider;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -32,8 +33,18 @@ public class ContextServiceProvider implements ServiceProvider, ApplicationConte
 	ApplicationContext context;
 
 	@Override
-	public Object lookup(String name) {
+	public Object lookupService(String name) {
 		return context.getBean(name);
+	}
+
+	@Override
+	public Object lookupMapping(String model, String name) {
+		if (name == null) return null;
+		try {
+			return context.getBean(name);
+		} catch (NoSuchBeanDefinitionException nsbe) {
+			return null;
+		}
 	}
 
 	@Override

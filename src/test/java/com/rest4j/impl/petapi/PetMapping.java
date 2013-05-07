@@ -17,15 +17,13 @@
 
 package com.rest4j.impl.petapi;
 
-import com.rest4j.CustomMapping;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class PetMapping implements CustomMapping {
+public class PetMapping {
 	public Exception customMappingException;
 
 	public List<PetRelation> petRelations(Pet pet) throws Exception {

@@ -38,7 +38,6 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 	// parameters
 	String apiDescriptionXml;
 	String pathPrefix;
-	CustomMapping customMapping;
 	ServiceProvider serviceProvider;
 	List<ObjectFactoryChain> objectFactories = new ArrayList<ObjectFactoryChain>();
 
@@ -60,14 +59,6 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 
 	public void setPathPrefix(String pathPrefix) {
 		this.pathPrefix = pathPrefix;
-	}
-
-	public CustomMapping getCustomMapping() {
-		return customMapping;
-	}
-
-	public void setCustomMapping(CustomMapping customMapping) {
-		this.customMapping = customMapping;
 	}
 
 	public ServiceProvider getServiceProvider() {
@@ -101,7 +92,7 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 					throw new ConfigurationException("Cannot find "+apiDescriptionXml+" in the classpath");
 				}
 			}
-			APIFactory fac = new APIFactory(url, getPathPrefix(), getCustomMapping(), getServiceProvider());
+			APIFactory fac = new APIFactory(url, getPathPrefix(), getServiceProvider());
 			for (ObjectFactoryChain of: getObjectFactories()) {
 				fac.addObjectFactory(of);
 			}

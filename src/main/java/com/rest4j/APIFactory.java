@@ -18,7 +18,6 @@
 package com.rest4j;
 
 import com.rest4j.impl.APIImpl;
-import org.springframework.beans.factory.FactoryBean;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.XMLConstants;
@@ -40,15 +39,13 @@ import java.util.List;
 public class APIFactory {
 	URL apiDescriptionXml;
 	String pathPrefix;
-	CustomMapping customMapping;
 	ServiceProvider serviceProvider;
 	private JAXBContext context;
 	List<ObjectFactoryChain> factories = new ArrayList<ObjectFactoryChain>();
 
-	public APIFactory(URL apiDescriptionXml, String pathPrefix, CustomMapping customMapping, ServiceProvider serviceProvider) {
+	public APIFactory(URL apiDescriptionXml, String pathPrefix, ServiceProvider serviceProvider) {
 		this.apiDescriptionXml = apiDescriptionXml;
 		this.pathPrefix = pathPrefix;
-		this.customMapping = customMapping;
 		this.serviceProvider = serviceProvider;
 		try {
 			this.context = JAXBContext.newInstance("com.rest4j.impl.model");
@@ -69,7 +66,7 @@ public class APIFactory {
 			unmarshaller.setSchema(schema);
 			JAXBElement<com.rest4j.impl.model.API> element = (JAXBElement<com.rest4j.impl.model.API>) unmarshaller.unmarshal(apiDescriptionXml);
 			com.rest4j.impl.model.API root = element.getValue();
-			APIImpl api = new APIImpl(root, pathPrefix, customMapping, serviceProvider);
+			APIImpl api = new APIImpl(root, pathPrefix, serviceProvider);
 			if (factories != null) {
 				for (ObjectFactoryChain of: factories) api.addObjectFactory(of);
 			}

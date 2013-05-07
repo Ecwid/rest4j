@@ -41,26 +41,34 @@ public class APIImpl implements API {
 	final com.rest4j.impl.model.API root;
 	final String pathPrefix;
 	final Marshaller marshaller;
-	final List<EndpointImpl> endpoints = new ArrayList<EndpointImpl>();
+	final List<EndpointMapping> endpoints = new ArrayList<EndpointMapping>();
 	final ServiceProvider serviceProvider;
 	final ResourceFactory resourceFactory;
 
-	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, CustomMapping customMapping, ServiceProvider daoProvider) throws ConfigurationException {
+	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider) throws ConfigurationException {
 		this.pathPrefix = pathPrefix;
 		this.root = root;
-		this.serviceProvider = daoProvider;
-		List<Model> modelConfig = new ArrayList<Model>();
+		this.serviceProvider = serviceProvider;
+
+		// configure and create marshaller
+		List<Marshaller.ModelConfig> modelConfig = new ArrayList<Marshaller.ModelConfig>();
 		for (Object child: root.getEndpointAndModel()) {
 			if (child instanceof Model) {
-				modelConfig.add((Model)child);
+				Model model = (Model) child;
+				Object customMapper = serviceProvider.lookupMapping(model.getName(), model.getMapping());
+				modelConfig.add(new Marshaller.ModelConfig(model, customMapper));
 			}
 		}
-		marshaller = new Marshaller(modelConfig, customMapping);
+		marshaller = new Marshaller(modelConfig);
+
+		// create resourceFactory
 		resourceFactory = new ResourceFactory(marshaller);
+
+		// create endpoint mappings
 		for (Object child: root.getEndpointAndModel()) {
 			if (child instanceof Endpoint) {
 				Endpoint endpoint = (Endpoint)child;
-				endpoints.add(new EndpointImpl(endpoint));
+				endpoints.add(new EndpointMapping(endpoint));
 			}
 		}
 	}
@@ -88,7 +96,7 @@ public class APIImpl implements API {
 					.addHeader("Access-Control-Allow-Methods", getAllowedMethodsString(request))
 					.addHeader("Access-Control-Max-Age", "10000000");
 		}
-		EndpointImpl endpoint = findEndpoint(request);
+		EndpointMapping endpoint = findEndpoint(request);
 
 		if (endpoint.httpsonly && !request.https()) {
 			throw new APIException(400, "This request can only be sent over HTTPS.");
@@ -96,7 +104,7 @@ public class APIImpl implements API {
 		Object getResult = null;
 		if (!request.method().equals("GET")) {
 			APIRequest get = changeMethod(request, "GET");
-			EndpointImpl getEndpoint = findEndpoint(get);
+			EndpointMapping getEndpoint = findEndpoint(get);
 			if (request.header("If-Match") != null || endpoint.isPatch()) {
 				// first perform GET, then decide if we should change the resource
 				getResult = getEndpoint.invokeRaw(request, null);
@@ -122,7 +130,7 @@ public class APIImpl implements API {
 		Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException;
 	}
 
-	class EndpointImpl {
+	class EndpointMapping {
 		Endpoint endpoint;
 		StringWithParamsMatcher pathMatcher;
 		String httpMethod;
@@ -132,11 +140,11 @@ public class APIImpl implements API {
 		public boolean httpsonly;
 		private boolean patch;
 
-		EndpointImpl(Endpoint ep) throws ConfigurationException {
+		EndpointMapping(Endpoint ep) throws ConfigurationException {
 			endpoint = ep;
 			pathMatcher = new StringWithParamsMatcher(ep.getRoute());
 			httpMethod = ep.getHttp().name();
-			service = serviceProvider.lookup(ep.getService().getName());
+			service = serviceProvider.lookupService(ep.getService().getName());
 			httpsonly = ep.isHttpsonly();
 			patch = ep.getBody() != null && ep.getBody().getPatch() != null;
 			if (service == null) {
@@ -176,7 +184,7 @@ public class APIImpl implements API {
 					break;
 				}
 				final Type paramType = paramTypes[i];
-				final FieldImpl writeOnlyField;
+				final FieldMapping writeOnlyField;
 				if (param == null) {
 					// try 'params' param
 					if (paramType == Params.class) {
@@ -237,7 +245,7 @@ public class APIImpl implements API {
 			}
 		}
 
-		private FieldImpl checkFieldAsArgument(String name, Type paramType) throws ConfigurationException {
+		private FieldMapping checkFieldAsArgument(String name, Type paramType) throws ConfigurationException {
 			if (endpoint.getBody() == null || endpoint.getBody().getJson() == null && endpoint.getBody().getPatch() == null)
 				return null;
 
@@ -246,7 +254,7 @@ public class APIImpl implements API {
 			if (jsonType != null) objectType = marshaller.getObjectType(jsonType.getType());
 			else objectType = marshaller.getObjectType(endpoint.getBody().getPatch().getType());
 
-			for (FieldImpl field: objectType.fields) {
+			for (FieldMapping field: objectType.fields) {
 				if (field.name.equals(name) && field.access != FieldAccessType.READONLY) {
 					// both name and type match
 					if (field.type.check(paramType)) return field;
@@ -429,9 +437,9 @@ public class APIImpl implements API {
 		};
 	}
 
-	EndpointImpl findEndpoint(APIRequest request) throws IOException, APIException {
+	EndpointMapping findEndpoint(APIRequest request) throws IOException, APIException {
 		boolean pathFound = false;
-		for (EndpointImpl endpoint: endpoints) {
+		for (EndpointMapping endpoint: endpoints) {
 			Map<String, String> pathParams = endpoint.match(getPath(request));
 			if (pathParams == null) continue;
 			pathFound = true;
@@ -463,7 +471,7 @@ public class APIImpl implements API {
 	@Override
 	public List<String> getAllowedMethods(APIRequest request) throws IOException, APIException {
 		List<String> methods = new ArrayList<String>();
-		for (EndpointImpl endpoint: endpoints) {
+		for (EndpointMapping endpoint: endpoints) {
 			if (endpoint.matches(getPath(request))) {
 				methods.add(endpoint.httpMethod);
 			}

@@ -182,6 +182,12 @@ documentation and client libraries, as well as for query dispatching.
 				receive and return objects of this class. An exception can also be mapped to a JSON model.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="mapping" type="xsd:string" use="optional">
+			<xsd:annotation><xsd:documentation>
+				An optional mapping name for this model. This name is used to lookup the mapping component
+				using the ServiceProvider.lookupMapping(). If not specified, null is passed to lookupMapping().
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="Fields">
@@ -235,11 +241,12 @@ documentation and client libraries, as well as for query dispatching.
 				Property name in the target class.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="mapping" type="xsd:string" use="optional">
+		<xsd:attribute name="mapping-method" type="xsd:string" use="optional">
 			<xsd:annotation><xsd:documentation>
-				Method name in the CustomMapping that this field is mapped to. When reading a field value,
-				the method accepts a single argument of this model type (see model/@class) and returns an object
-				of this field's type.
+				Setter and getter method name in the mapping component this model is mapped to. The getter method
+				accepts a single argument of this model type (see model/@class) and returns an object
+				of this field's type. The getter method with the same name accepts two arguments: the owner object
+				instance and the field value.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="access" type="FieldAccessType" default="readwrite"/>

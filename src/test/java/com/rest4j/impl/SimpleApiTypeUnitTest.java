@@ -17,26 +17,17 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.ConfigurationException;
 import com.rest4j.impl.model.FieldType;
-import com.rest4j.impl.model.Model;
 import com.rest4j.impl.petapi.RelationType;
-import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-import java.util.Collections;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class SimpleApiTypeUnitTest {
-	Marshaller marshaller;
-
-	@Before
-	public void init() throws Exception {
-		marshaller = new Marshaller(Collections.<Model>emptyList(), null);
-	}
 
 	@Test
 	public void testCheck_boolean() throws Exception {

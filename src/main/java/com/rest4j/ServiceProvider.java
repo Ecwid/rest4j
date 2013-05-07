@@ -21,5 +21,6 @@ package com.rest4j;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ServiceProvider {
-	Object lookup(String name);
+	Object lookupService(String name);
+	Object lookupMapping(String model, String name);
 }

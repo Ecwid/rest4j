@@ -24,9 +24,6 @@
 
 	<bean id="api" class="com.rest4j.spring.APIFactoryBean">
 		<property name="apiDescriptionXml" value="com/rest4j/impl/petapi.xml"/>
-		<property name="customMapping">
-			<bean class="com.rest4j.impl.petapi.PetMapping"/>
-		</property>
 		<property name="pathPrefix" value="/api/v2"/>
 		<property name="objectFactories">
 			<list>
@@ -36,6 +33,8 @@
 	</bean>
 
 	<bean id="pets" class="com.rest4j.spring.TestService"/>
+
+	<bean id="petMapping" class="com.rest4j.impl.petapi.PetMapping"/>
 
 	<bean id="controller" class="com.rest4j.spring.Controller">
 		<property name="api" ref="api"/>

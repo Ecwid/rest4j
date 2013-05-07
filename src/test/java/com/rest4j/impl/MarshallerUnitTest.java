@@ -19,17 +19,17 @@ package com.rest4j.impl;
 
 import com.rest4j.APIException;
 import com.rest4j.ConfigurationException;
-import com.rest4j.CustomMapping;
 import com.rest4j.impl.model.API;
 import com.rest4j.impl.model.FieldType;
 import com.rest4j.impl.model.Model;
-import com.rest4j.impl.petapi.*;
+import com.rest4j.impl.petapi.Gender;
+import com.rest4j.impl.petapi.Pet;
+import com.rest4j.impl.petapi.PetMapping;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -37,7 +37,8 @@ import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -45,7 +46,7 @@ import java.util.regex.Pattern;
 public class MarshallerUnitTest {
 
 	private PetMapping customMapping = new PetMapping();
-	List<Model> modelConfig;
+	List<Marshaller.ModelConfig> modelConfig;
 	Marshaller marshaller;
 
 	@Before
@@ -59,13 +60,13 @@ public class MarshallerUnitTest {
 
 		JAXBElement<API> element = (JAXBElement<API>) context.createUnmarshaller().unmarshal(MarshallerUnitTest.class.getResourceAsStream(xml));
 		API root = element.getValue();
-		modelConfig = new ArrayList<Model>();
+		modelConfig = new ArrayList<Marshaller.ModelConfig>();
 		for (Object entry: root.getEndpointAndModel()) {
 			if (entry instanceof Model) {
-				modelConfig.add((Model)entry);
+				modelConfig.add(new Marshaller.ModelConfig((Model)entry, customMapping));
 			}
 		}
-		marshaller = new Marshaller(modelConfig, customMapping);
+		marshaller = new Marshaller(modelConfig);
 	}
 
 	@Test public void testParse_number() throws Exception {

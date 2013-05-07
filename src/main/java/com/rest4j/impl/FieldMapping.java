@@ -18,7 +18,6 @@
 package com.rest4j.impl;
 
 import com.rest4j.APIException;
-import com.rest4j.CustomMapping;
 import com.rest4j.impl.model.FieldAccessType;
 import org.json.JSONObject;
 
@@ -28,7 +27,7 @@ import java.lang.reflect.Method;
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-class FieldImpl {
+class FieldMapping {
 	String name;
 	boolean optional;
 	String mapping; // call getter/setter on a CustomMapping object, not the bean itself
@@ -37,7 +36,7 @@ class FieldImpl {
 	FieldAccessType access;
 
 	ApiType type;
-	CustomMapping customMapping;
+	Object customMapper;
 	Object value; // constant
 
 	public Object unmarshal(Object val, String parent) throws APIException {
@@ -66,7 +65,7 @@ class FieldImpl {
 			if (mapping == null) {
 				propSetter.invoke(inst, type.cast(fieldVal, propSetter.getGenericParameterTypes()[0]));
 			} else {
-				propSetter.invoke(customMapping, inst, type.cast(fieldVal, propSetter.getGenericParameterTypes()[1]));
+				propSetter.invoke(customMapper, inst, type.cast(fieldVal, propSetter.getGenericParameterTypes()[1]));
 			}
 		} catch (IllegalAccessException e) {
 			throw new APIException(500, "Cannot invoke "+propSetter+" "+e.getMessage());
@@ -97,7 +96,7 @@ class FieldImpl {
 			if (mapping == null) {
 				return propGetter.invoke(inst);
 			} else {
-				return propGetter.invoke(customMapping, inst);
+				return propGetter.invoke(customMapper, inst);
 			}
 		} catch (IllegalAccessException e) {
 			throw new APIException(500, "Cannot invoke "+propGetter+" "+e.getMessage());

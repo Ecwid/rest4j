@@ -34,10 +34,10 @@ import java.util.HashMap;
 class ObjectApiType extends ApiType { // ComplexField
 	String name;
 	Class clz;
-	FieldImpl[] fields;
+	FieldMapping[] fields;
 	ObjectFactory factory;
 
-	ObjectApiType(String name, Class clz, FieldImpl[] fields, ObjectFactory factory) {
+	ObjectApiType(String name, Class clz, FieldMapping[] fields, ObjectFactory factory) {
 		this.name = name;
 		this.clz = clz;
 		this.fields = fields;
@@ -77,13 +77,13 @@ class ObjectApiType extends ApiType { // ComplexField
 		if (inst == null) return null;
 
 		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic
-		for (FieldImpl field : fields) {
+		for (FieldMapping field : fields) {
 			if (field.mapping != null || field.access == FieldAccessType.READONLY) continue;
 			Object fieldVal = object.opt(field.name);
 			fieldVal = field.unmarshal(fieldVal, name);
 			field.set(inst, fieldVal);
 		}
-		for (FieldImpl field : fields) {
+		for (FieldMapping field : fields) {
 			if (field.mapping == null || field.access == FieldAccessType.READONLY) continue;
 			Object fieldVal = object.opt(field.name);
 			fieldVal = field.unmarshal(fieldVal, name);
@@ -99,7 +99,7 @@ class ObjectApiType extends ApiType { // ComplexField
 			throw new APIException(500, "Unexpected value "+val+" where "+clz+" was expected");
 		}
 		JSONObject json = new JSONObject();
-		for (FieldImpl field : fields) {
+		for (FieldMapping field : fields) {
 			if (field.access == FieldAccessType.WRITEONLY) continue;
 			Object fieldValue = field.value == null ? field.get(val) : field.value;
 			fieldValue = field.marshal(fieldValue);
@@ -120,16 +120,16 @@ class ObjectApiType extends ApiType { // ComplexField
 		Object patched = Util.deepClone(original);
 
 		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic
-		ArrayList<FieldImpl> ordered = new ArrayList<FieldImpl>();
-		for (FieldImpl field : fields) {
+		ArrayList<FieldMapping> ordered = new ArrayList<FieldMapping>();
+		for (FieldMapping field : fields) {
 			if (field.mapping != null || field.access == FieldAccessType.READONLY) continue;
 			ordered.add(field);
 		}
-		for (FieldImpl field : fields) {
+		for (FieldMapping field : fields) {
 			if (field.mapping == null || field.access == FieldAccessType.READONLY) continue;
 			ordered.add(field);
 		}
-		for (FieldImpl field : ordered) {
+		for (FieldMapping field : ordered) {
 			if (object.has(field.name)) {
 				Object fieldVal = object.opt(field.name);
 				fieldVal = field.unmarshal(fieldVal, name);

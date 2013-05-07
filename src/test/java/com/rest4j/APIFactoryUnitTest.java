@@ -29,8 +29,13 @@ public class APIFactoryUnitTest {
 	Object dao = new Object() {};
 	ServiceProvider provider = new ServiceProvider() {
 		@Override
-		public Object lookup(String name) {
+		public Object lookupService(String name) {
 			return dao;
+		}
+
+		@Override
+		public Object lookupMapping(String model, String name) {
+			return null;
 		}
 	};
 
@@ -53,10 +58,10 @@ public class APIFactoryUnitTest {
 
 	private void validate(String exceptionMessageSubstring, String xmlFile) {
 		try {
-			new APIFactory(getClass().getResource(xmlFile), "", null, provider).createAPI();
+			new APIFactory(getClass().getResource(xmlFile), "", provider).createAPI();
 			fail();
 		} catch (ConfigurationException ex) {
-			assertTrue(ex.getMessage().contains(exceptionMessageSubstring));
+			assertTrue(ex.getMessage(), ex.getMessage().contains(exceptionMessageSubstring));
 		}
 	}
 

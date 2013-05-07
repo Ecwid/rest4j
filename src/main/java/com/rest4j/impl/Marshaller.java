@@ -18,7 +18,6 @@
 package com.rest4j.impl;
 
 import com.rest4j.ConfigurationException;
-import com.rest4j.CustomMapping;
 import com.rest4j.ObjectFactory;
 import com.rest4j.ObjectFactoryChain;
 import com.rest4j.impl.model.*;
@@ -42,7 +41,6 @@ import java.util.regex.Pattern;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class Marshaller {
-	CustomMapping customMapping;
 	Map<String, ObjectApiType> models = new HashMap<String, ObjectApiType>();
 	ArrayList<ObjectFactoryChain> factories = new ArrayList<ObjectFactoryChain>();
 	ArrayList<ObjectFactory> chain = new ArrayList<ObjectFactory>();
@@ -63,10 +61,21 @@ public class Marshaller {
 		}
 	};
 
-	Marshaller(List<Model> modelConfig, CustomMapping customMapping) throws ConfigurationException {
+	public static class ModelConfig {
+		Model model;
+		Object customMapper;
+
+		public ModelConfig(Model model, Object customMapping) {
+			this.model = model;
+			this.customMapper = customMapping;
+		}
+	}
+
+	Marshaller(List<ModelConfig> modelConfigs) throws ConfigurationException {
 		chain.add(defaultFactory);
-		this.customMapping = customMapping;
-		for (Model model : modelConfig) {
+		for (ModelConfig modelConfig : modelConfigs) {
+			Model model = modelConfig.model;
+			Object customMapper = modelConfig.customMapper;
 			Class clz;
 			try {
 				clz = Class.forName(model.getClazz());
@@ -83,18 +92,18 @@ public class Marshaller {
 			} catch (IntrospectionException e) {
 				throw new ConfigurationException("Cannot introspect bean " + clz, e);
 			}
-			FieldImpl[] fields = new FieldImpl[model.getFields().getSimpleAndComplex().size()];
+			FieldMapping[] fields = new FieldMapping[model.getFields().getSimpleAndComplex().size()];
 			int i = 0;
 			for (Field fld : model.getFields().getSimpleAndComplex()) {
-				FieldImpl fieldImpl = new FieldImpl();
+				FieldMapping fieldImpl = new FieldMapping();
 				fields[i] = fieldImpl;
-				fieldImpl.customMapping = customMapping;
+				fieldImpl.customMapper = customMapper;
 				fieldImpl.name = fld.getName();
 				fieldImpl.optional = fld.isOptional();
 				fieldImpl.access = fld.getAccess();
 
 				String forClause = " for " + model.getName() + "." + fld.getName();
-				if (fld.getMapping() == null) {
+				if (fld.getMappingMethod() == null) {
 					String propName;
 					if (fld.getProp() == null) propName = fld.getName();
 					else propName = fld.getProp();
@@ -107,8 +116,8 @@ public class Marshaller {
 						fieldImpl.propSetter = descr.getWriteMethod();
 					}
 				} else {
-					fieldImpl.mapping = fld.getMapping();
-					for (Method method : customMapping.getClass().getMethods()) {
+					fieldImpl.mapping = fld.getMappingMethod();
+					for (Method method : customMapper.getClass().getMethods()) {
 						if (method.getName().equals(fieldImpl.mapping)) {
 							if (method.getParameterTypes().length <= 0 || method.getParameterTypes().length > 2) {
 								throw new ConfigurationException("Wrong accessor " + method.getName() + " parameter count: " + method.getParameterTypes().length + forClause + ". Should be one parameter (getter) or two parameters (setter).");
@@ -146,10 +155,13 @@ public class Marshaller {
 		}
 
 		// fill model interconnections and type-check
-		for (Model model : modelConfig) {
+		for (ModelConfig modelConfig : modelConfigs) {
+			Model model = modelConfig.model;
+			Object customMapper = modelConfig.customMapper;
+
 			ObjectApiType modelImpl = models.get(model.getName());
 			for (int i = 0; i < modelImpl.fields.length; i++) {
-				FieldImpl fieldImpl = modelImpl.fields[i];
+				FieldMapping fieldImpl = modelImpl.fields[i];
 				Field fld = model.getFields().getSimpleAndComplex().get(i);
 
 				String inField = " in field " + modelImpl.name + "." + fieldImpl.name;
@@ -196,8 +208,9 @@ public class Marshaller {
 				}
 
 				if (fieldImpl.mapping != null) {
-					if (customMapping == null)
-						throw new ConfigurationException("'mapping' attribute used when no CustomMapping supplied" + inField);
+					if (customMapper == null)
+						throw new ConfigurationException("'mapping' attribute used when no custom mapper supplied " +
+								inField + ". Use 'mapping' attribute of <model> to specify custom mapper object.");
 					if (fieldImpl.propGetter != null) {
 						fieldImpl.type.check(fieldImpl.propGetter.getGenericReturnType());
 					}

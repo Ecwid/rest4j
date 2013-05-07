@@ -18,7 +18,7 @@
 <api xmlns="http://rest4j.com/api-description">
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet">
 		<fields>
-			<complex name="relations" array="true" type="XXX" mapping="petRelations"/>
+			<complex name="relations" array="true" type="XXX" mapping-method="petRelations"/>
 		</fields>
 	</model>
 </api>
