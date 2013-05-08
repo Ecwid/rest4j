@@ -61,8 +61,9 @@ public class APIException extends Exception {
 	}
 
 	public void outputHeaders(HttpServletResponse response) throws IOException {
-		response.sendError(status, getMessage());
+		response.setStatus(status, getMessage());
 		headers.outputHeaders(response);
+		response.setHeader("Cache-control", "must-revalidate,no-cache,no-store");
 	}
 
 	public String getHeader(String name) {

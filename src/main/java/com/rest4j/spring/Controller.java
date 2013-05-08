@@ -42,7 +42,7 @@ public class Controller implements org.springframework.web.servlet.mvc.Controlle
 			try {
 				e.outputHeaders(httpServletResponse);
 			} catch (IllegalStateException ex) {
-				log.warning("APIException while response already commited: " + e.getMessage());
+				log.warning("APIException while response already committed: " + e.getMessage());
 				throw ex;
 			}
 			if (e.getJSONResponse() != null) {
