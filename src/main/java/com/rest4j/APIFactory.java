@@ -41,8 +41,19 @@ public class APIFactory {
 	String pathPrefix;
 	ServiceProvider serviceProvider;
 	private JAXBContext context;
-	List<ObjectFactoryChain> factories = new ArrayList<ObjectFactoryChain>();
+	List<ObjectFactory> factories = new ArrayList<ObjectFactory>();
 
+	/**
+	 * Create a factory that can be used to create API objects. This constructor does not accept ObjectFactories.
+	 * If you want customize object creation, pass ObjectFactory to the {@link #addObjectFactory(ObjectFactory)}
+	 * prior to the createAPI() call.
+	 *
+	 * @param apiDescriptionXml An URL to the API description conforming to the api.xsd schema.
+	 * @param pathPrefix An prefix that all requests should have. The prefix is removed prior matching against
+	 *                   endpoint route specified in the API description XML.
+	 * @param serviceProvider Used to lookup services and custom field mappers during initialization step.
+	 *                        Services are looked up once during the call to createAPI().
+	 */
 	public APIFactory(URL apiDescriptionXml, String pathPrefix, ServiceProvider serviceProvider) {
 		this.apiDescriptionXml = apiDescriptionXml;
 		this.pathPrefix = pathPrefix;
@@ -54,7 +65,7 @@ public class APIFactory {
 		}
 	}
 
-	public void addObjectFactory(ObjectFactoryChain of) {
+	public void addObjectFactory(ObjectFactory of) {
 		factories.add(of);
 	}
 
@@ -66,10 +77,8 @@ public class APIFactory {
 			unmarshaller.setSchema(schema);
 			JAXBElement<com.rest4j.impl.model.API> element = (JAXBElement<com.rest4j.impl.model.API>) unmarshaller.unmarshal(apiDescriptionXml);
 			com.rest4j.impl.model.API root = element.getValue();
-			APIImpl api = new APIImpl(root, pathPrefix, serviceProvider);
-			if (factories != null) {
-				for (ObjectFactoryChain of: factories) api.addObjectFactory(of);
-			}
+			APIImpl api;
+			api = new APIImpl(root, pathPrefix, serviceProvider, factories.toArray(new ObjectFactory[factories.size()]));
 			return api;
 		} catch (javax.xml.bind.UnmarshalException e) {
 			if (e.getLinkedException() instanceof SAXParseException) {

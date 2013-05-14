@@ -549,6 +549,33 @@ public class APIImplUnitTest {
 		}
 	}
 
+	@Test public void testServer_null_primitive_param() throws Exception {
+		pets = new Object() {
+			public List<Pet> list(String type) { return null; }
+			public Pet get(int id) { return null; }
+			public UpdateResult create(Pet newPet, double weight /* weight should not be null */) {
+				return null;
+			}
+			public void delete(int id, String access_token) {}
+			public void put(int id, Patch<Pet> patch) {}
+			public void patch(int id, Patch<Pet> patch) {}
+		};
+		api = new APIImpl(root, "/api/v2", serviceProvider);
+		APIRequest request = mock(APIRequest.class);
+		when(request.method()).thenReturn("POST");
+		when(request.path()).thenReturn("/api/v2/pets");
+		when(request.param("access_token")).thenReturn("TOKEN");
+		when(request.objectInput()).thenReturn(new JSONObject("{id:123,name:'max',gender:'male',writeonly:true}"));
+
+		try {
+			api.serve(request);
+			fail();
+		} catch (APIException ex) {
+			assertEquals(400, ex.getStatus());
+			assertEquals("Field Pet.weight value is absent", ex.getMessage());
+		}
+	}
+
 	private String getHeader(APIResponse response, String name) {
 		for (Headers.Header header: ((APIResponseImpl)response).headers.headers) {
 			if (header.name.equalsIgnoreCase(name)) return header.value;

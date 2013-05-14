@@ -22,6 +22,7 @@ import com.rest4j.*;
 import com.rest4j.impl.model.ContentType;
 import com.rest4j.impl.model.*;
 import com.rest4j.impl.model.Error;
+import com.rest4j.ObjectFactory;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 
@@ -42,13 +43,15 @@ public class APIImpl implements API {
 	final String pathPrefix;
 	final Marshaller marshaller;
 	final List<EndpointMapping> endpoints = new ArrayList<EndpointMapping>();
-	final ServiceProvider serviceProvider;
 	final ResourceFactory resourceFactory;
 
 	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider) throws ConfigurationException {
+		this(root, pathPrefix, serviceProvider, new ObjectFactory[0]);
+	}
+
+	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories) throws ConfigurationException {
 		this.pathPrefix = pathPrefix;
 		this.root = root;
-		this.serviceProvider = serviceProvider;
 
 		// configure and create marshaller
 		List<Marshaller.ModelConfig> modelConfig = new ArrayList<Marshaller.ModelConfig>();
@@ -59,7 +62,7 @@ public class APIImpl implements API {
 				modelConfig.add(new Marshaller.ModelConfig(model, customMapper));
 			}
 		}
-		marshaller = new Marshaller(modelConfig);
+		marshaller = new Marshaller(modelConfig, factories);
 
 		// create resourceFactory
 		resourceFactory = new ResourceFactory(marshaller);
@@ -68,13 +71,9 @@ public class APIImpl implements API {
 		for (Object child: root.getEndpointAndModel()) {
 			if (child instanceof Endpoint) {
 				Endpoint endpoint = (Endpoint)child;
-				endpoints.add(new EndpointMapping(endpoint));
+				endpoints.add(new EndpointMapping(endpoint, serviceProvider));
 			}
 		}
-	}
-
-	public void addObjectFactory(ObjectFactoryChain of) {
-		marshaller.addObjectFactory(of);
 	}
 
 	@Override
@@ -140,7 +139,7 @@ public class APIImpl implements API {
 		public boolean httpsonly;
 		private boolean patch;
 
-		EndpointMapping(Endpoint ep) throws ConfigurationException {
+		EndpointMapping(Endpoint ep, ServiceProvider serviceProvider) throws ConfigurationException {
 			endpoint = ep;
 			pathMatcher = new StringWithParamsMatcher(ep.getRoute());
 			httpMethod = ep.getHttp().name();
@@ -184,8 +183,8 @@ public class APIImpl implements API {
 					break;
 				}
 				final Type paramType = paramTypes[i];
-				final FieldMapping writeOnlyField;
 				if (param == null) {
+					final FieldMapping fieldMapping;
 					// try 'params' param
 					if (paramType == Params.class) {
 						if (paramsParamFound) {
@@ -198,13 +197,17 @@ public class APIImpl implements API {
 								return params;
 							}
 						};
-					} else if ((writeOnlyField = checkFieldAsArgument(name, paramType)) != null) {
+					} else if ((fieldMapping = checkFieldAsArgument(name, paramType)) != null) {
 						args[i] = new ArgHandler() {
 							@Override
 							public Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException {
 								Object val = request.objectInput().opt(name);
-								val = writeOnlyField.unmarshal(val, "body");
-								return writeOnlyField.type.cast(val, paramType);
+								val = fieldMapping.unmarshal(val);
+								try {
+									return fieldMapping.type.cast(val, paramType);
+								} catch (NullPointerException npe) {
+									throw new APIException(400, "Field "+fieldMapping.parent+"."+name+" value is absent");
+								}
 							}
 						};
 					} else {
@@ -246,21 +249,22 @@ public class APIImpl implements API {
 		}
 
 		private FieldMapping checkFieldAsArgument(String name, Type paramType) throws ConfigurationException {
-			if (endpoint.getBody() == null || endpoint.getBody().getJson() == null && endpoint.getBody().getPatch() == null)
-				return null;
+			final ObjectApiType objectType = getBodyApiType();
 
-			JsonType jsonType = endpoint.getBody().getJson();
+			if (objectType == null) return null;
+			return objectType.checkFieldAsArgument(name, paramType);
+		}
+
+		private ObjectApiType getBodyApiType() {
 			final ObjectApiType objectType;
-			if (jsonType != null) objectType = marshaller.getObjectType(jsonType.getType());
-			else objectType = marshaller.getObjectType(endpoint.getBody().getPatch().getType());
-
-			for (FieldMapping field: objectType.fields) {
-				if (field.name.equals(name) && field.access != FieldAccessType.READONLY) {
-					// both name and type match
-					if (field.type.check(paramType)) return field;
-				}
+			if (endpoint.getBody() == null || endpoint.getBody().getJson() == null && endpoint.getBody().getPatch() == null) {
+				objectType = null;
+			} else {
+				JsonType jsonType = endpoint.getBody().getJson();
+				if (jsonType != null) objectType = marshaller.getObjectType(jsonType.getType());
+				else objectType = marshaller.getObjectType(endpoint.getBody().getPatch().getType());
 			}
-			return null;
+			return objectType;
 		}
 
 		private ArgHandler checkBodyType(ContentType contentType, Type type) throws ConfigurationException {

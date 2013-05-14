@@ -39,7 +39,7 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 	String apiDescriptionXml;
 	String pathPrefix;
 	ServiceProvider serviceProvider;
-	List<ObjectFactoryChain> objectFactories = new ArrayList<ObjectFactoryChain>();
+	List<ObjectFactory> objectFactories = new ArrayList<ObjectFactory>();
 
 	// state
 	API api;
@@ -74,11 +74,11 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 		this.serviceProvider = serviceProvider;
 	}
 
-	public List<ObjectFactoryChain> getObjectFactories() {
+	public List<ObjectFactory> getObjectFactories() {
 		return objectFactories;
 	}
 
-	public void setObjectFactories(List<ObjectFactoryChain> objectFactories) {
+	public void setObjectFactories(List<ObjectFactory> objectFactories) {
 		this.objectFactories = objectFactories;
 	}
 
@@ -93,7 +93,7 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 				}
 			}
 			APIFactory fac = new APIFactory(url, getPathPrefix(), getServiceProvider());
-			for (ObjectFactoryChain of: getObjectFactories()) {
+			for (ObjectFactory of: getObjectFactories()) {
 				fac.addObjectFactory(of);
 			}
 			api = fac.createAPI();

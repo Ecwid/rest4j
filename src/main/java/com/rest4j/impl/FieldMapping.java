@@ -18,17 +18,20 @@
 package com.rest4j.impl;
 
 import com.rest4j.APIException;
-import com.rest4j.impl.model.FieldAccessType;
+import com.rest4j.ConfigurationException;
+import com.rest4j.impl.model.*;
 import org.json.JSONObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
 class FieldMapping {
 	String name;
+	String parent;
 	boolean optional;
 	String mapping; // call getter/setter on a CustomMapping object, not the bean itself
 	Method propGetter;
@@ -38,8 +41,38 @@ class FieldMapping {
 	ApiType type;
 	Object customMapper;
 	Object value; // constant
+	Field field;
+	Type propType;
 
-	public Object unmarshal(Object val, String parent) throws APIException {
+	public FieldMapping(Marshaller marshaller, Field fld, Object customMapper, String parent) throws ConfigurationException {
+		this.customMapper = customMapper;
+		name = fld.getName();
+		this.parent = parent;
+		optional = fld.isOptional();
+		access = fld.getAccess();
+		field = fld;
+		mapping = fld.getMappingMethod();
+
+		if (fld instanceof SimpleField) {
+			SimpleField simple = (SimpleField) field;
+			if (isConstant()) {
+				// this field should have constant value
+				if (simple.isArray()) {
+					throw new ConfigurationException("Field " + name + " cannot be an array and have 'value' attribute at the same time");
+				}
+				if (simple.getValues() != null) {
+					throw new ConfigurationException("Field " + name + " cannot have 'values' tag and a 'value' attribute at the same time");
+				}
+				if (simple.getDefault() != null) {
+					throw new ConfigurationException("Field " + name + " cannot have 'default' and 'value' attributes at the same time");
+				}
+				value = marshaller.parse(simple.getValue(), simple.getType());
+			}
+		}
+
+	}
+
+	public Object unmarshal(Object val) throws APIException {
 		if (JSONObject.NULL == val) {
 			if (optional) return null;
 			throw new APIException(400, "Field " + parent + "." + name + " cannot be null");
@@ -63,10 +96,27 @@ class FieldMapping {
 		if (propSetter == null) return; // the field is probably mapped to a Service method argument
 		try {
 			if (mapping == null) {
-				propSetter.invoke(inst, type.cast(fieldVal, propSetter.getGenericParameterTypes()[0]));
+				if (propType == null) {
+					propType = propSetter.getGenericParameterTypes()[0];
+				}
+				try {
+					fieldVal = type.cast(fieldVal, propType);
+				} catch (NullPointerException npe) {
+					throw new APIException(400, "Field " + parent + "." + name + " value is absent");
+				}
+				propSetter.invoke(inst, fieldVal);
 			} else {
-				propSetter.invoke(customMapper, inst, type.cast(fieldVal, propSetter.getGenericParameterTypes()[1]));
+				if (propType == null) {
+					propType = propSetter.getGenericParameterTypes()[1];
+				}
+				try {
+					fieldVal = type.cast(fieldVal, propType);
+				} catch (NullPointerException npe) {
+					throw new APIException(400, "Field " + parent + "." + name + " value is absent");
+				}
+				propSetter.invoke(customMapper, inst, fieldVal);
 			}
+
 		} catch (IllegalAccessException e) {
 			throw new APIException(500, "Cannot invoke "+propSetter+" "+e.getMessage());
 		} catch (InvocationTargetException e) {
@@ -109,5 +159,57 @@ class FieldMapping {
 			}
 			throw new RuntimeException("Cannot get "+name, e.getTargetException());
 		}
+	}
+
+	boolean isConstant() {
+		return field instanceof SimpleField && ((SimpleField)field).getValue() != null;
+	}
+
+	void link(Marshaller marshaller) throws ConfigurationException {
+		String inField = " in field " + name + "." + name;
+
+		ApiType elementType;
+		if (field instanceof ComplexField) {
+			ComplexField complex = (ComplexField) field;
+			ObjectApiType reference = marshaller.getObjectType(complex.getType());
+			if (reference == null)
+				throw new ConfigurationException("Field " + field.getName() + " type not found: " + complex.getType());
+			elementType = reference;
+		} else {
+			SimpleField simple = (SimpleField) field;
+			String values[] = null;
+			if (simple.getValues() != null && simple.getType() == FieldType.STRING) {
+				values = new String[simple.getValues().getValue().size()];
+				for (int j = 0; j < values.length; j++) {
+					values[j] = simple.getValues().getValue().get(j);
+				}
+				if (isConstant()) {
+					if (simple.getType() == FieldType.STRING) {
+						values = new String[]{simple.getValue()};
+					}
+				}
+			}
+			elementType = SimpleApiType.create(simple.getType(), marshaller.parse(simple.getDefault(), simple.getType()), values);
+		}
+
+		if (field.isArray()) {
+			type = new ArrayApiType(elementType);
+		} else {
+			type = elementType;
+		}
+
+		if (mapping != null) {
+			if (customMapper == null)
+				throw new ConfigurationException("'mapping' attribute used when no custom mapper supplied " +
+						inField + ". Use 'mapping' attribute of <model> to specify custom mapper object.");
+			if (propGetter != null) {
+				type.check(propGetter.getGenericReturnType());
+			}
+			if (propSetter != null) {
+				Type[] genericParameterTypes = propSetter.getGenericParameterTypes();
+				type.check(genericParameterTypes[genericParameterTypes.length - 1]);
+			}
+		}
+
 	}
 }

@@ -41,7 +41,12 @@ class NumberApiType extends SimpleApiType {
 
 	@Override
 	Object cast(Object value, Type javaClass) {
-		if (value == null) return null;
+		if (value == null) {
+			if (javaClass == int.class || javaClass == double.class || javaClass == long.class) {
+				throw new NullPointerException();
+			}
+			return null;
+		}
 		if (value instanceof Number) {
 			Number numValue = (Number) value;
 			if (javaClass == Integer.class || javaClass == int.class) return numValue.intValue();

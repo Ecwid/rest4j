@@ -17,6 +17,7 @@
 
 package com.rest4j;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
@@ -29,6 +30,5 @@ public interface ObjectFactoryChain {
 	@Nullable Object createInstance(
 			@Nonnull String modelName,
 			@Nonnull Class clz,
-			@Nonnull JSONObject object,
-			@Nonnull ObjectFactory next);
+			@Nonnull JSONObject object) throws JSONException;
 }

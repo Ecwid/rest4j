@@ -41,7 +41,10 @@ class BooleanApiType extends SimpleApiType {
 
 	@Override
 	Object cast(Object value, Type javaClass) {
-		if (value == null) return null;
+		if (value == null) {
+			if (javaClass == boolean.class) throw new NullPointerException();
+			return null;
+		}
 		return value;
 	}
 

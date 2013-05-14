@@ -18,20 +18,14 @@
 package com.rest4j.impl;
 
 import com.rest4j.ConfigurationException;
-import com.rest4j.ObjectFactory;
 import com.rest4j.ObjectFactoryChain;
-import com.rest4j.impl.model.*;
+import com.rest4j.impl.model.FieldType;
+import com.rest4j.impl.model.Model;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,9 +36,7 @@ import java.util.regex.Pattern;
  */
 public class Marshaller {
 	Map<String, ObjectApiType> models = new HashMap<String, ObjectApiType>();
-	ArrayList<ObjectFactoryChain> factories = new ArrayList<ObjectFactoryChain>();
-	ArrayList<ObjectFactory> chain = new ArrayList<ObjectFactory>();
-	static final ObjectFactory defaultFactory = new ObjectFactory() {
+	ObjectFactoryChain chain = new ObjectFactoryChain() {
 		@Nullable
 		@Override
 		public Object createInstance(@Nonnull String modelName, @Nonnull Class clz, @Nonnull JSONObject object) {
@@ -72,7 +64,17 @@ public class Marshaller {
 	}
 
 	Marshaller(List<ModelConfig> modelConfigs) throws ConfigurationException {
-		chain.add(defaultFactory);
+		this(modelConfigs, new com.rest4j.ObjectFactory[0]);
+	}
+
+	Marshaller(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory factory) throws ConfigurationException {
+		this(modelConfigs, new com.rest4j.ObjectFactory[]{factory});
+	}
+
+	Marshaller(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories) throws ConfigurationException {
+		for (com.rest4j.ObjectFactory of: factories) {
+			addObjectFactory(of);
+		}
 		for (ModelConfig modelConfig : modelConfigs) {
 			Model model = modelConfig.model;
 			Object customMapper = modelConfig.customMapper;
@@ -83,148 +85,15 @@ public class Marshaller {
 				throw new ConfigurationException("Cannot find class " + model.getClazz());
 			}
 
-			Map<String, PropertyDescriptor> descriptors = new HashMap<String, PropertyDescriptor>();
-			try {
-				BeanInfo info = Introspector.getBeanInfo(clz);
-				for (PropertyDescriptor descr : info.getPropertyDescriptors()) {
-					descriptors.put(descr.getName().toLowerCase(), descr);
-				}
-			} catch (IntrospectionException e) {
-				throw new ConfigurationException("Cannot introspect bean " + clz, e);
-			}
-			FieldMapping[] fields = new FieldMapping[model.getFields().getSimpleAndComplex().size()];
-			int i = 0;
-			for (Field fld : model.getFields().getSimpleAndComplex()) {
-				FieldMapping fieldImpl = new FieldMapping();
-				fields[i] = fieldImpl;
-				fieldImpl.customMapper = customMapper;
-				fieldImpl.name = fld.getName();
-				fieldImpl.optional = fld.isOptional();
-				fieldImpl.access = fld.getAccess();
-
-				String forClause = " for " + model.getName() + "." + fld.getName();
-				if (fld.getMappingMethod() == null) {
-					String propName;
-					if (fld.getProp() == null) propName = fld.getName();
-					else propName = fld.getProp();
-					PropertyDescriptor descr = descriptors.get(propName.toLowerCase());
-					if (descr == null) {
-						if (fld.getAccess() != FieldAccessType.WRITEONLY && !isConstant(fld))
-							throw new ConfigurationException("Cannot find property " + propName + " in class " + clz);
-					} else {
-						fieldImpl.propGetter = descr.getReadMethod();
-						fieldImpl.propSetter = descr.getWriteMethod();
-					}
-				} else {
-					fieldImpl.mapping = fld.getMappingMethod();
-					for (Method method : customMapper.getClass().getMethods()) {
-						if (method.getName().equals(fieldImpl.mapping)) {
-							if (method.getParameterTypes().length <= 0 || method.getParameterTypes().length > 2) {
-								throw new ConfigurationException("Wrong accessor " + method.getName() + " parameter count: " + method.getParameterTypes().length + forClause + ". Should be one parameter (getter) or two parameters (setter).");
-							}
-							Class paramType = method.getParameterTypes()[0];
-							if (paramType != clz) {
-								throw new ConfigurationException("Wrong accessor '" + method.getName() + "' parameter type: " + paramType + "; expected " + clz + forClause);
-							}
-							if (method.getParameterTypes().length == 1) {
-								if (fieldImpl.propGetter != null) {
-									throw new ConfigurationException("Ambiguous getter '" + method.getName() + "'" + forClause);
-								}
-								if (method.getReturnType() == void.class) {
-									throw new ConfigurationException("Void return value of getter '" + method.getName() + "'" + forClause);
-								}
-								fieldImpl.propGetter = method;
-							} else {
-								if (fieldImpl.propSetter != null) {
-									throw new ConfigurationException("Ambiguous setter '" + method.getName() + "'" + forClause);
-								}
-								if (method.getReturnType() != void.class) {
-									throw new ConfigurationException("Non-void return value " + method.getReturnType() + " of setter '" + method.getName() + "'" + forClause);
-								}
-								fieldImpl.propSetter = method;
-							}
-						}
-					}
-				}
-				if (fieldImpl.propGetter == null && fld.getAccess() != FieldAccessType.WRITEONLY && !isConstant(fld)) {
-					throw new ConfigurationException("No getter " + forClause + ", but it is not declared as writeonly. Use access='writeonly' in <complex> and <simple> tags.");
-				}
-				fields[i++] = fieldImpl;
-			}
-			models.put(model.getName(), new ObjectApiType(model.getName(), clz, fields, getObjectFactory()));
+			models.put(model.getName(), new ObjectApiType(this, model.getName(), clz, model, customMapper, chain));
 		}
 
 		// fill model interconnections and type-check
 		for (ModelConfig modelConfig : modelConfigs) {
 			Model model = modelConfig.model;
-			Object customMapper = modelConfig.customMapper;
-
 			ObjectApiType modelImpl = models.get(model.getName());
-			for (int i = 0; i < modelImpl.fields.length; i++) {
-				FieldMapping fieldImpl = modelImpl.fields[i];
-				Field fld = model.getFields().getSimpleAndComplex().get(i);
-
-				String inField = " in field " + modelImpl.name + "." + fieldImpl.name;
-
-				ApiType elementType;
-				if (fld instanceof ComplexField) {
-					ComplexField complex = (ComplexField) fld;
-					ObjectApiType reference = models.get(complex.getType());
-					if (reference == null)
-						throw new ConfigurationException("Field " + fld.getName() + " type not found: " + complex.getType());
-					elementType = reference;
-				} else {
-					SimpleField simple = (SimpleField) fld;
-					String values[] = null;
-					if (simple.getValues() != null && simple.getType() == FieldType.STRING) {
-						values = new String[simple.getValues().getValue().size()];
-						for (int j = 0; j < values.length; j++) {
-							values[j] = simple.getValues().getValue().get(j);
-						}
-					}
-					if (isConstant(simple)) {
-						// this field should have constant value
-						if (simple.isArray()) {
-							throw new ConfigurationException("Field " + fld.getName() + " cannot be an array and have 'value' attribute at the same time");
-						}
-						if (simple.getValues() != null) {
-							throw new ConfigurationException("Field " + fld.getName() + " cannot have 'values' tag and a 'value' attribute at the same time");
-						}
-						if (simple.getDefault() != null) {
-							throw new ConfigurationException("Field " + fld.getName() + " cannot have 'default' and 'value' attributes at the same time");
-						}
-						if (simple.getType() == FieldType.STRING) {
-							values = new String[]{simple.getValue()};
-						}
-						fieldImpl.value = parse(simple.getValue(), simple.getType());
-					}
-					elementType = SimpleApiType.create(simple.getType(), parse(simple.getDefault(), simple.getType()), values);
-				}
-
-				if (fld.isArray()) {
-					fieldImpl.type = new ArrayApiType(elementType);
-				} else {
-					fieldImpl.type = elementType;
-				}
-
-				if (fieldImpl.mapping != null) {
-					if (customMapper == null)
-						throw new ConfigurationException("'mapping' attribute used when no custom mapper supplied " +
-								inField + ". Use 'mapping' attribute of <model> to specify custom mapper object.");
-					if (fieldImpl.propGetter != null) {
-						fieldImpl.type.check(fieldImpl.propGetter.getGenericReturnType());
-					}
-					if (fieldImpl.propSetter != null) {
-						Type[] genericParameterTypes = fieldImpl.propSetter.getGenericParameterTypes();
-						fieldImpl.type.check(genericParameterTypes[genericParameterTypes.length - 1]);
-					}
-				}
-			}
+			modelImpl.link();
 		}
-	}
-
-	private boolean isConstant(Field fld) {
-		return fld instanceof SimpleField && ((SimpleField)fld).getValue() != null;
 	}
 
 	public ObjectApiType getObjectType(String model) {
@@ -269,20 +138,16 @@ public class Marshaller {
 		}
 	}
 
-	public void addObjectFactory(ObjectFactoryChain of) {
-		final int i = factories.size();
-		factories.add(of);
-		chain.add(i, new ObjectFactory() {
+	private void addObjectFactory(final com.rest4j.ObjectFactory factory) {
+		final ObjectFactoryChain nextChain = chain;
+		chain = new ObjectFactoryChain() {
 
 			@Nullable
 			@Override
-			public Object createInstance(@Nonnull String modelName, @Nonnull Class clz, @Nonnull JSONObject object) {
-				return factories.get(i).createInstance(modelName, clz, object, chain.get(i + 1));
+			public Object createInstance(@Nonnull String modelName, @Nonnull Class clz, @Nonnull JSONObject object) throws JSONException {
+				return factory.createInstance(modelName, clz, object, nextChain);
 			}
-		});
+		};
 	}
 
-	public ObjectFactory getObjectFactory() {
-		return chain.get(0);
-	}
 }

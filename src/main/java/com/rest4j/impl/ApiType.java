@@ -19,6 +19,7 @@ package com.rest4j.impl;
 
 import com.rest4j.APIException;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
 /**
@@ -27,8 +28,9 @@ import java.lang.reflect.Type;
 abstract class ApiType {
 	abstract boolean check(Type javaClass);
 	abstract Object defaultValue();
-	abstract Object cast(Object value, Type javaClass);
+	abstract Object cast(@Nullable Object value, Type javaClass) throws NullPointerException;
 	abstract String getJavaName();
 	abstract Object unmarshal(Object val) throws APIException;
 	abstract Object marshal(Object val) throws APIException;
+
 }

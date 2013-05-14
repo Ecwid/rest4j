@@ -18,29 +18,41 @@
 package com.rest4j.impl;
 
 import com.rest4j.APIException;
-import com.rest4j.ObjectFactory;
+import com.rest4j.ConfigurationException;
+import com.rest4j.ObjectFactoryChain;
 import com.rest4j.Patch;
-import com.rest4j.impl.model.FieldAccessType;
+import com.rest4j.impl.model.Field;
+import com.rest4j.impl.model.Model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-class ObjectApiType extends ApiType { // ComplexField
-	String name;
-	Class clz;
-	FieldMapping[] fields;
-	ObjectFactory factory;
+class ObjectApiType extends ApiType {
+	static final Logger log = Logger.getLogger(ObjectApiType.class.getName());
+	final Model model;
+	final Marshaller marshaller;
+	final String name;
+	final Class clz;
+	// there could be several concrete subclasses corresponding to an abstract class
+	final ArrayList<ConcreteClassMapping> mappings = new ArrayList<ConcreteClassMapping>();
+	final ObjectFactoryChain factory;
+	final Object fieldMapper;
 
-	ObjectApiType(String name, Class clz, FieldMapping[] fields, ObjectFactory factory) {
+	ObjectApiType(Marshaller marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory) throws ConfigurationException {
+		this.marshaller = marshaller;
 		this.name = name;
 		this.clz = clz;
-		this.fields = fields;
+		this.model = model;
+		this.fieldMapper = fieldMapper;
+		mappings.add(new ConcreteClassMapping(marshaller, clz, model, fieldMapper));
 		this.factory = factory;
 	}
 
@@ -72,23 +84,18 @@ class ObjectApiType extends ApiType { // ComplexField
 			throw new APIException(400, "{value} should be an object");
 		}
 		JSONObject object = (JSONObject) val;
-		Object inst = factory.createInstance(name, clz, object);
+
+		Object inst = null;
+		try {
+			inst = factory.createInstance(name, clz, object);
+		} catch (JSONException e) {
+			throw new APIException(500, "Cannot create instance of "+name+": "+e.getMessage());
+		}
 
 		if (inst == null) return null;
 
-		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic
-		for (FieldMapping field : fields) {
-			if (field.mapping != null || field.access == FieldAccessType.READONLY) continue;
-			Object fieldVal = object.opt(field.name);
-			fieldVal = field.unmarshal(fieldVal, name);
-			field.set(inst, fieldVal);
-		}
-		for (FieldMapping field : fields) {
-			if (field.mapping == null || field.access == FieldAccessType.READONLY) continue;
-			Object fieldVal = object.opt(field.name);
-			fieldVal = field.unmarshal(fieldVal, name);
-			field.set(inst, fieldVal);
-		}
+		getMapping(inst.getClass()).unmarshal(object, inst);
+
 		return inst;
 	}
 
@@ -99,44 +106,58 @@ class ObjectApiType extends ApiType { // ComplexField
 			throw new APIException(500, "Unexpected value "+val+" where "+clz+" was expected");
 		}
 		JSONObject json = new JSONObject();
-		for (FieldMapping field : fields) {
-			if (field.access == FieldAccessType.WRITEONLY) continue;
-			Object fieldValue = field.value == null ? field.get(val) : field.value;
-			fieldValue = field.marshal(fieldValue);
-			if (fieldValue != null) {
-				try {
-					json.put(field.name, fieldValue);
-				} catch (JSONException e) {
-					throw new APIException(500, "Wrong value of field "+name+"."+field.name+": "+e.getMessage());
-				}
-			}
-		}
+
+		getMapping(val.getClass()).marshal(json, val);
 		return json;
 	}
 
 	public Patch unmarshalPatch(Object original, JSONObject object) throws APIException {
-		HashMap<String, Object> result = new HashMap<String, Object>();
+		if (original == null) return new Patch(null, null, new HashMap<String, Object>());
 
 		Object patched = Util.deepClone(original);
 
-		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic
-		ArrayList<FieldMapping> ordered = new ArrayList<FieldMapping>();
-		for (FieldMapping field : fields) {
-			if (field.mapping != null || field.access == FieldAccessType.READONLY) continue;
-			ordered.add(field);
+		HashMap<String, Object> result = getMapping(original.getClass()).unmarshalPatch(object, patched);
+
+		return new Patch(original, patched, result);
+	}
+
+	ConcreteClassMapping getMapping(Class clz) throws APIException {
+		for (ConcreteClassMapping ccm: mappings) {
+			if (ccm.clz == clz) return ccm;
 		}
-		for (FieldMapping field : fields) {
-			if (field.mapping == null || field.access == FieldAccessType.READONLY) continue;
-			ordered.add(field);
+		synchronized(this) {
+			for (ConcreteClassMapping ccm: mappings) {
+				if (ccm.clz == clz) return ccm;
+			}
+
+			try {
+				ConcreteClassMapping ccm = new ConcreteClassMapping(marshaller, clz, model, fieldMapper);
+				ccm.link();
+				mappings.add(ccm);
+				return ccm;
+			} catch (ConfigurationException e) {
+				log.log(Level.SEVERE, "Cannot map class "+clz, e);
+				throw new APIException(500, "Internal error: "+e.getMessage());
+			}
+
 		}
-		for (FieldMapping field : ordered) {
-			if (object.has(field.name)) {
-				Object fieldVal = object.opt(field.name);
-				fieldVal = field.unmarshal(fieldVal, name);
-				field.set(patched, fieldVal);
-				result.put(field.name, fieldVal);
+	}
+
+	void link() throws ConfigurationException {
+		for (ConcreteClassMapping ccm: mappings) {
+			ccm.link();
+		}
+	}
+
+	public FieldMapping checkFieldAsArgument(String name, Type paramType) throws ConfigurationException {
+		for (Field field: model.getFields().getSimpleAndComplex()) {
+			if (field.getName().equals(name)) {
+				FieldMapping fieldMapping = new FieldMapping(marshaller, field, null, this.name);
+				fieldMapping.mapping = null;
+				fieldMapping.link(marshaller);
+				return fieldMapping;
 			}
 		}
-		return new Patch(original, patched, result);
+		return null;
 	}
 }

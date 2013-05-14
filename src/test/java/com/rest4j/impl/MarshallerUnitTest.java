@@ -25,6 +25,9 @@ import com.rest4j.impl.model.Model;
 import com.rest4j.impl.petapi.Gender;
 import com.rest4j.impl.petapi.Pet;
 import com.rest4j.impl.petapi.PetMapping;
+import com.rest4j.impl.polymorphic.Bird;
+import com.rest4j.impl.polymorphic.Cat;
+import com.rest4j.impl.polymorphic.ObjectFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,7 +48,7 @@ import static org.junit.Assert.*;
  */
 public class MarshallerUnitTest {
 
-	private PetMapping customMapping = new PetMapping();
+	private Object customMapping = new PetMapping();
 	List<Marshaller.ModelConfig> modelConfig;
 	Marshaller marshaller;
 
@@ -55,7 +58,7 @@ public class MarshallerUnitTest {
 		createMarshaller(xml);
 	}
 
-	private void createMarshaller(String xml) throws JAXBException, ConfigurationException {
+	private void createMarshaller(String xml, ObjectFactory... ofs) throws JAXBException, ConfigurationException {
 		JAXBContext context = JAXBContext.newInstance("com.rest4j.impl.model");
 
 		JAXBElement<API> element = (JAXBElement<API>) context.createUnmarshaller().unmarshal(MarshallerUnitTest.class.getResourceAsStream(xml));
@@ -66,7 +69,7 @@ public class MarshallerUnitTest {
 				modelConfig.add(new Marshaller.ModelConfig((Model)entry, customMapping));
 			}
 		}
-		marshaller = new Marshaller(modelConfig);
+		marshaller = new Marshaller(modelConfig, ofs);
 	}
 
 	@Test public void testParse_number() throws Exception {
@@ -205,7 +208,7 @@ public class MarshallerUnitTest {
 	}
 
 	@Test public void testUnmarshal_custom_mapping_exception() throws Exception {
-		customMapping.customMappingException = new APIException(400, "Test");
+		((PetMapping)customMapping).customMappingException = new APIException(400, "Test");
 		new ExpectAPIException(400, "Test") {
 			@Override
 			protected void test() throws Exception {
@@ -223,7 +226,7 @@ public class MarshallerUnitTest {
 	}
 
 	@Test public void testMarshal_custom_mapping_exception() throws Exception {
-		customMapping.customMappingException = new APIException(400, "Test");
+		((PetMapping)customMapping).customMappingException = new APIException(400, "Test");
 		new ExpectAPIException(400, "Test") {
 			@Override
 			protected void test() throws Exception {
@@ -253,7 +256,7 @@ public class MarshallerUnitTest {
 				type.unmarshal(new JSONObject("{integer:666, notMapped:'TEST', enumProp:'TEST'}"));
 			}
 		};
-		new ExpectAPIException(400, "Field Test.enumProp is expected to be one of TEST") {
+		new ExpectAPIException(400, "Field Test.enumProp should have value TEST") {
 			@Override
 			protected void test() throws Exception {
 				type.unmarshal(new JSONObject("{integer:555, notMapped:'TEST', enumProp:'TEST1'}"));
@@ -268,6 +271,46 @@ public class MarshallerUnitTest {
 		pet.setType("dog");
 		json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
 		assertFalse(json.has("type"));
+	}
+
+	@Test public void testMarshal_polymorpic() throws Exception {
+		customMapping = new com.rest4j.impl.polymorphic.PetMapping();
+		createMarshaller("polymorphic-api.xml");
+		Cat cat = new Cat();
+		cat.setId(555);
+		cat.setLongFur(true);
+		JSONObject catJson = (JSONObject) marshaller.getObjectType("Pet").marshal(cat);
+		assertEquals("cat", catJson.getString("type"));
+		assertEquals(555, catJson.getInt("id"));
+		assertEquals(true, catJson.getBoolean("longFur"));
+		assertFalse(catJson.has("beakStrength"));
+	}
+
+	@Test public void testUnmarshal_polymorpic_with_object_factory() throws Exception {
+		customMapping = new com.rest4j.impl.polymorphic.PetMapping();
+		createMarshaller("polymorphic-api.xml", new ObjectFactory());
+		Cat cat = (Cat) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{id:555,longFur:true,type:'cat'}"));
+		assertEquals(555, cat.getId());
+		assertTrue(cat.isLongFur());
+
+	}
+	@Test public void testUnmarshal_polymorpic_absent_primitive_prop() throws Exception {
+		customMapping = new com.rest4j.impl.polymorphic.PetMapping();
+		createMarshaller("polymorphic-api.xml", new ObjectFactory());
+		try {
+			Bird bird = (Bird) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{id:555,longFur:true,type:'bird'}"));
+			fail();
+		} catch (APIException ex) {
+			assertEquals("Field Pet.beakStrength value is absent", ex.getMessage());
+		}
+	}
+
+	@Test public void testUnmarshal_polymorpic_present_primitive_prop() throws Exception {
+		customMapping = new com.rest4j.impl.polymorphic.PetMapping();
+		createMarshaller("polymorphic-api.xml", new ObjectFactory());
+		Bird bird = (Bird) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{id:555,beakStrength:1.23,type:'bird'}"));
+		assertEquals(555, bird.getId());
+		assertEquals(1.23, bird.getBeakStrength(), 1e-5);
 	}
 
 	static JSONObject createBarsikJson() throws JSONException {

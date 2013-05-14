@@ -18,7 +18,7 @@ import javax.xml.namespace.QName;
  * This object contains factory methods for each 
  * Java content interface and Java element interface 
  * generated in the com.rest4j.impl.model package. 
- * <p>An ObjectFactory allows you to programatically 
+ * <p>An ObjectFactoryChain allows you to programatically
  * construct new instances of the Java representation 
  * for XML content. The Java representation of XML 
  * content can consist of schema derived interfaces 
@@ -35,7 +35,7 @@ public class ObjectFactory {
     private final static QName _StringWithParamsParam_QNAME = new QName("http://rest4j.com/api-description", "param");
 
     /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.rest4j.impl.model
+     * Create a new ObjectFactoryChain that can be used to create new instances of schema derived classes for package: com.rest4j.impl.model
      * 
      */
     public ObjectFactory() {
