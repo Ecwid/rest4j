@@ -34,23 +34,13 @@ public class Controller implements org.springframework.web.servlet.mvc.Controlle
 
 	@Override
 	public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
+		APIResponse response;
 		try {
-			APIResponse response = api.serve(APIRequest.from(httpServletRequest));
-			httpServletResponse.setStatus(response.getStatus());
-			response.outputBody(httpServletResponse);
+			response = api.serve(APIRequest.from(httpServletRequest));
 		} catch (APIException e) {
-			try {
-				e.outputHeaders(httpServletResponse);
-			} catch (IllegalStateException ex) {
-				log.warning("APIException while response already committed: " + e.getMessage());
-				throw ex;
-			}
-			if (e.getJSONResponse() != null) {
-				httpServletResponse.setContentType("application/json");
-				httpServletResponse.setCharacterEncoding("UTF-8");
-				httpServletResponse.getWriter().write(e.getJSONResponse().toString());
-			}
+			response = e.createResponse();
 		}
+		response.outputBody(httpServletResponse);
 		return null;
 	}
 

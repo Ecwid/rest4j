@@ -32,18 +32,19 @@ import java.util.zip.GZIPOutputStream;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class APIResponseImpl implements APIResponse {
+	String callbackFunctionName = null;
 	int status = 200;
+	String statusMessage;
 	Headers headers = new Headers();
 	Resource response;
 	boolean compress;
 	boolean addEtag;
 
-	public APIResponseImpl() {
-
-	}
-
-	public APIResponseImpl(APIRequest request, Resource response) {
+	public APIResponseImpl(APIImpl api, APIRequest request, Resource response) {
 		this.response = response;
+		if (api.getParams().getJsonpParamName() != null) {
+			this.callbackFunctionName = request.param(api.getParams().getJsonpParamName());
+		}
 		compress = StringUtils.containsIgnoreCase(request.header("Accept-Encoding"), "gzip");
 		addEtag = request.method().equals("GET");
 	}
@@ -51,6 +52,18 @@ public class APIResponseImpl implements APIResponse {
 	@Override
 	public int getStatus() {
 		return status;
+	}
+
+	public APIResponseImpl setStatus(int status, String statusMessage) {
+		this.status = status;
+		this.statusMessage = statusMessage;
+		return this;
+	}
+
+	public APIResponseImpl setStatus(int status) {
+		this.status = status;
+		this.statusMessage = null;
+		return this;
 	}
 
 	public APIResponseImpl addHeader(String name, String value) {
@@ -67,7 +80,8 @@ public class APIResponseImpl implements APIResponse {
 
 	@Override
 	public void outputBody(HttpServletResponse response) throws IOException {
-		response.setStatus(status);
+		if (statusMessage == null) response.setStatus(status);
+		else response.setStatus(status, statusMessage);
 		headers.outputHeaders(response);
 		if (this.response == null) return;
 		response.addHeader("Content-type", this.response.getContentType());
@@ -83,7 +97,12 @@ public class APIResponseImpl implements APIResponse {
 		} else {
 			outputStream = response.getOutputStream();
 		}
-		this.response.write(outputStream);
+
+		if (callbackFunctionName == null) {
+			this.response.write(outputStream);
+		} else {
+			this.response.writeJSONP(outputStream, callbackFunctionName);
+		}
 		outputStream.close();
 	}
 

@@ -46,7 +46,7 @@ import static org.junit.Assert.*;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class MarshallerUnitTest {
+public class MarshallerTest {
 
 	private Object customMapping = new PetMapping();
 	List<Marshaller.ModelConfig> modelConfig;
@@ -61,7 +61,7 @@ public class MarshallerUnitTest {
 	private void createMarshaller(String xml, ObjectFactory... ofs) throws JAXBException, ConfigurationException {
 		JAXBContext context = JAXBContext.newInstance("com.rest4j.impl.model");
 
-		JAXBElement<API> element = (JAXBElement<API>) context.createUnmarshaller().unmarshal(MarshallerUnitTest.class.getResourceAsStream(xml));
+		JAXBElement<API> element = (JAXBElement<API>) context.createUnmarshaller().unmarshal(MarshallerTest.class.getResourceAsStream(xml));
 		API root = element.getValue();
 		modelConfig = new ArrayList<Marshaller.ModelConfig>();
 		for (Object entry: root.getEndpointAndModel()) {
@@ -78,35 +78,35 @@ public class MarshallerUnitTest {
 	}
 
 	@Test public void testUnmarshal_pet() throws Exception {
-		JSONObject pet = createBarsikJson();
-		Pet barsik = (Pet) marshaller.getObjectType("Pet").unmarshal(pet);
+		JSONObject pet = createMaxJson();
+		Pet Max = (Pet) marshaller.getObjectType("Pet").unmarshal(pet);
 
-		assertEquals(0, barsik.getId()); // read-only prop should not get unmarshalled
-		assertEquals("Barsik", barsik.getName());
-		assertEquals("cat", barsik.getType());
-		assertEquals(Gender.male, barsik.getGender());
-		assertEquals(4.3, barsik.getPetWeight(), 1e-5);
-		assertEquals(Collections.singletonList(234), barsik.getFriends());
-		assertEquals(Collections.emptyList(), barsik.getMated());
-		assertEquals(Collections.emptyList(), barsik.getAte());
+		assertEquals(0, Max.getId()); // read-only prop should not get unmarshalled
+		assertEquals("Max", Max.getName());
+		assertEquals("cat", Max.getType());
+		assertEquals(Gender.male, Max.getGender());
+		assertEquals(4.3, Max.getPetWeight(), 1e-5);
+		assertEquals(Collections.singletonList(234), Max.getFriends());
+		assertEquals(Collections.emptyList(), Max.getMated());
+		assertEquals(Collections.emptyList(), Max.getAte());
 	}
 
 	@Test public void testUnmarshal_optional() throws Exception {
-		JSONObject pet = createBarsikJson();
+		JSONObject pet = createMaxJson();
 		pet.remove("type");
 		pet.remove("weight");
 		pet.remove("relations");
-		Pet barsik = (Pet) marshaller.getObjectType("Pet").unmarshal(pet);
-		assertNull(barsik.getPetWeight()); // no default value
-		assertEquals("dog", barsik.getType()); // default value
-		assertEquals(Collections.emptyList(), barsik.getFriends());
-		assertEquals(Collections.emptyList(), barsik.getMated());
-		assertEquals(Collections.emptyList(), barsik.getAte());
+		Pet Max = (Pet) marshaller.getObjectType("Pet").unmarshal(pet);
+		assertNull(Max.getPetWeight()); // no default value
+		assertEquals("dog", Max.getType()); // default value
+		assertEquals(Collections.emptyList(), Max.getFriends());
+		assertEquals(Collections.emptyList(), Max.getMated());
+		assertEquals(Collections.emptyList(), Max.getAte());
 	}
 
 	@Test public void testUnmarshal_missing_field() throws Exception {
 		try {
-			JSONObject pet = createBarsikJson();
+			JSONObject pet = createMaxJson();
 			pet.remove("gender");
 			marshaller.getObjectType("Pet").unmarshal(pet);
 			fail();
@@ -133,7 +133,7 @@ public class MarshallerUnitTest {
 		new ExpectAPIException(400, "Field Pet.gender is expected to be a string") {
 			@Override
 			public void test() throws Exception {
-				JSONObject pet = createBarsikJson();
+				JSONObject pet = createMaxJson();
 				pet.put("gender", 1);
 				marshaller.getObjectType("Pet").unmarshal(pet);
 			}
@@ -144,7 +144,7 @@ public class MarshallerUnitTest {
 		new ExpectAPIException(400, "Field Pet.relations should be an array") {
 			@Override
 			protected void test() throws Exception {
-				JSONObject pet = createBarsikJson();
+				JSONObject pet = createMaxJson();
 				pet.put("relations", new JSONObject());
 				marshaller.getObjectType("Pet").unmarshal(pet);
 			}
@@ -155,7 +155,7 @@ public class MarshallerUnitTest {
 		new ExpectAPIException(400, "Field Pet.relations[0] should be an object") {
 			@Override
 			protected void test() throws Exception {
-				JSONObject pet = createBarsikJson();
+				JSONObject pet = createMaxJson();
 				pet.put("relations", new JSONArray("[234]"));
 				marshaller.getObjectType("Pet").unmarshal(pet);
 			}
@@ -166,7 +166,7 @@ public class MarshallerUnitTest {
 		new ExpectAPIException(400, "Field Pet.relations[0] should not be null") {
 			@Override
 			protected void test() throws Exception {
-				JSONObject pet = createBarsikJson();
+				JSONObject pet = createMaxJson();
 				pet.put("relations", new JSONArray("[null]"));
 				marshaller.getObjectType("Pet").unmarshal(pet);
 			}
@@ -177,7 +177,7 @@ public class MarshallerUnitTest {
 		new ExpectAPIException(400, "Field Pet.gender is expected to be one of male, female") {
 			@Override
 			public void test() throws Exception {
-				JSONObject pet = createBarsikJson();
+				JSONObject pet = createMaxJson();
 				pet.put("gender", "gay");
 				marshaller.getObjectType("Pet").unmarshal(pet);
 			}
@@ -185,17 +185,17 @@ public class MarshallerUnitTest {
 	}
 
 	@Test public void testUnmarshal_null_field() throws Exception {
-		JSONObject pet = createBarsikJson();
+		JSONObject pet = createMaxJson();
 		pet.put("type", JSONObject.NULL);
-		Pet barsik = (Pet)marshaller.getObjectType("Pet").unmarshal(pet);
-		assertNull(barsik.getType());
+		Pet Max = (Pet)marshaller.getObjectType("Pet").unmarshal(pet);
+		assertNull(Max.getType());
 	}
 
 	@Test public void testUnmarshal_absent_field() throws Exception {
-		JSONObject pet = createBarsikJson();
+		JSONObject pet = createMaxJson();
 		pet.remove("type");
-		Pet barsik = (Pet)marshaller.getObjectType("Pet").unmarshal(pet);
-		assertEquals("dog", barsik.getType()); // default
+		Pet Max = (Pet)marshaller.getObjectType("Pet").unmarshal(pet);
+		assertEquals("dog", Max.getType()); // default
 	}
 
 	@Test public void testUnmarshal_wrong_body_type() throws Exception {
@@ -212,17 +212,17 @@ public class MarshallerUnitTest {
 		new ExpectAPIException(400, "Test") {
 			@Override
 			protected void test() throws Exception {
-				JSONObject pet = createBarsikJson();
+				JSONObject pet = createMaxJson();
 				marshaller.getObjectType("Pet").unmarshal(pet);
 			}
 		};
 	}
 
 	@Test public void testMarshal_pet() throws Exception {
-		JSONObject pet = (JSONObject) marshaller.getObjectType("Pet").marshal(createBarsik());
+		JSONObject pet = (JSONObject) marshaller.getObjectType("Pet").marshal(createMax());
 		assertFalse(pet.has("writeonly"));
 		pet.put("writeonly", true);
-		assertEquals(createBarsikJson().toString(), pet.toString());
+		assertEquals(createMaxJson().toString(), pet.toString());
 	}
 
 	@Test public void testMarshal_custom_mapping_exception() throws Exception {
@@ -230,8 +230,8 @@ public class MarshallerUnitTest {
 		new ExpectAPIException(400, "Test") {
 			@Override
 			protected void test() throws Exception {
-				Pet barsik = createBarsik();
-				marshaller.getObjectType("Pet").marshal(barsik);
+				Pet Max = createMax();
+				marshaller.getObjectType("Pet").marshal(Max);
 			}
 		};
 	}
@@ -265,7 +265,7 @@ public class MarshallerUnitTest {
 	}
 
 	@Test public void testMarshal_default_optional_field() throws Exception {
-		Pet pet = createBarsik();
+		Pet pet = createMax();
 		JSONObject json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
 		assertEquals("cat", json.getString("type"));
 		pet.setType("dog");
@@ -313,11 +313,11 @@ public class MarshallerUnitTest {
 		assertEquals(1.23, bird.getBeakStrength(), 1e-5);
 	}
 
-	static JSONObject createBarsikJson() throws JSONException {
+	static JSONObject createMaxJson() throws JSONException {
 		JSONObject pet = new JSONObject();
 		pet.put("id", 123);
 		pet.put("type", "cat");
-		pet.put("name", "Barsik");
+		pet.put("name", "Max");
 		pet.put("gender", "male");
 		pet.put("weight", 4.3);
 		pet.put("relations", new JSONArray("[{petId: 234}]"));
@@ -325,11 +325,11 @@ public class MarshallerUnitTest {
 		return pet;
 	}
 
-	static Pet createBarsik() {
+	static Pet createMax() {
 		Pet pet = new Pet();
 		pet.setId(123);
 		pet.setType("cat");
-		pet.setName("Barsik");
+		pet.setName("Max");
 		pet.setGender(Gender.male);
 		pet.setPetWeight(4.3);
 		pet.setFriends(Collections.singletonList(234));

@@ -23,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class APIServletIntegrationTest {
+public class APIServletTest {
 
 	private static int jettyPort;
 	private static Server server;

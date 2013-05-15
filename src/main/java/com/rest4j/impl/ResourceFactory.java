@@ -61,13 +61,13 @@ public class ResourceFactory {
 			return;
 		} else if (contentType.getBinary() != null) {
 			if (returnClass != null &&
-				InputStream.class.isAssignableFrom(returnClass) &&
-				byte[].class == returnClass) return;
+					(InputStream.class.isAssignableFrom(returnClass) ||
+				byte[].class == returnClass)) return;
 			throw new ConfigurationException("Wrong return type of "+method+". Expected one of InputStream, byte[], or "+Resource.class.getName());
 		} else if (contentType.getText() != null) {
 			if (returnClass != null &&
-					Reader.class.isAssignableFrom(returnClass) &&
-					String.class == returnClass) return;
+					(Reader.class.isAssignableFrom(returnClass) ||
+					String.class == returnClass)) return;
 			throw new ConfigurationException("Wrong return type of "+method+". Expected one of Reader, String, or "+Resource.class.getName());
 		}
 		throw new AssertionError();

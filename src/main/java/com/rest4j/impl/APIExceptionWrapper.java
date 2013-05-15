@@ -15,55 +15,48 @@
  * limitations under the License.
  */
 
-package com.rest4j;
+package com.rest4j.impl;
 
-import com.rest4j.impl.APIImpl;
-import com.rest4j.impl.APIResponseImpl;
-import com.rest4j.impl.Headers;
+import com.rest4j.APIException;
+import com.rest4j.APIRequest;
+import com.rest4j.APIResponse;
+import com.rest4j.JSONResource;
 import org.json.JSONObject;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class APIException extends Exception {
-	int status;
-	Headers headers = new Headers();
-	JSONObject jsonResponse;
+class APIExceptionWrapper extends APIException {
+	APIImpl api;
+	APIRequest request;
+	APIException ex;
 
-	public APIException(int status, String message) {
-		super(message);
-		this.status = status;
+	APIExceptionWrapper(APIImpl api, APIRequest request, APIException ex) {
+		super(ex.getStatus(), ex.getMessage());
+		this.api = api;
+		this.request = request;
 	}
 
-	public APIException(int status, String message, JSONObject jsonResponse) {
-		this(status, message);
-		this.jsonResponse = jsonResponse;
-	}
-
-	public JSONObject getJSONResponse() {
-		return jsonResponse;
-	}
-
+	@Override
 	public int getStatus() {
-		return status;
+		return ex.getStatus();
 	}
 
+	@Override
+	public JSONObject getJSONResponse() {
+		return ex.getJSONResponse();
+	}
+
+	@Override
 	public APIException replaceMessage(String newMessage) {
-		APIException ex = new APIException(status, newMessage);
-		ex.headers = headers;
-		return ex;
+		throw new IllegalStateException();
 	}
 
-	public APIException addHeader(String name, String value) {
-		headers.addHeader(name, value);
-		return this;
-	}
-
+	@Override
 	public APIResponse createResponse() {
-		throw new IllegalArgumentException("This exception was not thrown from API.serve(); cannot createResponse()");
-	}
-
-	public String getHeader(String name) {
-		return headers.getHeader(name);
+		JSONObject jsonResponse = getJSONResponse();
+		return new APIResponseImpl(api, request, jsonResponse == null ? null : new JSONResource(jsonResponse))
+				.setStatus(getStatus(), getMessage())
+				.addHeader("Cache-control", "must-revalidate,no-cache,no-store");
 	}
 }

@@ -59,22 +59,13 @@ public class APIServlet extends HttpServlet {
 
 	@Override
 	protected void service(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
+		APIResponse response;
 		try {
-			APIResponse response = api.serve(APIRequest.from(httpServletRequest));
-			httpServletResponse.setStatus(response.getStatus());
-			response.outputBody(httpServletResponse);
+			response = api.serve(APIRequest.from(httpServletRequest));
 		} catch (APIException e) {
-			try {
-				e.outputHeaders(httpServletResponse);
-			} catch (IllegalStateException ex) {
-				getServletContext().log("APIException while response already committed: " + e.getMessage());
-				throw ex;
-			}
-			if (e.getJSONResponse() != null) {
-				httpServletResponse.setContentType("application/json; charset=utf8");
-				httpServletResponse.getOutputStream().write(e.getJSONResponse().toString().getBytes("UTF-8"));
-			}
+			response = e.createResponse();
 		}
+		response.outputBody(httpServletResponse);
 	}
 
 	private String getMandatoryParam(ServletConfig config, String name) throws ServletException {

@@ -31,7 +31,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class SpringIntegrationTest {
+public class SpringTest {
 
 	private ClassPathXmlApplicationContext context;
 	private Controller controller;

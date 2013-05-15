@@ -17,6 +17,7 @@
 
 package com.rest4j;
 
+import com.rest4j.impl.JSONEscapingFilter;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -54,5 +55,14 @@ public class TextResource implements Resource {
 	@Override
 	public void write(OutputStream os) throws IOException {
 		IOUtils.copy(reader, os, "UTF-8");
+	}
+
+	@Override
+	public void writeJSONP(OutputStream os, String callbackFunctionName) throws IOException {
+		os.write((callbackFunctionName+"(\"").getBytes("UTF-8"));
+		JSONEscapingFilter filter = new JSONEscapingFilter(reader);
+		IOUtils.copy(filter, os, "UTF-8");
+		os.write('\"');
+		os.write(')');
 	}
 }

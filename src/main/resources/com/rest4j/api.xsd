@@ -43,26 +43,40 @@ documentation and client libraries, as well as for query dispatching.
 	</xsd:element>
 
 	<xsd:complexType name="API">
-		<xsd:sequence minOccurs="1" maxOccurs="unbounded">
-			<xsd:element name="endpoint" type="Endpoint" minOccurs="0" maxOccurs="unbounded">
+		<xsd:sequence maxOccurs="1">
+			<xsd:element name="params" type="APIParams" minOccurs="0" maxOccurs="1"/>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="endpoint" type="Endpoint" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation><xsd:documentation>
+						An endpoint is a combination of a request path and http method.
+					</xsd:documentation></xsd:annotation>
+					<xsd:key name="param"> <!-- parameters are keyed by their name -->
+						<xsd:selector xpath="api:parameters/api:parameter"/>
+						<xsd:field xpath="@name"/>
+					</xsd:key>
+					<xsd:keyref name="route-param-name" refer="param">
+						<!-- route/param should reference valid parameters in the parameters collection -->
+						<xsd:selector xpath="api:route/api:param" />
+						<xsd:field xpath="." />
+					</xsd:keyref>
+				</xsd:element>
+				<xsd:element name="model" type="Model" maxOccurs="unbounded" minOccurs="0">
+					<xsd:annotation><xsd:documentation>
+						A model is like a class describing JSON objects. In fact, models are mapped to Java classes with
+						the 'class' attribute. Models can be used to specify a type JSON request or response body.
+						An exception can also be mapped to a JSON model.
+					</xsd:documentation></xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="APIParams">
+		<xsd:sequence maxOccurs="1">
+			<xsd:element name="jsonp-param-name" type="xsd:string" minOccurs="0" maxOccurs="1">
 				<xsd:annotation><xsd:documentation>
-					An endpoint is a combination of a request path and http method.
-				</xsd:documentation></xsd:annotation>
-				<xsd:key name="param"> <!-- parameters are keyed by their name -->
-					<xsd:selector xpath="api:parameters/api:parameter"/>
-					<xsd:field xpath="@name"/>
-				</xsd:key>
-				<xsd:keyref name="route-param-name" refer="param">
-					<!-- route/param should reference valid parameters in the parameters collection -->
-					<xsd:selector xpath="api:route/api:param" />
-					<xsd:field xpath="." />
-				</xsd:keyref>
-			</xsd:element>
-			<xsd:element name="model" type="Model" maxOccurs="unbounded" minOccurs="0">
-				<xsd:annotation><xsd:documentation>
-					A model is like a class describing JSON objects. In fact, models are mapped to Java classes with
-					the 'class' attribute. Models can be used to specify a type JSON request or response body.
-					An exception can also be mapped to a JSON model.
+					A name of the parameter in the query string that specifies the JavaScript function to call on
+					success. If absent, JSONP is disabled.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>

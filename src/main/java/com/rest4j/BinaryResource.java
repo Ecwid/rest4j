@@ -58,4 +58,9 @@ public class BinaryResource implements Resource {
 	public void write(OutputStream os) throws IOException {
 		IOUtils.copy(is, os);
 	}
+
+	@Override
+	public void writeJSONP(OutputStream os, String callbackFunctionName) throws IOException {
+		write(os);
+	}
 }

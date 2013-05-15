@@ -35,4 +35,5 @@ public interface API {
 	APIResponse serve(APIRequest request) throws IOException, APIException;
 
 	List<String> getAllowedMethods(APIRequest request) throws IOException, APIException;
+
 }

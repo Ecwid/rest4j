@@ -67,6 +67,13 @@ public class JSONResource implements Resource {
 		}
 	}
 
+	@Override
+	public void writeJSONP(OutputStream os, String callbackFunctionName) throws IOException {
+		os.write((callbackFunctionName+"(").getBytes("UTF-8"));
+		write(os);
+		os.write(')');
+	}
+
 	public Object getJSONObject() {
 		return object;
 	}

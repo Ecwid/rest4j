@@ -19,10 +19,10 @@ package com.rest4j.impl;
 
 import com.rest4j.API;
 import com.rest4j.*;
+import com.rest4j.ObjectFactory;
 import com.rest4j.impl.model.ContentType;
 import com.rest4j.impl.model.*;
 import com.rest4j.impl.model.Error;
-import com.rest4j.ObjectFactory;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 
@@ -44,6 +44,7 @@ public class APIImpl implements API {
 	final Marshaller marshaller;
 	final List<EndpointMapping> endpoints = new ArrayList<EndpointMapping>();
 	final ResourceFactory resourceFactory;
+	final APIParams params;
 
 	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider) throws ConfigurationException {
 		this(root, pathPrefix, serviceProvider, new ObjectFactory[0]);
@@ -52,6 +53,8 @@ public class APIImpl implements API {
 	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories) throws ConfigurationException {
 		this.pathPrefix = pathPrefix;
 		this.root = root;
+		if (root.getParams() == null) this.params = new APIParams();
+		else this.params = root.getParams();
 
 		// configure and create marshaller
 		List<Marshaller.ModelConfig> modelConfig = new ArrayList<Marshaller.ModelConfig>();
@@ -76,8 +79,58 @@ public class APIImpl implements API {
 		}
 	}
 
+	class APIExceptionWrapper extends APIException {
+		APIRequest request;
+		APIException ex;
+
+		APIExceptionWrapper(APIRequest request, APIException ex) {
+			super(ex.getStatus(), ex.getMessage());
+			this.request = request;
+			this.ex = ex;
+		}
+
+		@Override
+		public int getStatus() {
+			return ex.getStatus();
+		}
+
+		@Override
+		public JSONObject getJSONResponse() {
+			return ex.getJSONResponse();
+		}
+
+		@Override
+		public APIException replaceMessage(String newMessage) {
+			throw new IllegalStateException();
+		}
+
+		@Override
+		public APIResponse createResponse() {
+			JSONObject jsonResponse = getJSONResponse();
+			return new APIResponseImpl(APIImpl.this, request, jsonResponse == null ? null : new JSONResource(jsonResponse))
+					.setStatus(getStatus(), getMessage())
+					.addHeader("Cache-control", "must-revalidate,no-cache,no-store");
+		}
+
+		@Override
+		public String getHeader(String name) {
+			return ex.getHeader(name);
+		}
+	}
+
+
 	@Override
 	public APIResponse serve(APIRequest request) throws IOException, APIException {
+		try {
+			return serveInt(request);
+		} catch (APIException ex) {
+			// wrap exceptions and implements createResponse()
+			throw new APIExceptionWrapper(request, ex);
+		}
+	}
+
+	APIResponse serveInt(APIRequest request) throws IOException, APIException {
+
 		if (!request.path().startsWith(pathPrefix)) {
 			throw new APIException(404, "Wrong path: " + request.path() + ", does not match the path prefix '" + pathPrefix + "'");
 		}
@@ -90,7 +143,7 @@ public class APIImpl implements API {
 				}
 			}
 			// enable cross-domain queries
-			return new APIResponseImpl()
+			return new APIResponseImpl(this, request, null)
 					.addHeader("Access-Control-Allow-Origin", "*")
 					.addHeader("Access-Control-Allow-Methods", getAllowedMethodsString(request))
 					.addHeader("Access-Control-Max-Age", "10000000");
@@ -122,7 +175,11 @@ public class APIImpl implements API {
 				throw new APIException(304, "Not modified").addHeader("ETag", etag);
 			}
 		}
-		return new APIResponseImpl(request, result).addHeader("Vary", "Accept-Encoding");
+		return new APIResponseImpl(this, request, result).addHeader("Vary", "Accept-Encoding");
+	}
+
+	APIParams getParams() {
+		return params;
 	}
 
 	interface ArgHandler {

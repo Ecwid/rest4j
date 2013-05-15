@@ -32,7 +32,7 @@ import static org.junit.Assert.*;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class StringWithParamsMatcherUnitTest {
+public class StringWithParamsMatcherTest {
 
 	@Test
 	public void testMatches_noparams() {

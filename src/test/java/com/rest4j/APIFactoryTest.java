@@ -25,7 +25,7 @@ import static org.junit.Assert.fail;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class APIFactoryUnitTest {
+public class APIFactoryTest {
 	Object dao = new Object() {};
 	ServiceProvider provider = new ServiceProvider() {
 		@Override

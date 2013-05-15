@@ -27,7 +27,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class SimpleApiTypeUnitTest {
+public class SimpleApiTypeTest {
 
 	@Test
 	public void testCheck_boolean() throws Exception {

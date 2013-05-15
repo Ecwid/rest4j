@@ -30,4 +30,6 @@ public interface Resource {
 	String getETag();
 
 	void write(OutputStream os) throws IOException;
+
+	void writeJSONP(OutputStream os, String callbackFunctionName) throws IOException;
 }

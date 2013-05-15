@@ -32,7 +32,7 @@ import static org.junit.Assert.*;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class UtilUnitTest {
+public class UtilTest {
 	static List<String> listField;
 
 	@Test public void testGetClass_simple() {
@@ -52,7 +52,7 @@ public class UtilUnitTest {
 	}
 
 	@Test(expected=IllegalArgumentException.class) public void testGetParameterNames_not_found() throws IOException {
-		Util.getParameterNames(UtilUnitTest.class, "zzz");
+		Util.getParameterNames(UtilTest.class, "zzz");
 	}
 
 	@Test(expected=IllegalArgumentException.class) public void testGetParameterNames_static() throws IOException {
@@ -60,12 +60,12 @@ public class UtilUnitTest {
 	}
 
 	@Test public void testGetParameterNames_no_params() throws IOException {
-		String[] names = Util.getParameterNames(UtilUnitTest.class, "noParamsMethod");
+		String[] names = Util.getParameterNames(UtilTest.class, "noParamsMethod");
 		assertEquals(0, names.length);
 	}
 
 	@Test public void testGetParameterNames_params() throws IOException {
-		String[] names = Util.getParameterNames(UtilUnitTest.class, "methodWithParams");
+		String[] names = Util.getParameterNames(UtilTest.class, "methodWithParams");
 		assertArrayEquals(new String[]{"param1", "param2"}, names);
 	}
 

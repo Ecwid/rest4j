@@ -28,7 +28,7 @@ import static org.junit.Assert.*;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class DateApiTypeUnitTest {
+public class DateApiTypeTest {
 	DateApiType type = new DateApiType();
 
 	@Test public void testUnmarshal_string() throws APIException {
