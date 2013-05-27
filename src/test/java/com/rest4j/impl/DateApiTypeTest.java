@@ -17,7 +17,8 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
+import com.rest4j.type.DateApiType;
 import org.junit.Test;
 
 import java.util.Date;
@@ -29,9 +30,9 @@ import static org.junit.Assert.*;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class DateApiTypeTest {
-	DateApiType type = new DateApiType();
+	DateApiType type = new DateApiTypeImpl();
 
-	@Test public void testUnmarshal_string() throws APIException {
+	@Test public void testUnmarshal_string() throws ApiException {
 		Date date = (Date) type.unmarshal("Wed, 24 Apr 2013 09:06:00 +0400");
 		assertEquals(date, type.unmarshal("24 Apr 2013 09:06 +0400"));
 		assertEquals(date, type.unmarshal("24 Apr 2013 09:06 MSK"));
@@ -47,12 +48,12 @@ public class DateApiTypeTest {
 		assertEquals(cal.getTime(), type.unmarshal("2013-04-24"));
 	}
 
-	@Test public void testUnmarshal_number() throws APIException {
+	@Test public void testUnmarshal_number() throws ApiException {
 		Date date = (Date) type.unmarshal(1366786417);
 		assertEquals(1366786417000l, date.getTime());
 	}
 
-	@Test public void testMarshal() throws APIException {
+	@Test public void testMarshal() throws ApiException {
 		assertEquals("2013-04-24T06:53:37.123Z", type.marshal(new Date(1366786417123l)));
 	}
 }

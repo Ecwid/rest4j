@@ -20,6 +20,7 @@ package com.rest4j.impl;
 import com.rest4j.*;
 import com.rest4j.impl.model.ContentType;
 import com.rest4j.impl.model.JsonType;
+import com.rest4j.type.ApiType;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -73,7 +74,7 @@ public class ResourceFactory {
 		throw new AssertionError();
 	}
 
-	public Resource createResourceFrom(Object content, ContentType contentType) throws APIException {
+	public Resource createResourceFrom(Object content, ContentType contentType) throws ApiException {
 		if (content == null) return null;
 		if (content instanceof Resource) return (Resource)content;
 		if (contentType.getJson() != null) {
@@ -89,7 +90,7 @@ public class ResourceFactory {
 			} else if (content instanceof byte[]) {
 				return new BinaryResource((byte[])content);
 			} else {
-				throw new APIException(500, "Wrong content type: "+content.getClass()+"; expected either BinaryResource or InputStream");
+				throw new ApiException("Wrong content type: "+content.getClass()+"; expected either BinaryResource or InputStream").setHttpStatus(500);
 			}
 		} else if (contentType.getText() != null) {
 			if (content instanceof String) {
@@ -97,7 +98,7 @@ public class ResourceFactory {
 			} else if (content instanceof Reader) {
 				return new TextResource(null, (Reader)content);
 			} else {
-				throw new APIException(500, "Wrong content type: "+content.getClass()+"; expected one of TextResource, Reader, or String");
+				throw new ApiException("Wrong content type: "+content.getClass()+"; expected one of TextResource, Reader, or String").setHttpStatus(500);
 			}
 		}
 		throw new AssertionError();

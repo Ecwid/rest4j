@@ -30,5 +30,10 @@ public interface ObjectFactoryChain {
 	@Nullable Object createInstance(
 			@Nonnull String modelName,
 			@Nonnull Class clz,
-			@Nonnull JSONObject object) throws JSONException;
+			@Nonnull JSONObject object) throws JSONException, ApiException;
+
+	@Nullable Object replaceModel(
+			@Nonnull String modelName,
+			@Nonnull Class clz,
+			@Nullable Object object) throws ApiException;
 }

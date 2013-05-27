@@ -17,7 +17,11 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
+import com.rest4j.impl.ApiTypeImpl;
+import com.rest4j.impl.Util;
+import com.rest4j.type.ApiType;
+import com.rest4j.type.ArrayApiType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,15 +34,15 @@ import java.util.List;
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-class ArrayApiType extends ApiType {
+public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	ApiType elementType;
 
-	ArrayApiType(ApiType elementType) {
+	ArrayApiTypeImpl(ApiType elementType) {
 		this.elementType = elementType;
 	}
 
 	@Override
-	boolean check(Type javaClass) {
+	public boolean check(Type javaClass) {
 		Class clz = Util.getClass(javaClass);
 		if (clz == null) return false;
 		if (clz != List.class) return false;
@@ -52,12 +56,12 @@ class ArrayApiType extends ApiType {
 	}
 
 	@Override
-	Object defaultValue() {
+	public Object defaultValue() {
 		return new ArrayList();
 	}
 
 	@Override
-	Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaClass) {
 		if (value == null) return null;
 		ParameterizedType pType = (ParameterizedType) javaClass;
 		Type elementJavaType = pType.getActualTypeArguments()[0];
@@ -70,12 +74,12 @@ class ArrayApiType extends ApiType {
 	}
 
 	@Override
-	String getJavaName() {
+	public String getJavaName() {
 		return "List<"+elementType.getJavaName()+">";
 	}
 
 	@Override
-	Object unmarshal(Object val) throws APIException {
+	public Object unmarshal(Object val) throws ApiException {
 		if (val instanceof JSONArray) {
 			JSONArray array = (JSONArray) val;
 			int l = array.length();
@@ -84,33 +88,33 @@ class ArrayApiType extends ApiType {
 			for (int i = 0; i < l; i++) {
 				Object element = array.opt(i);
 				if (JSONObject.NULL.equals(element)) {
-					throw new APIException(400, "{value}["+i+"] should not be null");
+					throw new ApiException("{value}["+i+"] should not be null");
 				}
 				try {
 					list.add(elementType.unmarshal(element));
-				} catch (APIException apiex) {
+				} catch (ApiException apiex) {
 					throw Util.replaceValue(apiex, "{value}[" + i + "]");
 				}
 			}
 			return list;
 		} else {
-			throw new APIException(400, "{value} should be an array");
+			throw new ApiException("{value} should be an array");
 		}
 	}
 
 	@Override
-	Object marshal(Object val) throws APIException {
+	public Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
 		JSONArray array = new JSONArray();
 		if (!(val instanceof List)) {
-			throw new APIException(500, "Expected List, "+val.getClass()+" given");
+			throw new ApiException("Expected List, "+val.getClass()+" given").setHttpStatus(500);
 		}
 		int i=0;
 		for (Object element: (List)val) {
 			try {
 				array.put(i++, elementType.marshal(element));
 			} catch (JSONException e) {
-				throw new APIException(500, "Cannot create JSON array from "+val);
+				throw new ApiException("Cannot create JSON array from "+val).setHttpStatus(500);
 			}
 		}
 		return array;

@@ -17,10 +17,12 @@
 
 package com.rest4j.impl;
 
+import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
 import com.rest4j.ObjectFactoryChain;
 import com.rest4j.impl.model.FieldType;
 import com.rest4j.impl.model.Model;
+import com.rest4j.type.ApiType;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,7 +37,7 @@ import java.util.regex.Pattern;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class Marshaller {
-	Map<String, ObjectApiType> models = new HashMap<String, ObjectApiType>();
+	Map<String, ObjectApiTypeImpl> models = new HashMap<String, ObjectApiTypeImpl>();
 	ObjectFactoryChain chain = new ObjectFactoryChain() {
 		@Nullable
 		@Override
@@ -50,6 +52,12 @@ public class Marshaller {
 				throw new AssertionError(e);
 			}
 			return inst;
+		}
+
+		@Nullable
+		@Override
+		public Object replaceModel(@Nonnull String modelName, @Nonnull Class clz, @Nullable Object object) throws ApiException {
+			return object;
 		}
 	};
 
@@ -85,23 +93,23 @@ public class Marshaller {
 				throw new ConfigurationException("Cannot find class " + model.getClazz());
 			}
 
-			models.put(model.getName(), new ObjectApiType(this, model.getName(), clz, model, customMapper, chain));
+			models.put(model.getName(), new ObjectApiTypeImpl(this, model.getName(), clz, model, customMapper, chain));
 		}
 
 		// fill model interconnections and type-check
 		for (ModelConfig modelConfig : modelConfigs) {
 			Model model = modelConfig.model;
-			ObjectApiType modelImpl = models.get(model.getName());
+			ObjectApiTypeImpl modelImpl = models.get(model.getName());
 			modelImpl.link();
 		}
 	}
 
-	public ObjectApiType getObjectType(String model) {
+	public ObjectApiTypeImpl getObjectType(String model) {
 		return models.get(model);
 	}
 
 	public ApiType getArrayType(String model) {
-		return new ArrayApiType(models.get(model));
+		return new ArrayApiTypeImpl(models.get(model));
 	}
 
 	public Class getClassForModel(String model) {
@@ -144,8 +152,14 @@ public class Marshaller {
 
 			@Nullable
 			@Override
-			public Object createInstance(@Nonnull String modelName, @Nonnull Class clz, @Nonnull JSONObject object) throws JSONException {
+			public Object createInstance(@Nonnull String modelName, @Nonnull Class clz, @Nonnull JSONObject object) throws JSONException, ApiException {
 				return factory.createInstance(modelName, clz, object, nextChain);
+			}
+
+			@Nullable
+			@Override
+			public Object replaceModel(@Nonnull String modelName, @Nonnull Class clz, @Nullable Object object) throws ApiException {
+				return factory.replaceModel(modelName, clz, object, nextChain);
 			}
 		};
 	}

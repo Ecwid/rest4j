@@ -1,6 +1,6 @@
 package com.rest4j.impl;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
 import com.rest4j.impl.model.Field;
 import com.rest4j.impl.model.FieldAccessType;
@@ -27,7 +27,7 @@ public class ConcreteClassMapping {
 	List<Field> leftoverFields = new ArrayList<Field>();
 	Object customMapper;
 
-	ConcreteClassMapping(Marshaller marshaller, Class clz, Model model, Object customMapper) throws ConfigurationException {
+	public ConcreteClassMapping(Marshaller marshaller, Class clz, Model model, Object customMapper) throws ConfigurationException {
 		this.marshaller = marshaller;
 		this.name = model.getName();
 		this.clz = clz;
@@ -66,6 +66,9 @@ public class ConcreteClassMapping {
 					fieldMapping.propSetter = descr.getWriteMethod();
 				}
 			} else {
+				if (customMapper == null) {
+					throw new ConfigurationException("No field mapper specified, but mapping method is set"+forClause);
+				}
 				for (Method method : customMapper.getClass().getMethods()) {
 					if (method.getName().equals(fieldMapping.mapping)) {
 						if (method.getParameterTypes().length <= 0 || method.getParameterTypes().length > 2) {
@@ -108,7 +111,7 @@ public class ConcreteClassMapping {
 		this.fields = fields.toArray(new FieldMapping[fields.size()]);
 	}
 
-	void unmarshal(JSONObject object, Object inst) throws APIException {
+	void unmarshal(JSONObject object, Object inst) throws ApiException {
 		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic
 		for (FieldMapping field : fields) {
 			if (field.mapping != null || field.access == FieldAccessType.READONLY) continue;
@@ -124,7 +127,7 @@ public class ConcreteClassMapping {
 		}
 	}
 
-	void marshal(JSONObject json, Object val) throws APIException {
+	void marshal(JSONObject json, Object val) throws ApiException {
 		for (FieldMapping field : fields) {
 			if (field.access == FieldAccessType.WRITEONLY) continue;
 			Object fieldValue = field.value == null ? field.get(val) : field.value;
@@ -133,13 +136,13 @@ public class ConcreteClassMapping {
 				try {
 					json.put(field.name, fieldValue);
 				} catch (JSONException e) {
-					throw new APIException(500, "Wrong value of field "+name+"."+field.name+": "+e.getMessage());
+					throw new ApiException("Wrong value of field "+name+"."+field.name+": "+e.getMessage()).setHttpStatus(500);
 				}
 			}
 		}
 	}
 
-	HashMap<String, Object> unmarshalPatch(JSONObject object, Object patched) throws APIException {
+	HashMap<String, Object> unmarshalPatch(JSONObject object, Object patched) throws ApiException {
 		HashMap<String, Object> result = new HashMap<String, Object>();
 
 		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic

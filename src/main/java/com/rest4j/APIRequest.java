@@ -17,7 +17,7 @@
 
 package com.rest4j;
 
-import com.rest4j.impl.APIRequestServletImpl;
+import com.rest4j.impl.ApiRequestServletImpl;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -34,14 +34,14 @@ public abstract class APIRequest {
 	public abstract String path();
 	public abstract String param(String name);
 	public abstract String header(String name);
-	public abstract JSONObject objectInput() throws IOException, APIException;
-	public abstract JSONArray arrayInput() throws IOException, APIException;
-	public abstract InputStream binaryInput() throws IOException, APIException;
-	public abstract Reader textInput() throws IOException, APIException;
+	public abstract JSONObject objectInput() throws IOException, ApiException;
+	public abstract JSONArray arrayInput() throws IOException, ApiException;
+	public abstract InputStream binaryInput() throws IOException, ApiException;
+	public abstract Reader textInput() throws IOException, ApiException;
 	public abstract boolean https();
 
 	public static APIRequest from(HttpServletRequest request) {
-		return new APIRequestServletImpl(request);
+		return new ApiRequestServletImpl(request);
 	}
 
 }

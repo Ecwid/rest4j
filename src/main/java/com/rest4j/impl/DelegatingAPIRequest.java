@@ -17,7 +17,7 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
 import com.rest4j.APIRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -57,22 +57,22 @@ public class DelegatingAPIRequest extends APIRequest {
 	}
 
 	@Override
-	public JSONObject objectInput() throws IOException, APIException {
+	public JSONObject objectInput() throws IOException, ApiException {
 		return peer.objectInput();
 	}
 
 	@Override
-	public JSONArray arrayInput() throws IOException, APIException {
+	public JSONArray arrayInput() throws IOException, ApiException {
 		return peer.arrayInput();
 	}
 
 	@Override
-	public InputStream binaryInput() throws IOException, APIException {
+	public InputStream binaryInput() throws IOException, ApiException {
 		return peer.binaryInput();
 	}
 
 	@Override
-	public Reader textInput() throws IOException, APIException {
+	public Reader textInput() throws IOException, ApiException {
 		return peer.textInput();
 	}
 

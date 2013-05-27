@@ -17,12 +17,13 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
 import com.rest4j.ObjectFactoryChain;
 import com.rest4j.Patch;
 import com.rest4j.impl.model.Field;
 import com.rest4j.impl.model.Model;
+import com.rest4j.type.ObjectApiType;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,7 +36,7 @@ import java.util.logging.Logger;
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-class ObjectApiType extends ApiType {
+public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 	static final Logger log = Logger.getLogger(ObjectApiType.class.getName());
 	final Model model;
 	final Marshaller marshaller;
@@ -46,7 +47,7 @@ class ObjectApiType extends ApiType {
 	final ObjectFactoryChain factory;
 	final Object fieldMapper;
 
-	ObjectApiType(Marshaller marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory) throws ConfigurationException {
+	ObjectApiTypeImpl(Marshaller marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory) throws ConfigurationException {
 		this.marshaller = marshaller;
 		this.name = name;
 		this.clz = clz;
@@ -57,31 +58,31 @@ class ObjectApiType extends ApiType {
 	}
 
 	@Override
-	boolean check(Type javaClass) {
+	public boolean check(Type javaClass) {
 		return javaClass == clz;
 	}
 
 	@Override
-	Object defaultValue() {
+	public Object defaultValue() {
 		return null;
 	}
 
 	@Override
-	Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaClass) {
 		return value;
 	}
 
 	@Override
-	String getJavaName() {
+	public String getJavaName() {
 		return clz.getName();
 	}
 
 	@Override
-	Object unmarshal(Object val) throws APIException {
+	public Object unmarshal(Object val) throws ApiException {
 		if (val == null) return null;
 
 		if (!(val instanceof JSONObject)) {
-			throw new APIException(400, "{value} should be an object");
+			throw new ApiException("{value} should be an object");
 		}
 		JSONObject object = (JSONObject) val;
 
@@ -89,7 +90,7 @@ class ObjectApiType extends ApiType {
 		try {
 			inst = factory.createInstance(name, clz, object);
 		} catch (JSONException e) {
-			throw new APIException(500, "Cannot create instance of "+name+": "+e.getMessage());
+			throw new ApiException("Cannot create instance of "+name+": "+e.getMessage()).setHttpStatus(500);
 		}
 
 		if (inst == null) return null;
@@ -100,10 +101,10 @@ class ObjectApiType extends ApiType {
 	}
 
 	@Override
-	Object marshal(Object val) throws APIException {
+	public Object marshal(Object val) throws ApiException {
 		if (val == null) return null;
 		if (!clz.isAssignableFrom(val.getClass())) {
-			throw new APIException(500, "Unexpected value "+val+" where "+clz+" was expected");
+			throw new ApiException("Unexpected value "+val+" where "+clz+" was expected").setHttpStatus(500);
 		}
 		JSONObject json = new JSONObject();
 
@@ -111,7 +112,8 @@ class ObjectApiType extends ApiType {
 		return json;
 	}
 
-	public Patch unmarshalPatch(Object original, JSONObject object) throws APIException {
+	@Override
+	public Patch unmarshalPatch(Object original, JSONObject object) throws ApiException {
 		if (original == null) return new Patch(null, null, new HashMap<String, Object>());
 
 		Object patched = Util.deepClone(original);
@@ -121,7 +123,7 @@ class ObjectApiType extends ApiType {
 		return new Patch(original, patched, result);
 	}
 
-	ConcreteClassMapping getMapping(Class clz) throws APIException {
+	ConcreteClassMapping getMapping(Class clz) throws ApiException {
 		for (ConcreteClassMapping ccm: mappings) {
 			if (ccm.clz == clz) return ccm;
 		}
@@ -137,7 +139,7 @@ class ObjectApiType extends ApiType {
 				return ccm;
 			} catch (ConfigurationException e) {
 				log.log(Level.SEVERE, "Cannot map class "+clz, e);
-				throw new APIException(500, "Internal error: "+e.getMessage());
+				throw new ApiException("Internal error: "+e.getMessage()).setHttpStatus(500);
 			}
 
 		}
@@ -149,7 +151,7 @@ class ObjectApiType extends ApiType {
 		}
 	}
 
-	public FieldMapping checkFieldAsArgument(String name, Type paramType) throws ConfigurationException {
+	FieldMapping checkFieldAsArgument(String name, Type paramType) throws ConfigurationException {
 		for (Field field: model.getFields().getSimpleAndComplex()) {
 			if (field.getName().equals(name)) {
 				FieldMapping fieldMapping = new FieldMapping(marshaller, field, null, this.name);

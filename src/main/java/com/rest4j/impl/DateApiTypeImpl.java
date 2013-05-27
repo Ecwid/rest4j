@@ -17,7 +17,9 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
+import com.rest4j.impl.SimpleApiTypeImpl;
+import com.rest4j.type.DateApiType;
 import org.json.JSONObject;
 
 import javax.xml.bind.DatatypeConverter;
@@ -32,9 +34,9 @@ import java.util.regex.Pattern;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-class DateApiType extends SimpleApiType {
+public class DateApiTypeImpl extends SimpleApiTypeImpl implements DateApiType {
 	@Override
-	boolean check(Type javaType) {
+	public boolean check(Type javaType) {
 		if (!(javaType instanceof Class)) return false;
 		Class clz = (Class)javaType;
 		if (clz == null) return false;
@@ -42,12 +44,12 @@ class DateApiType extends SimpleApiType {
 	}
 
 	@Override
-	boolean equals(Object val1, Object val2) {
+	public boolean equals(Object val1, Object val2) {
 		return cast(val1, java.util.Date.class).equals(cast(val2, java.util.Date.class));
 	}
 
 	@Override
-	Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaClass) {
 		if (value == null) return null;
 		if (javaClass == java.util.Date.class) return value;
 		java.util.Date date = (java.util.Date) value;
@@ -55,14 +57,14 @@ class DateApiType extends SimpleApiType {
 	}
 
 	@Override
-	String getJavaName() {
+	public String getJavaName() {
 		return "java.util.Date or java.sql.Date";
 	}
 
 	Pattern iso8601Timezone = Pattern.compile("[^T]*T.*(Z|[+-]([0-9]{4,4}|[0-9][0-9]|[0-9][0-9]:[0-9][0-9]))");
 
 	@Override
-	Object unmarshal(Object val) throws APIException {
+	public Object unmarshal(Object val) throws ApiException {
 		if (JSONObject.NULL == val) val = null;
 		if (val instanceof String) {
 			String stringValue = (String) val;
@@ -97,7 +99,7 @@ class DateApiType extends SimpleApiType {
 		} else if (val instanceof Number) {
 			return new java.util.Date(((Number)val).longValue()*1000);
 		}
-		throw new APIException(400, "{value} is expected to be a unix timestamp or a string in either ISO 8601 or RFC 2822 format");
+		throw new ApiException("{value} is expected to be a unix timestamp or a string in either ISO 8601 or RFC 2822 format");
 	}
 
 	ThreadLocal<SimpleDateFormat> JSONDateFormat = new ThreadLocal<SimpleDateFormat>() {
@@ -110,13 +112,13 @@ class DateApiType extends SimpleApiType {
 	};
 
 	@Override
-	Object marshal(Object val) throws APIException {
+	public Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
 		// equivalent of Date.toJSON in JavaScript
 		if (val instanceof java.sql.Date) {
 			val = new java.util.Date(((java.sql.Date)val).getTime());
 		} else if (!(val instanceof java.util.Date)) {
-			throw new APIException(500, "Expected Date, "+val.getClass()+" given");
+			throw new ApiException("Expected Date, "+val.getClass()+" given").setHttpStatus(500);
 		}
 		return JSONDateFormat.get().format((java.util.Date)val);
 	}

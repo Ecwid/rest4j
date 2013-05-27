@@ -40,6 +40,9 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 	String pathPrefix;
 	ServiceProvider serviceProvider;
 	List<ObjectFactory> objectFactories = new ArrayList<ObjectFactory>();
+	String serviceSuffix;
+	String mapperSuffix;
+	String converterSuffix;
 
 	// state
 	API api;
@@ -65,6 +68,9 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 		if (serviceProvider == null) {
 			ContextServiceProvider ssp = new ContextServiceProvider();
 			ssp.setApplicationContext(context);
+			ssp.setServiceSuffix(getServiceSuffix());
+			ssp.setMapperSuffix(getMapperSuffix());
+			ssp.setConverterSuffix(getConverterSuffix());
 			return ssp;
 		}
 		return serviceProvider;
@@ -115,4 +121,29 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.context = applicationContext;
 	}
+
+	public String getServiceSuffix() {
+		return serviceSuffix;
+	}
+
+	public void setServiceSuffix(String serviceSuffix) {
+		this.serviceSuffix = serviceSuffix;
+	}
+
+	public String getMapperSuffix() {
+		return mapperSuffix;
+	}
+
+	public void setMapperSuffix(String mapperSuffix) {
+		this.mapperSuffix = mapperSuffix;
+	}
+
+	public String getConverterSuffix() {
+		return converterSuffix;
+	}
+
+	public void setConverterSuffix(String converterSuffix) {
+		this.converterSuffix = converterSuffix;
+	}
+
 }

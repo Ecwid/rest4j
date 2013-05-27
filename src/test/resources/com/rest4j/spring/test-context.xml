@@ -30,11 +30,13 @@
 				<bean class="com.rest4j.spring.TestObjectFactory"/>
 			</list>
 		</property>
+		<property name="serviceSuffix" value="Service"></property>
+		<property name="mapperSuffix" value="Mapper"></property>
 	</bean>
 
-	<bean id="pets" class="com.rest4j.spring.TestService"/>
+	<bean id="petsService" class="com.rest4j.spring.TestService"/>
 
-	<bean id="petMapping" class="com.rest4j.impl.petapi.PetMapping"/>
+	<bean id="petMappingMapper" class="com.rest4j.impl.petapi.PetMapping"/>
 
 	<bean id="controller" class="com.rest4j.spring.Controller">
 		<property name="api" ref="api"/>

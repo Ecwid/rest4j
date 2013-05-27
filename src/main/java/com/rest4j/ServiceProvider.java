@@ -21,6 +21,24 @@ package com.rest4j;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ServiceProvider {
+
+	/**
+	 * Find an object that will execute REST API requests.
+	 *
+	 * @param name The value of the service/@name attribute of the API description or null if absent.
+	 * @return
+	 */
 	Object lookupService(String name);
-	Object lookupMapping(String model, String name);
+
+	/**
+	 * Finds a field mapper corresponding to a name specified in the field-mapper attribute of the API description.
+	 * Field mappers are looked up once during API initialization.
+	 *
+	 * @param model The name of the model for with the field mapper should be found.
+	 * @param name The field-mapper attribute value or null if not specified.
+	 * @return
+	 */
+	Object lookupFieldMapper(String model, String name);
+
+	Converter lookupConverter(String name);
 }

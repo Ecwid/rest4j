@@ -34,7 +34,12 @@ public class APIFactoryTest {
 		}
 
 		@Override
-		public Object lookupMapping(String model, String name) {
+		public Object lookupFieldMapper(String model, String name) {
+			return null;
+		}
+
+		@Override
+		public Converter lookupConverter(String name) {
 			return null;
 		}
 	};

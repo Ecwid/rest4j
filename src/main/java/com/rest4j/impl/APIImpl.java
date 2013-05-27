@@ -20,9 +20,11 @@ package com.rest4j.impl;
 import com.rest4j.API;
 import com.rest4j.*;
 import com.rest4j.ObjectFactory;
-import com.rest4j.impl.model.ContentType;
 import com.rest4j.impl.model.*;
+import com.rest4j.impl.model.ContentType;
 import com.rest4j.impl.model.Error;
+import com.rest4j.type.ApiType;
+import com.rest4j.type.SimpleApiType;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 
@@ -61,7 +63,7 @@ public class APIImpl implements API {
 		for (Object child: root.getEndpointAndModel()) {
 			if (child instanceof Model) {
 				Model model = (Model) child;
-				Object customMapper = serviceProvider.lookupMapping(model.getName(), model.getMapping());
+				Object customMapper = serviceProvider.lookupFieldMapper(model.getName(), model.getFieldMapper());
 				modelConfig.add(new Marshaller.ModelConfig(model, customMapper));
 			}
 		}
@@ -79,19 +81,20 @@ public class APIImpl implements API {
 		}
 	}
 
-	class APIExceptionWrapper extends APIException {
+	class APIExceptionWrapper extends ApiException {
 		APIRequest request;
-		APIException ex;
+		ApiException ex;
 
-		APIExceptionWrapper(APIRequest request, APIException ex) {
-			super(ex.getStatus(), ex.getMessage());
+		APIExceptionWrapper(APIRequest request, ApiException ex) {
+			super(ex.getMessage());
+			setHttpStatus(ex.getHttpStatus());
 			this.request = request;
 			this.ex = ex;
 		}
 
 		@Override
-		public int getStatus() {
-			return ex.getStatus();
+		public int getHttpStatus() {
+			return ex.getHttpStatus();
 		}
 
 		@Override
@@ -100,15 +103,15 @@ public class APIImpl implements API {
 		}
 
 		@Override
-		public APIException replaceMessage(String newMessage) {
+		public ApiException replaceMessage(String newMessage) {
 			throw new IllegalStateException();
 		}
 
 		@Override
 		public APIResponse createResponse() {
 			JSONObject jsonResponse = getJSONResponse();
-			return new APIResponseImpl(APIImpl.this, request, jsonResponse == null ? null : new JSONResource(jsonResponse))
-					.setStatus(getStatus(), getMessage())
+			return new ApiResponseImpl(APIImpl.this, request, jsonResponse == null ? null : new JSONResource(jsonResponse))
+					.setStatus(getHttpStatus(), getMessage())
 					.addHeader("Cache-control", "must-revalidate,no-cache,no-store");
 		}
 
@@ -120,30 +123,30 @@ public class APIImpl implements API {
 
 
 	@Override
-	public APIResponse serve(APIRequest request) throws IOException, APIException {
+	public APIResponse serve(APIRequest request) throws IOException, ApiException {
 		try {
 			return serveInt(request);
-		} catch (APIException ex) {
+		} catch (ApiException ex) {
 			// wrap exceptions and implements createResponse()
 			throw new APIExceptionWrapper(request, ex);
 		}
 	}
 
-	APIResponse serveInt(APIRequest request) throws IOException, APIException {
+	APIResponse serveInt(APIRequest request) throws IOException, ApiException {
 
 		if (!request.path().startsWith(pathPrefix)) {
-			throw new APIException(404, "Wrong path: " + request.path() + ", does not match the path prefix '" + pathPrefix + "'");
+			throw new ApiException("Wrong path: " + request.path() + ", does not match the path prefix '" + pathPrefix + "'").setHttpStatus(404);
 		}
 		if (request.method().equals("OPTIONS")) {
 			try {
 				findEndpoint(request);
-			} catch (APIException apiex) {
-				if (apiex.getStatus() != 405) {
+			} catch (ApiException apiex) {
+				if (apiex.getHttpStatus() != 405) {
 					throw apiex;
 				}
 			}
 			// enable cross-domain queries
-			return new APIResponseImpl(this, request, null)
+			return new ApiResponseImpl(this, request, null)
 					.addHeader("Access-Control-Allow-Origin", "*")
 					.addHeader("Access-Control-Allow-Methods", getAllowedMethodsString(request))
 					.addHeader("Access-Control-Max-Age", "10000000");
@@ -151,7 +154,7 @@ public class APIImpl implements API {
 		EndpointMapping endpoint = findEndpoint(request);
 
 		if (endpoint.httpsonly && !request.https()) {
-			throw new APIException(400, "This request can only be sent over HTTPS.");
+			throw new ApiException( "This request can only be sent over HTTPS.");
 		}
 		Object getResult = null;
 		if (!request.method().equals("GET")) {
@@ -164,7 +167,7 @@ public class APIImpl implements API {
 			if (request.header("If-Match") != null) {
 				Resource getResource = resourceFactory.createResourceFrom(getResult, getEndpoint.getResponseContentType());
 				if (!parseList(request.header("If-Match")).contains(getResource.getETag())) {
-					throw new APIException(412, "Precondition failed");
+					throw new ApiException("Precondition failed").setHttpStatus(412);
 				}
 			}
 		}
@@ -172,10 +175,10 @@ public class APIImpl implements API {
 		if (request.header("If-None-Match") != null && request.method().equals("GET") && result != null) {
 			String etag = result.getETag();
 			if (parseList(request.header("If-None-Match")).contains(etag)) {
-				throw new APIException(304, "Not modified").addHeader("ETag", etag);
+				throw new ApiException("Not modified").setHttpStatus(304).addHeader("ETag", etag);
 			}
 		}
-		return new APIResponseImpl(this, request, result).addHeader("Vary", "Accept-Encoding");
+		return new ApiResponseImpl(this, request, result).addHeader("Vary", "Accept-Encoding");
 	}
 
 	APIParams getParams() {
@@ -183,7 +186,7 @@ public class APIImpl implements API {
 	}
 
 	interface ArgHandler {
-		Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException;
+		Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException;
 	}
 
 	class EndpointMapping {
@@ -257,13 +260,13 @@ public class APIImpl implements API {
 					} else if ((fieldMapping = checkFieldAsArgument(name, paramType)) != null) {
 						args[i] = new ArgHandler() {
 							@Override
-							public Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException {
+							public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
 								Object val = request.objectInput().opt(name);
 								val = fieldMapping.unmarshal(val);
 								try {
 									return fieldMapping.type.cast(val, paramType);
 								} catch (NullPointerException npe) {
-									throw new APIException(400, "Field "+fieldMapping.parent+"."+name+" value is absent");
+									throw new ApiException("Field "+fieldMapping.parent+"."+name+" value is absent");
 								}
 							}
 						};
@@ -284,8 +287,8 @@ public class APIImpl implements API {
 					final SimpleApiType paramApiType;
 					try {
 						Object defaultValue = param.getDefault() == null ? null : parseParam(param, param.getDefault());
-						paramApiType = SimpleApiType.create(param.getType(), defaultValue, enumValues);
-					} catch (APIException e) {
+						paramApiType = SimpleApiTypeImpl.create(param.getType(), defaultValue, enumValues);
+					} catch (ApiException e) {
 						throw new ConfigurationException("Cannot parse default param value "+param.getDefault()+": "+e.getMessage());
 					}
 					if (!paramApiType.check(paramType)) {
@@ -293,7 +296,7 @@ public class APIImpl implements API {
 					}
 					args[i] = new ArgHandler() {
 						@Override
-						public Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException {
+						public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
 							return paramApiType.cast(params.get(name), paramType);
 						}
 					};
@@ -306,14 +309,14 @@ public class APIImpl implements API {
 		}
 
 		private FieldMapping checkFieldAsArgument(String name, Type paramType) throws ConfigurationException {
-			final ObjectApiType objectType = getBodyApiType();
+			final ObjectApiTypeImpl objectType = getBodyApiType();
 
 			if (objectType == null) return null;
 			return objectType.checkFieldAsArgument(name, paramType);
 		}
 
-		private ObjectApiType getBodyApiType() {
-			final ObjectApiType objectType;
+		private ObjectApiTypeImpl getBodyApiType() {
+			final ObjectApiTypeImpl objectType;
 			if (endpoint.getBody() == null || endpoint.getBody().getJson() == null && endpoint.getBody().getPatch() == null) {
 				objectType = null;
 			} else {
@@ -331,7 +334,7 @@ public class APIImpl implements API {
 				expect = InputStream.class;
 				argHandler = new ArgHandler() {
 					@Override
-					public Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException {
+					public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
 						return request.binaryInput();
 					}
 				};
@@ -339,7 +342,7 @@ public class APIImpl implements API {
 				expect = Reader.class;
 				argHandler = new ArgHandler() {
 					@Override
-					public Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException {
+					public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
 						return request.textInput();
 					}
 				};
@@ -355,7 +358,7 @@ public class APIImpl implements API {
 									final ApiType arrayType = marshaller.getArrayType(jsonType.getType());
 									return new ArgHandler() {
 										@Override
-										public Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException {
+										public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
 											return arrayType.unmarshal(request.arrayInput());
 										}
 									};
@@ -367,7 +370,7 @@ public class APIImpl implements API {
 					final ApiType objectType = marshaller.getObjectType(jsonType.getType());
 					argHandler = new ArgHandler() {
 						@Override
-						public Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException {
+						public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
 							return objectType.unmarshal(request.objectInput());
 						}
 					};
@@ -378,20 +381,20 @@ public class APIImpl implements API {
 						ParameterizedType ptype = (ParameterizedType) type;
 						if (ptype.getRawType() == Patch.class) {
 							if (ptype.getActualTypeArguments()[0] == expect) {
-								final ObjectApiType objectType = marshaller.getObjectType(patchType.getType());
+								final ObjectApiTypeImpl objectType = marshaller.getObjectType(patchType.getType());
 								return new ArgHandler() {
 									@Override
-									public Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException {
+									public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
 										return objectType.unmarshalPatch(getResponse, request.objectInput());
 									}
 								};
 							}
 						}
 					} else if (type == expect) {
-						final ObjectApiType objectType = marshaller.getObjectType(patchType.getType());
+						final ObjectApiTypeImpl objectType = marshaller.getObjectType(patchType.getType());
 						return new ArgHandler() {
 							@Override
-							public Object get(APIRequest request, Object getResponse, Params params) throws IOException, APIException {
+							public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
 								Patch patch = objectType.unmarshalPatch(getResponse, request.objectInput());
 								return patch.getPatched();
 							}
@@ -408,11 +411,11 @@ public class APIImpl implements API {
 			return argHandler;
 		}
 
-		Resource invoke(APIRequest request, Object getResult) throws IOException, APIException {
+		Resource invoke(APIRequest request, Object getResult) throws IOException, ApiException {
 			return resourceFactory.createResourceFrom(invokeRaw(request, getResult), endpoint.getResponse());
 		}
 
-		Object invokeRaw(APIRequest request, Object getResult) throws IOException, APIException {
+		Object invokeRaw(APIRequest request, Object getResult) throws IOException, ApiException {
 			Map<String, String> pathParams = match(getPath(request));
 			ParamsImpl params = new ParamsImpl();
 			for (Parameter param: endpoint.getParameters().getParameter()) {
@@ -421,7 +424,7 @@ public class APIImpl implements API {
 					paramStringValue = request.param(param.getName());
 				}
 				if (!StringUtils.isEmpty(paramStringValue) && param.isHttpsonly() && !request.https()) {
-					throw new APIException(400, "Bad request. Parameter "+param.getName()+" can only be sent over HTTPS.");
+					throw new ApiException("Bad request. Parameter "+param.getName()+" can only be sent over HTTPS.");
 				}
 				params.put(param.getName(), parseParam(param, paramStringValue));
 			}
@@ -435,13 +438,13 @@ public class APIImpl implements API {
 				return result;
 			} catch (InvocationTargetException ite) {
 				Throwable cause = ite.getCause();
-				if (cause instanceof APIException) {
-					throw (APIException)cause;
+				if (cause instanceof ApiException) {
+					throw (ApiException)cause;
 				}
 				Error error = findError(cause);
 				if (error != null) {
 					JSONObject errJSON = (JSONObject) marshaller.getObjectType(error.getType()).marshal(cause);
-					throw new APIException(error.getStatus(), cause.getMessage(), errJSON);
+					throw new ApiException(cause.getMessage(), errJSON).setHttpStatus(error.getStatus());
 				}
 				if (ite.getCause() instanceof RuntimeException) {
 					throw (RuntimeException)ite.getCause();
@@ -456,7 +459,7 @@ public class APIImpl implements API {
 		// find exception by its type
 		private Error findError(Throwable cause) {
 			for (Error err: endpoint.getErrors().getError()) {
-				ObjectApiType type = marshaller.getObjectType(err.getType());
+				ObjectApiTypeImpl type = marshaller.getObjectType(err.getType());
 				if (type.clz.isAssignableFrom(cause.getClass())) {
 					return err;
 				}
@@ -498,7 +501,7 @@ public class APIImpl implements API {
 		};
 	}
 
-	EndpointMapping findEndpoint(APIRequest request) throws IOException, APIException {
+	EndpointMapping findEndpoint(APIRequest request) throws IOException, ApiException {
 		boolean pathFound = false;
 		for (EndpointMapping endpoint: endpoints) {
 			Map<String, String> pathParams = endpoint.match(getPath(request));
@@ -514,23 +517,23 @@ public class APIImpl implements API {
 		}
 		if (pathFound) {
 			String allowMethods = getAllowedMethodsString(request);
-			throw new APIException(405, "Method not allowed").addHeader("Allow", allowMethods);
+			throw new ApiException("Method not allowed").setHttpStatus(405).addHeader("Allow", allowMethods);
 		}
-		throw new APIException(404, "File not found");
+		throw new ApiException("File not found").setHttpStatus(404);
 	}
 
 	private String getPath(APIRequest request) {
 		return request.path().substring(pathPrefix.length());
 	}
 
-	private String getAllowedMethodsString(APIRequest request) throws IOException, APIException {
+	private String getAllowedMethodsString(APIRequest request) throws IOException, ApiException {
 		List<String> methods = getAllowedMethods(request);
 		methods.add("OPTIONS");
 		return StringUtils.join(methods, ", ");
 	}
 
 	@Override
-	public List<String> getAllowedMethods(APIRequest request) throws IOException, APIException {
+	public List<String> getAllowedMethods(APIRequest request) throws IOException, ApiException {
 		List<String> methods = new ArrayList<String>();
 		for (EndpointMapping endpoint: endpoints) {
 			if (endpoint.matches(getPath(request))) {
@@ -542,10 +545,10 @@ public class APIImpl implements API {
 
 	static private final Pattern ISDOUBLE = Pattern.compile("[\\.eE]");
 
-	Object parseParam(Parameter param, String valueStr) throws APIException {
+	Object parseParam(Parameter param, String valueStr) throws ApiException {
 		if (valueStr == null) {
 			if (!param.isOptional()) {
-				throw new APIException(400, "Absent parameter "+param.getName());
+				throw new ApiException("Absent parameter "+param.getName());
 			}
 			valueStr = param.getDefault();
 		}
@@ -559,7 +562,7 @@ public class APIImpl implements API {
 			if (valueStr.equals("false") || valueStr.equals("no") || valueStr.equals("off") || valueStr.equals("0")) {
 				return Boolean.FALSE;
 			}
-			throw new APIException(400, "Wrong parameter '"+param.getName()+"' value: expected one of 'true', 'false', 'yes', 'no', 'on', 'off', '1', '0'");
+			throw new ApiException("Wrong parameter '"+param.getName()+"' value: expected one of 'true', 'false', 'yes', 'no', 'on', 'off', '1', '0'");
 		case NUMBER:
 			valueStr = valueStr.trim();
 			try {
@@ -569,13 +572,13 @@ public class APIImpl implements API {
 					return Long.parseLong(valueStr);
 				}
 			} catch (NumberFormatException ex) {
-				throw new APIException(400, "Wrong numeric parameter '"+param.getName()+"' value: not a number or a number out of range");
+				throw new ApiException("Wrong numeric parameter '"+param.getName()+"' value: not a number or a number out of range");
 			}
 		case STRING:
 			if (param.getValues() != null) {
 				// check allowed values
 				if (!param.getValues().getValue().contains(valueStr)) {
-					throw new APIException(400, "Wrong parameter '"+param.getName()+"' value: expected one of "+
+					throw new ApiException("Wrong parameter '"+param.getName()+"' value: expected one of "+
 						StringUtils.join(param.getValues().getValue(), ", "));
 				}
 			}

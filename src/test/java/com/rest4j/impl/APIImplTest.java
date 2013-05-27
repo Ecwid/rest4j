@@ -107,8 +107,13 @@ public class APIImplTest {
 			}
 
 			@Override
-			public Object lookupMapping(String model, String name) {
+			public Object lookupFieldMapper(String model, String name) {
 				if ("petMapping".equals(name)) return customMapping;
+				return null;
+			}
+
+			@Override
+			public Converter lookupConverter(String name) {
 				return null;
 			}
 		};
@@ -127,31 +132,31 @@ public class APIImplTest {
 		assertTrue(endpoint.pathMatcher.matches("/pets"));
 	}
 
-	@Test public void testFindEndpoint_not_found() throws IOException, APIException {
+	@Test public void testFindEndpoint_not_found() throws IOException, ApiException {
 		APIRequest request = mock(APIRequest.class);
 		when(request.method()).thenReturn("GET");
 		when(request.path()).thenReturn("/api/v2/pets/xxx/zzz");
 		try {
 			api.findEndpoint(request);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(404, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(404, ex.getHttpStatus());
 		}
 	}
 
-	@Test public void testFindEndpoint_wrong_method() throws IOException, APIException {
+	@Test public void testFindEndpoint_wrong_method() throws IOException, ApiException {
 		APIRequest request = mock(APIRequest.class);
 		when(request.method()).thenReturn("SNAP");
 		when(request.path()).thenReturn("/api/v2/pets/xxx");
 		try {
 			api.findEndpoint(request);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(405, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(405, ex.getHttpStatus());
 		}
 	}
 
-	@Test public void testFindEndpoint_success() throws IOException, APIException {
+	@Test public void testFindEndpoint_success() throws IOException, ApiException {
 		APIRequest request = mock(APIRequest.class);
 		when(request.method()).thenReturn("GET");
 		when(request.path()).thenReturn("/api/v2/pets/555");
@@ -159,7 +164,7 @@ public class APIImplTest {
 		assertEquals("get", endpoint.method.getName());
 	}
 
-	@Test public void testGetAllowedMethods() throws IOException, APIException {
+	@Test public void testGetAllowedMethods() throws IOException, ApiException {
 		APIRequest request = mock(APIRequest.class);
 		when(request.method()).thenReturn("GET");
 		when(request.path()).thenReturn("/api/v2/pets/555");
@@ -175,7 +180,7 @@ public class APIImplTest {
 		parseParam_exception(param, null, 400, "Absent parameter test");
 	}
 
-	@Test public void testParseParam_default() throws APIException {
+	@Test public void testParseParam_default() throws ApiException {
 		Parameter param = new Parameter();
 		param.setType(FieldType.STRING);
 		param.setName("test");
@@ -184,7 +189,7 @@ public class APIImplTest {
 		assertEquals("DEFLT", api.parseParam(param, null));
 	}
 
-	@Test public void testParseParam_wrong_boolean() throws APIException {
+	@Test public void testParseParam_wrong_boolean() throws ApiException {
 		Parameter param = new Parameter();
 		param.setType(FieldType.BOOLEAN);
 		param.setName("test");
@@ -192,7 +197,7 @@ public class APIImplTest {
 		parseParam_exception(param, "234", 400, "Wrong parameter 'test' value:");
 	}
 
-	@Test public void testParseParam_wrong_number() throws APIException {
+	@Test public void testParseParam_wrong_number() throws ApiException {
 		Parameter param = new Parameter();
 		param.setType(FieldType.NUMBER);
 		param.setName("test");
@@ -200,7 +205,7 @@ public class APIImplTest {
 		parseParam_exception(param, "1122123123123123123123123123123", 400, "Wrong numeric parameter 'test' value:");
 	}
 
-	@Test public void testParseParam_good_boolean() throws APIException {
+	@Test public void testParseParam_good_boolean() throws ApiException {
 		Parameter param = new Parameter();
 		param.setType(FieldType.BOOLEAN);
 		param.setName("test");
@@ -210,7 +215,7 @@ public class APIImplTest {
 		assertEquals(false, api.parseParam(param, "false"));
 	}
 
-	@Test public void testParseParam_good_number() throws APIException {
+	@Test public void testParseParam_good_number() throws ApiException {
 		Parameter param = new Parameter();
 		param.setType(FieldType.NUMBER);
 		param.setName("test");
@@ -218,7 +223,7 @@ public class APIImplTest {
 		assertEquals(123.45, ((Number) api.parseParam(param, "123.45")).doubleValue(), 1e-10);
 	}
 
-	@Test public void testParseParam_enum() throws APIException {
+	@Test public void testParseParam_enum() throws ApiException {
 		Parameter param = new Parameter();
 		param.setType(FieldType.STRING);
 		param.setName("test");
@@ -235,18 +240,18 @@ public class APIImplTest {
 		try {
 			api.parseParam(param, val);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(status, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(status, ex.getHttpStatus());
 			if (msg != null) assertTrue(ex.getMessage(), ex.getMessage().contains(msg));
 		}
 	}
 
-	@Test(expected=APIException.class) public void testServe_wrong_prefix() throws IOException, APIException {
+	@Test(expected=ApiException.class) public void testServe_wrong_prefix() throws IOException, ApiException {
 		APIRequest request = mockRequest("GET", "/xxx");
 		api.serve(request);
 	}
 
-	@Test public void testServe_options() throws IOException, APIException {
+	@Test public void testServe_options() throws IOException, ApiException {
 		APIRequest request = mockRequest("OPTIONS", "/api/v2/pets/555");
 		APIResponse response = api.serve(request);
 		assertEquals("*", getHeader(response, "Access-Control-Allow-Origin"));
@@ -256,12 +261,12 @@ public class APIImplTest {
 		try {
 			api.serve(request);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(404, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(404, ex.getHttpStatus());
 		}
 	}
 
-	@Test public void testServe_invoke() throws IOException, APIException {
+	@Test public void testServe_invoke() throws IOException, ApiException {
 		APIRequest request = mockRequest("DELETE", "/api/v2/pets/555");
 		when(request.param("access_token")).thenReturn("123123123");
 		APIResponse response = api.serve(request);
@@ -269,7 +274,7 @@ public class APIImplTest {
 		assertEquals("123123123", access_token);
 	}
 
-	@Test public void testServe_get_json_object() throws IOException, APIException, JSONException {
+	@Test public void testServe_get_json_object() throws IOException, ApiException, JSONException {
 		APIRequest request = mockRequest("GET", "/api/v2/pets/555");
 		APIResponse response = api.serve(request);
 		assertEquals(0, deleted);
@@ -287,10 +292,10 @@ public class APIImplTest {
 		assertEquals(666, relations.getJSONObject(0).getInt("petId"));
 	}
 
-	@Test public void testServe_etag() throws IOException, APIException, JSONException {
+	@Test public void testServe_etag() throws IOException, ApiException, JSONException {
 		APIRequest request = mockRequest("GET", "/api/v2/pets/555");
 		when(request.header("If-None-Match")).thenReturn("\"xxx\"");
-		APIResponseImpl response = (APIResponseImpl) api.serve(request);
+		ApiResponseImpl response = (ApiResponseImpl) api.serve(request);
 
 		assertNotNull(response.response);
 		String etag = response.response.getETag();
@@ -299,19 +304,19 @@ public class APIImplTest {
 		try {
 			api.serve(request);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(304, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(304, ex.getHttpStatus());
 			assertEquals(etag, ex.getHeader("ETag"));
 		}
 	}
 
-	@Test public void testServe_mandatory_param() throws IOException, APIException, JSONException {
+	@Test public void testServe_mandatory_param() throws IOException, ApiException, JSONException {
 		APIRequest request = mockRequest("PUT", "/api/v2/pets/555");
 		try {
 			api.serve(request);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(400, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(400, ex.getHttpStatus());
 			assertEquals("Absent parameter access_token", ex.getMessage());
 		}
 	}
@@ -321,7 +326,7 @@ public class APIImplTest {
 		when(request.param("access_token")).thenReturn("xxx");
 		JSONObject json = MarshallerTest.createMaxJson();
 		when(request.objectInput()).thenReturn(json);
-		APIResponseImpl response = (APIResponseImpl) api.serve(request);
+		ApiResponseImpl response = (ApiResponseImpl) api.serve(request);
 
 		assertEquals(200, response.getStatus());
 		assertNull(response.getJSONResponse());
@@ -379,7 +384,7 @@ public class APIImplTest {
 		json.put("writeonly", true);
 		when(request.objectInput()).thenReturn(json);
 
-		APIResponseImpl response = (APIResponseImpl) api.serve(request);
+		ApiResponseImpl response = (ApiResponseImpl) api.serve(request);
 
 		assertEquals(555, patchedId);
 		assertEquals(555, patchedPet.getId()); // shouldn't change
@@ -393,7 +398,7 @@ public class APIImplTest {
 	@Test public void testServe_if_match() throws Exception {
 		APIRequest request = mockRequest("GET", "/api/v2/pets/555");
 
-		APIResponseImpl response = (APIResponseImpl) api.serve(request);
+		ApiResponseImpl response = (ApiResponseImpl) api.serve(request);
 		String etag = response.response.getETag();
 
 		when(request.method()).thenReturn("PUT");
@@ -406,8 +411,8 @@ public class APIImplTest {
 			when(request.header("If-Match")).thenReturn("xxx");
 			api.serve(request);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(412, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(412, ex.getHttpStatus());
 		}
 	}
 
@@ -427,7 +432,7 @@ public class APIImplTest {
 		json.put("testProp", "TEST");
 		when(request.objectInput()).thenReturn(json);
 
-		APIResponseImpl response = (APIResponseImpl) api.serve(request);
+		ApiResponseImpl response = (ApiResponseImpl) api.serve(request);
 
 		assertEquals("TEST", testProp);
 	}
@@ -445,8 +450,8 @@ public class APIImplTest {
 			when(request.param("access_token")).thenReturn("TOKEN");
 			api.serve(request);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(400, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(400, ex.getHttpStatus());
 			assertEquals("Bad request. Parameter access_token can only be sent over HTTPS.", ex.getMessage());
 		}
 
@@ -467,8 +472,8 @@ public class APIImplTest {
 		try {
 			api.serve(request);
 			fail();
-		} catch(APIException ex) {
-			assertEquals(400, ex.getStatus());
+		} catch(ApiException ex) {
+			assertEquals(400, ex.getHttpStatus());
 			assertEquals("This request can only be sent over HTTPS.", ex.getMessage());
 		}
 
@@ -488,8 +493,8 @@ public class APIImplTest {
 		try {
 			api.serve(request);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(400, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(400, ex.getHttpStatus());
 			assertEquals("INDISPOSED", ex.getJSONResponse().getString("code"));
 		}
 	}
@@ -511,8 +516,8 @@ public class APIImplTest {
 		try {
 			api.serve(request);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(400, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(400, ex.getHttpStatus());
 			assertEquals("Wrong parameter 'type' value: expected one of dog, cat, hamster", ex.getMessage());
 		}
 	}
@@ -536,8 +541,8 @@ public class APIImplTest {
 		try {
 			api.serve(request);
 			fail();
-		} catch (APIException ex) {
-			assertEquals(400, ex.getStatus());
+		} catch (ApiException ex) {
+			assertEquals(400, ex.getHttpStatus());
 			assertEquals("Field Pet.weight value is absent", ex.getMessage());
 		}
 	}
@@ -600,7 +605,7 @@ public class APIImplTest {
 	}
 
 	private String getHeader(APIResponse response, String name) {
-		for (Headers.Header header: ((APIResponseImpl)response).headers.headers) {
+		for (Headers.Header header: ((ApiResponseImpl)response).headers.headers) {
 			if (header.name.equalsIgnoreCase(name)) return header.value;
 		}
 		return null;

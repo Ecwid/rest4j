@@ -17,7 +17,7 @@
 
 package com.rest4j.spring;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
 import com.rest4j.Patch;
 import com.rest4j.impl.petapi.Pet;
 import com.rest4j.impl.petapi.UpdateResult;
@@ -31,9 +31,9 @@ import java.util.List;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class TestService {
-	public List<Pet> list(String type) throws JSONException, APIException {
+	public List<Pet> list(String type) throws JSONException, ApiException {
 		if (type == null) {
-			throw new APIException(400, "No type parameter", new JSONObject("{field:'type'}"));
+			throw new ApiException("No type parameter", new JSONObject("{field:'type'}"));
 		}
 		Pet pet = new Pet();
 		pet.setType(type);

@@ -15,25 +15,16 @@
  * limitations under the License.
  */
 
-package com.rest4j;
+package com.rest4j.type;
 
-import java.io.IOException;
-import java.util.List;
+import com.rest4j.ApiException;
+import com.rest4j.Patch;
+import org.json.JSONObject;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public interface API {
-	/**
-	 * Performs RESTful request on a given APIRequest.
-	 *
-	 * @param request
-	 * @return Either JSONArray or JSONObject. Null when the request should not have a body.
-	 * @throws IOException On error reading the request
-	 * @throws ApiException Any business-related error (including those propagated from Service)
-	 */
-	APIResponse serve(APIRequest request) throws IOException, ApiException;
-
-	List<String> getAllowedMethods(APIRequest request) throws IOException, ApiException;
+public interface ObjectApiType extends ApiType {
+	Patch unmarshalPatch(Object original, JSONObject object) throws ApiException;
 
 }

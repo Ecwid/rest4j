@@ -19,6 +19,7 @@ package com.rest4j.impl;
 
 import com.rest4j.impl.model.FieldType;
 import com.rest4j.impl.petapi.RelationType;
+import com.rest4j.type.SimpleApiType;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -31,7 +32,7 @@ public class SimpleApiTypeTest {
 
 	@Test
 	public void testCheck_boolean() throws Exception {
-		SimpleApiType simpleApiType = SimpleApiType.create(FieldType.BOOLEAN, null, null);
+		SimpleApiType simpleApiType = SimpleApiTypeImpl.create(FieldType.BOOLEAN, null, null);
 		assertTrue(simpleApiType.check(Boolean.class));
 		assertTrue(simpleApiType.check(boolean.class));
 		assertFalse(simpleApiType.check(String.class));
@@ -39,7 +40,7 @@ public class SimpleApiTypeTest {
 
 	@Test
 	public void testCheck_number() throws Exception {
-		SimpleApiType simpleApiType = SimpleApiType.create(FieldType.NUMBER, null, null);
+		SimpleApiType simpleApiType = SimpleApiTypeImpl.create(FieldType.NUMBER, null, null);
 		assertTrue(simpleApiType.check(Double.class));
 		assertTrue(simpleApiType.check(long.class));
 		assertTrue(simpleApiType.check(Number.class));
@@ -48,14 +49,14 @@ public class SimpleApiTypeTest {
 
 	@Test
 	public void testCheck_string() throws Exception {
-		SimpleApiType simpleApiType = SimpleApiType.create(FieldType.STRING, null, null);
+		SimpleApiType simpleApiType = SimpleApiTypeImpl.create(FieldType.STRING, null, null);
 		assertTrue(simpleApiType.check(String.class));
 		assertFalse(simpleApiType.check(Number.class));
 	}
 
 	@Test
 	public void testCheck_enum() throws Exception {
-		SimpleApiType simpleApiType = SimpleApiType.create(FieldType.STRING, null, new String[]{"friend", "ate"});
+		SimpleApiType simpleApiType = SimpleApiTypeImpl.create(FieldType.STRING, null, new String[]{"friend", "ate"});
 		assertTrue(simpleApiType.check(String.class));
 		assertTrue(simpleApiType.check(RelationType.class));
 		assertFalse(simpleApiType.check(Number.class));
@@ -63,7 +64,7 @@ public class SimpleApiTypeTest {
 
 	@Test
 	public void testCheck_enum_notfound() throws Exception {
-		SimpleApiType simpleApiType = SimpleApiType.create(FieldType.STRING, null, new String[]{"friend", "ate", "mated", "WRONG"});
+		SimpleApiType simpleApiType = SimpleApiTypeImpl.create(FieldType.STRING, null, new String[]{"friend", "ate", "mated", "WRONG"});
 		assertFalse(simpleApiType.check(RelationType.class));
 	}
 

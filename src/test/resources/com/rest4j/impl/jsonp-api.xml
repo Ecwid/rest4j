@@ -21,7 +21,7 @@
 		<jsonp-param-name>callback</jsonp-param-name>
 	</params>
 
-	<model name="Pet" class="com.rest4j.impl.petapi.Pet" mapping="petMapping">
+	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">
 		<fields>
 			<simple name="id" type="number" optional="false"/>
 		</fields>

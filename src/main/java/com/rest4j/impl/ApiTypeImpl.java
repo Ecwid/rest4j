@@ -17,42 +17,15 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.impl.model.FieldType;
+import com.rest4j.ApiException;
+import com.rest4j.type.ApiType;
+
+import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-abstract class SimpleApiType extends ApiType { // SimpleField
-	Object defaultValue;
-
-	static SimpleApiType create(FieldType type, Object defaultValue, String[] enumValues) {
-		SimpleApiType apiType;
-		switch (type) {
-			case STRING:
-				apiType = new StringApiType(enumValues);
-				break;
-			case NUMBER:
-				apiType = new NumberApiType();
-				break;
-			case BOOLEAN:
-				apiType = new BooleanApiType();
-				break;
-			case DATE:
-				apiType = new DateApiType();
-				break;
-			default:
-				throw new AssertionError();
-
-		}
-		apiType.defaultValue = defaultValue;
-		return apiType;
-	}
-
-	abstract boolean equals(Object val1, Object val2);
-
-	@Override
-	Object defaultValue() {
-		return defaultValue;
-	}
+public abstract class ApiTypeImpl implements ApiType {
 
 }

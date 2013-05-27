@@ -1,5 +1,6 @@
 package com.rest4j.servlet;
 
+import com.rest4j.Converter;
 import com.rest4j.ServiceProvider;
 import com.rest4j.spring.TestService;
 
@@ -14,8 +15,13 @@ public class TestServiceProvider implements ServiceProvider {
 	}
 
 	@Override
-	public Object lookupMapping(String model, String name) {
+	public Object lookupFieldMapper(String model, String name) {
 		if ("petMapping".equals(name)) return new com.rest4j.impl.petapi.PetMapping();
+		return null;
+	}
+
+	@Override
+	public Converter lookupConverter(String name) {
 		return null;
 	}
 }

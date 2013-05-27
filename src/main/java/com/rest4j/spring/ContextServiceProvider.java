@@ -17,6 +17,7 @@
 
 package com.rest4j.spring;
 
+import com.rest4j.Converter;
 import com.rest4j.ServiceProvider;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -31,15 +32,18 @@ import org.springframework.context.ApplicationContextAware;
 public class ContextServiceProvider implements ServiceProvider, ApplicationContextAware {
 
 	ApplicationContext context;
+	String serviceSuffix, mapperSuffix, converterSuffix;
 
 	@Override
 	public Object lookupService(String name) {
+		if (serviceSuffix != null) name += serviceSuffix;
 		return context.getBean(name);
 	}
 
 	@Override
-	public Object lookupMapping(String model, String name) {
+	public Object lookupFieldMapper(String model, String name) {
 		if (name == null) return null;
+		if (mapperSuffix != null) name += mapperSuffix;
 		try {
 			return context.getBean(name);
 		} catch (NoSuchBeanDefinitionException nsbe) {
@@ -48,7 +52,37 @@ public class ContextServiceProvider implements ServiceProvider, ApplicationConte
 	}
 
 	@Override
+	public Converter lookupConverter(String name) {
+		if (converterSuffix != null) name += converterSuffix;
+		return context.getBean(name, Converter.class);
+	}
+
+	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.context = applicationContext;
+	}
+
+	public String getServiceSuffix() {
+		return serviceSuffix;
+	}
+
+	public void setServiceSuffix(String serviceSuffix) {
+		this.serviceSuffix = serviceSuffix;
+	}
+
+	public String getMapperSuffix() {
+		return mapperSuffix;
+	}
+
+	public void setMapperSuffix(String mapperSuffix) {
+		this.mapperSuffix = mapperSuffix;
+	}
+
+	public String getConverterSuffix() {
+		return converterSuffix;
+	}
+
+	public void setConverterSuffix(String converterSuffix) {
+		this.converterSuffix = converterSuffix;
 	}
 }

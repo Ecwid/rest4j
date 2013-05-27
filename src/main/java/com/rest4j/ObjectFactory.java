@@ -27,9 +27,37 @@ import javax.annotation.Nullable;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ObjectFactory {
+
+	/**
+	 * Creates the java instance from JSON object during unmarshal. This is a pre-unmarshal operation: implementor
+	 * may not fill the created object with any data, but may choose an appropriate class to instantiate depending on
+	 * input data.
+	 *
+	 * @param modelName The 'name' attribute of the &lt;model>.
+	 * @param clz The 'class' attribute of the &lt;model>.
+	 * @param object The object being unmarshalled, not null.
+	 * @param next The chain-of-responsibility delegate.
+	 * @return The java object instance that will be returned. Can return null, in which case the unmarshalled object
+	 *         becomes null.
+	 * @throws JSONException
+	 */
 	@Nullable Object createInstance(
 			@Nonnull String modelName,
 			@Nonnull Class clz,
 			@Nonnull JSONObject object,
-			@Nonnull ObjectFactoryChain next) throws JSONException;
+			@Nonnull ObjectFactoryChain next) throws JSONException, ApiException;
+
+	/**
+	 * Replaces an object during marshalling.
+	 *
+	 * @param modelName The 'name' attribute of the &lt;model>.
+	 * @param clz The 'class' attribute of the &lt;model>.
+	 * @param object The java object being marshalled. May be null.
+	 * @param next The chain-of-responsibility delegate.
+	 * @return The object that will be marshalled instead. May be null, in which case no object is marshalled.
+	 */
+	@Nullable Object replaceModel(@Nonnull String modelName,
+								  @Nonnull Class clz,
+								  @Nullable Object object,
+								  @Nonnull ObjectFactoryChain next) throws ApiException;
 }

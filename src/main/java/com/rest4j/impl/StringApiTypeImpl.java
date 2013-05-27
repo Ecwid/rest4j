@@ -17,8 +17,9 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
+import com.rest4j.type.StringApiType;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
@@ -26,20 +27,20 @@ import java.lang.reflect.Type;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-class StringApiType extends SimpleApiType {
+class StringApiTypeImpl extends SimpleApiTypeImpl implements StringApiType {
 	String[] enumValues;
 
-	StringApiType(String[] enumValues) {
+	StringApiTypeImpl(String[] enumValues) {
 		this.enumValues = enumValues;
 	}
 
 	@Override
-	boolean equals(Object val1, Object val2) {
+	public boolean equals(Object val1, Object val2) {
 		return cast(val1, String.class).equals(cast(val2, String.class));
 	}
 
 	@Override
-	boolean check(Type javaType) {
+	public boolean check(Type javaType) {
 		if (!(javaType instanceof Class)) return false;
 		Class clz = (Class)javaType;
 		if (clz == null) return false;
@@ -57,12 +58,12 @@ class StringApiType extends SimpleApiType {
 	}
 
 	@Override
-	Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaClass) {
 		if (value == null) return null;
 		if (value instanceof String) {
 			Class clz = (Class)javaClass;
 			if (clz.isEnum()) {
-				return Util.getEnumConstant(clz, (String)value);
+				return Util.getEnumConstant(clz, (String) value);
 			}
 		} else if (value instanceof Enum) {
 			if (javaClass == String.class) return ((Enum) value).name();
@@ -71,7 +72,7 @@ class StringApiType extends SimpleApiType {
 	}
 
 	@Override
-	String getJavaName() {
+	public String getJavaName() {
 		if (enumValues != null) {
 			return "String or enum";
 		} else {
@@ -80,10 +81,10 @@ class StringApiType extends SimpleApiType {
 	}
 
 	@Override
-	Object unmarshal(Object val) throws APIException {
+	public Object unmarshal(Object val) throws ApiException {
 		if (JSONObject.NULL == val) val = null;
 		if (!(val instanceof String)) {
-			throw new APIException(400, "{value} is expected to be a string");
+			throw new ApiException("{value} is expected to be a string");
 		}
 		if (enumValues != null) {
 			boolean found = false;
@@ -99,21 +100,21 @@ class StringApiType extends SimpleApiType {
 					if (valuesString.length()>0) valuesString.append(", ");
 					valuesString.append(enumVal);
 				}
-				throw new APIException(400, "{value} is expected to be one of "+valuesString);
+				throw new ApiException("{value} is expected to be one of "+valuesString);
 			}
 		}
 		return val;
 	}
 
 	@Override
-	Object marshal(Object val) throws APIException {
+	public Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
 		if (val instanceof String) {
 			return val;
 		} else if (val instanceof Enum) {
 			return ((Enum)val).name();
 		} else {
-			throw new APIException(500, "Expected String or Enum, "+val.getClass()+" given");
+			throw new ApiException("Expected String or Enum, "+val.getClass()+" given").setHttpStatus(500);
 		}
 	}
 

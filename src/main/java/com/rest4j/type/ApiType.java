@@ -15,25 +15,26 @@
  * limitations under the License.
  */
 
-package com.rest4j;
+package com.rest4j.type;
 
-import java.io.IOException;
-import java.util.List;
+import com.rest4j.ApiException;
+
+import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public interface API {
-	/**
-	 * Performs RESTful request on a given APIRequest.
-	 *
-	 * @param request
-	 * @return Either JSONArray or JSONObject. Null when the request should not have a body.
-	 * @throws IOException On error reading the request
-	 * @throws ApiException Any business-related error (including those propagated from Service)
-	 */
-	APIResponse serve(APIRequest request) throws IOException, ApiException;
+public interface ApiType {
+	boolean check(Type javaClass);
 
-	List<String> getAllowedMethods(APIRequest request) throws IOException, ApiException;
+	Object defaultValue();
 
+	Object cast(@Nullable Object value, Type javaClass) throws NullPointerException;
+
+	String getJavaName();
+
+	Object unmarshal(Object val) throws ApiException;
+
+	Object marshal(Object val) throws ApiException;
 }

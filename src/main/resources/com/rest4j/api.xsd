@@ -196,10 +196,10 @@ documentation and client libraries, as well as for query dispatching.
 				receive and return objects of this class. An exception can also be mapped to a JSON model.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="mapping" type="xsd:string" use="optional">
+		<xsd:attribute name="field-mapper" type="xsd:string" use="optional">
 			<xsd:annotation><xsd:documentation>
-				An optional mapping name for this model. This name is used to lookup the mapping component
-				using the ServiceProvider.lookupMapping(). If not specified, null is passed to lookupMapping().
+				An optional field mapper name for this model. This name is used to lookup the mapper component
+				using the ServiceProvider.lookupFieldMapper(). If not specified, null is passed to lookupFieldMapper().
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -255,9 +255,16 @@ documentation and client libraries, as well as for query dispatching.
 				Property name in the target class.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="converter" type="xsd:string" use="optional">
+			<xsd:annotation><xsd:documentation>
+				The name of the converter used to marshal and unmarshal the value. Unlike field mapper methods,
+				converters can be reused among several properties. ServiceProvider.lookupConverter(name) is used
+				to find converterts.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="mapping-method" type="xsd:string" use="optional">
 			<xsd:annotation><xsd:documentation>
-				Setter and getter method name in the mapping component this model is mapped to. The getter method
+				Setter and getter method name in the field mapper this model is mapped to. The getter method
 				accepts a single argument of this model type (see model/@class) and returns an object
 				of this field's type. The getter method with the same name accepts two arguments: the owner object
 				instance and the field value.

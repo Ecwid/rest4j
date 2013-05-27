@@ -17,7 +17,8 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
+import com.rest4j.type.BooleanApiType;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
@@ -25,58 +26,50 @@ import java.lang.reflect.Type;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-class NumberApiType extends SimpleApiType {
+class BooleanApiTypeImpl extends SimpleApiTypeImpl implements BooleanApiType {
 	@Override
-	boolean check(Type javaType) {
+	public boolean check(Type javaType) {
 		if (!(javaType instanceof Class)) return false;
 		Class clz = (Class)javaType;
 		if (clz == null) return false;
-		return clz == Number.class || clz == Double.class || clz == double.class || clz == Integer.class || clz == int.class || clz == Long.class || clz == long.class;
+		return clz == Boolean.class || clz == boolean.class;
 	}
 
 	@Override
-	boolean equals(Object val1, Object val2) {
-		return cast(val1, Double.class).equals(cast(val2, Double.class));
+	public boolean equals(Object val1, Object val2) {
+		return val1.equals(val2);
 	}
 
 	@Override
-	Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaClass) {
 		if (value == null) {
-			if (javaClass == int.class || javaClass == double.class || javaClass == long.class) {
-				throw new NullPointerException();
-			}
+			if (javaClass == boolean.class) throw new NullPointerException();
 			return null;
-		}
-		if (value instanceof Number) {
-			Number numValue = (Number) value;
-			if (javaClass == Integer.class || javaClass == int.class) return numValue.intValue();
-			if (javaClass == Double.class || javaClass == double.class) return numValue.doubleValue();
-			if (javaClass == Long.class || javaClass == long.class) return numValue.longValue();
-			return value;
 		}
 		return value;
 	}
 
 	@Override
-	String getJavaName() {
-		return "Number, Double, double, Integer, int, Long, or long";
+	public String getJavaName() {
+		return "Boolean or boolean";
 	}
 
 	@Override
-	Object unmarshal(Object val) throws APIException {
+	public Object unmarshal(Object val) throws ApiException {
 		if (JSONObject.NULL == val) val = null;
-		if (!(val instanceof Number)) {
-			throw new APIException(400, "{value} is expected to be a number");
+		if (!(val instanceof Boolean)) {
+			throw new ApiException("{value} is expected to be boolean");
 		}
 		return val;
 	}
 
 	@Override
-	Object marshal(Object val) throws APIException {
+	public Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
-		if (!(val instanceof Number)) {
-			throw new APIException(500, "Expected Number, "+val.getClass()+" given");
+		if (!(val instanceof Boolean)) {
+			throw new ApiException("Expected Boolean, "+val.getClass()+" given").setHttpStatus(500);
 		}
 		return val;
 	}
+
 }

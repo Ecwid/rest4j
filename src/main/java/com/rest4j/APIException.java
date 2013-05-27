@@ -17,26 +17,24 @@
 
 package com.rest4j;
 
-import com.rest4j.impl.APIImpl;
-import com.rest4j.impl.APIResponseImpl;
 import com.rest4j.impl.Headers;
 import org.json.JSONObject;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class APIException extends Exception {
-	int status;
+public class ApiException extends Exception {
+	int status = 400;
 	Headers headers = new Headers();
 	JSONObject jsonResponse;
 
-	public APIException(int status, String message) {
+	public ApiException(String message) {
 		super(message);
 		this.status = status;
 	}
 
-	public APIException(int status, String message, JSONObject jsonResponse) {
-		this(status, message);
+	public ApiException(String message, JSONObject jsonResponse) {
+		this(message);
 		this.jsonResponse = jsonResponse;
 	}
 
@@ -44,17 +42,23 @@ public class APIException extends Exception {
 		return jsonResponse;
 	}
 
-	public int getStatus() {
+	public int getHttpStatus() {
 		return status;
 	}
 
-	public APIException replaceMessage(String newMessage) {
-		APIException ex = new APIException(status, newMessage);
+	public ApiException replaceMessage(String newMessage) {
+		ApiException ex = new ApiException(newMessage);
+		ex.status = status;
 		ex.headers = headers;
 		return ex;
 	}
 
-	public APIException addHeader(String name, String value) {
+	public ApiException setHttpStatus(int status) {
+		this.status = status;
+		return this;
+	}
+
+	public ApiException addHeader(String name, String value) {
 		headers.addHeader(name, value);
 		return this;
 	}

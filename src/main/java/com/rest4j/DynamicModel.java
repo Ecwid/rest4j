@@ -15,22 +15,13 @@
  * limitations under the License.
  */
 
-package com.rest4j.impl;
-
-import com.rest4j.APIException;
-
-import javax.annotation.Nullable;
-import java.lang.reflect.Type;
+package com.rest4j;
 
 /**
-* @author Joseph Kapizza <joseph@rest4j.com>
-*/
-abstract class ApiType {
-	abstract boolean check(Type javaClass);
-	abstract Object defaultValue();
-	abstract Object cast(@Nullable Object value, Type javaClass) throws NullPointerException;
-	abstract String getJavaName();
-	abstract Object unmarshal(Object val) throws APIException;
-	abstract Object marshal(Object val) throws APIException;
-
+ * @author Joseph Kapizza <joseph@rest4j.com>
+ */
+public interface DynamicModel {
+	Object get(String fieldName) throws ApiException;
+	void set(String fieldName, Object propValue) throws ApiException;
+	Object cast(Class clz) throws ClassCastException, ApiException;
 }

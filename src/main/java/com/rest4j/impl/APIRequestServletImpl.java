@@ -17,7 +17,7 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
 import com.rest4j.APIRequest;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
@@ -32,10 +32,10 @@ import java.io.Reader;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class APIRequestServletImpl extends APIRequest {
+public class ApiRequestServletImpl extends APIRequest {
 	private final HttpServletRequest request;
 
-	public APIRequestServletImpl(HttpServletRequest request) {
+	public ApiRequestServletImpl(HttpServletRequest request) {
 		this.request = request;
 	}
 
@@ -60,42 +60,42 @@ public class APIRequestServletImpl extends APIRequest {
 	}
 
 	@Override
-	public JSONObject objectInput() throws IOException, APIException {
+	public JSONObject objectInput() throws IOException, ApiException {
 		if (request.getContentType() != null &&
 				!"application/json".equals(request.getContentType()) &&
 				!"text/json".equals(request.getContentType())) {
-			throw new APIException(415, "Unsupported content-type: expected either application/json or text/json");
+			throw new ApiException("Unsupported content-type: expected either application/json or text/json").setHttpStatus(415);
 		}
 		String json = IOUtils.toString(request.getReader());
 		try {
 			return new JSONObject(json);
 		} catch (JSONException e) {
-			throw new APIException(400, "Wrong JSON format: "+e.getMessage());
+			throw new ApiException("Wrong JSON format: "+e.getMessage());
 		}
 	}
 
 	@Override
-	public JSONArray arrayInput() throws IOException, APIException {
+	public JSONArray arrayInput() throws IOException, ApiException {
 		if (request.getContentType() != null &&
 				!"application/json".equals(request.getContentType()) &&
 				!"text/json".equals(request.getContentType())) {
-			throw new APIException(415, "Unsupported content-type: expected either application/json or text/json");
+			throw new ApiException("Unsupported content-type: expected either application/json or text/json").setHttpStatus(415);
 		}
 		String json = IOUtils.toString(request.getReader());
 		try {
 			return new JSONArray(json);
 		} catch (JSONException e) {
-			throw new APIException(400, "Wrong JSON format: "+e.getMessage());
+			throw new ApiException("Wrong JSON format: "+e.getMessage());
 		}
 	}
 
 	@Override
-	public InputStream binaryInput() throws IOException, APIException {
+	public InputStream binaryInput() throws IOException, ApiException {
 		return request.getInputStream();
 	}
 
 	@Override
-	public Reader textInput() throws IOException, APIException {
+	public Reader textInput() throws IOException, ApiException {
 		return request.getReader();
 	}
 

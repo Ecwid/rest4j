@@ -18,7 +18,7 @@
 package com.rest4j.impl;
 
 import com.esotericsoftware.kryo.Kryo;
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
 import com.sun.org.apache.bcel.internal.classfile.ClassParser;
 import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 import com.sun.org.apache.bcel.internal.classfile.LocalVariable;
@@ -35,7 +35,7 @@ import java.lang.reflect.Type;
  */
 public class Util {
 
-	static Class getClass(Type javaClass) {
+	public static Class getClass(Type javaClass) {
 		if (javaClass instanceof Class) {
 			return (Class) javaClass;
 		} else if (javaClass instanceof ParameterizedType) {
@@ -47,7 +47,7 @@ public class Util {
 		return null;
 	}
 
-	static APIException replaceValue(APIException apiex, String s) {
+	public static ApiException replaceValue(ApiException apiex, String s) {
 		return apiex.replaceMessage(apiex.getMessage().replace("{value}", s));
 	}
 

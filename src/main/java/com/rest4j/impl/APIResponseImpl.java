@@ -31,7 +31,7 @@ import java.util.zip.GZIPOutputStream;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class APIResponseImpl implements APIResponse {
+public class ApiResponseImpl implements APIResponse {
 	String callbackFunctionName = null;
 	int status = 200;
 	String statusMessage;
@@ -40,7 +40,7 @@ public class APIResponseImpl implements APIResponse {
 	boolean compress;
 	boolean addEtag;
 
-	public APIResponseImpl(APIImpl api, APIRequest request, Resource response) {
+	public ApiResponseImpl(APIImpl api, APIRequest request, Resource response) {
 		this.response = response;
 		if (api.getParams().getJsonpParamName() != null) {
 			this.callbackFunctionName = request.param(api.getParams().getJsonpParamName());
@@ -54,19 +54,19 @@ public class APIResponseImpl implements APIResponse {
 		return status;
 	}
 
-	public APIResponseImpl setStatus(int status, String statusMessage) {
+	public ApiResponseImpl setStatus(int status, String statusMessage) {
 		this.status = status;
 		this.statusMessage = statusMessage;
 		return this;
 	}
 
-	public APIResponseImpl setStatus(int status) {
+	public ApiResponseImpl setStatus(int status) {
 		this.status = status;
 		this.statusMessage = null;
 		return this;
 	}
 
-	public APIResponseImpl addHeader(String name, String value) {
+	public ApiResponseImpl addHeader(String name, String value) {
 		headers.addHeader(name, value);
 		return this;
 	}

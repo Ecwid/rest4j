@@ -37,7 +37,7 @@ public class Controller implements org.springframework.web.servlet.mvc.Controlle
 		APIResponse response;
 		try {
 			response = api.serve(APIRequest.from(httpServletRequest));
-		} catch (APIException e) {
+		} catch (ApiException e) {
 			response = e.createResponse();
 		}
 		response.outputBody(httpServletResponse);

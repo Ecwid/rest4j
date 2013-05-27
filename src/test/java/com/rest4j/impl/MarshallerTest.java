@@ -17,7 +17,7 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.APIException;
+import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
 import com.rest4j.impl.model.API;
 import com.rest4j.impl.model.FieldType;
@@ -28,6 +28,7 @@ import com.rest4j.impl.petapi.PetMapping;
 import com.rest4j.impl.polymorphic.Bird;
 import com.rest4j.impl.polymorphic.Cat;
 import com.rest4j.impl.polymorphic.ObjectFactory;
+import com.rest4j.type.ObjectApiType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -110,7 +111,7 @@ public class MarshallerTest {
 			pet.remove("gender");
 			marshaller.getObjectType("Pet").unmarshal(pet);
 			fail();
-		} catch (APIException apiex) {
+		} catch (ApiException apiex) {
 			assertEquals("Field Pet.gender is absent", apiex.getMessage());
 		}
 	}
@@ -120,8 +121,8 @@ public class MarshallerTest {
 			try {
 				test();
 				fail("Should fail with status "+httpStatus+" and message "+message);
-			} catch (APIException apiex) {
-				assertEquals(httpStatus, apiex.getStatus());
+			} catch (ApiException apiex) {
+				assertEquals(httpStatus, apiex.getHttpStatus());
 				assertEquals(message, apiex.getMessage());
 			}
 		}
@@ -208,7 +209,7 @@ public class MarshallerTest {
 	}
 
 	@Test public void testUnmarshal_custom_mapping_exception() throws Exception {
-		((PetMapping)customMapping).customMappingException = new APIException(400, "Test");
+		((PetMapping)customMapping).customMappingException = new ApiException("Test");
 		new ExpectAPIException(400, "Test") {
 			@Override
 			protected void test() throws Exception {
@@ -226,7 +227,7 @@ public class MarshallerTest {
 	}
 
 	@Test public void testMarshal_custom_mapping_exception() throws Exception {
-		((PetMapping)customMapping).customMappingException = new APIException(400, "Test");
+		((PetMapping)customMapping).customMappingException = new ApiException("Test");
 		new ExpectAPIException(400, "Test") {
 			@Override
 			protected void test() throws Exception {
@@ -300,7 +301,7 @@ public class MarshallerTest {
 		try {
 			Bird bird = (Bird) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{id:555,longFur:true,type:'bird'}"));
 			fail();
-		} catch (APIException ex) {
+		} catch (ApiException ex) {
 			assertEquals("Field Pet.beakStrength value is absent", ex.getMessage());
 		}
 	}
