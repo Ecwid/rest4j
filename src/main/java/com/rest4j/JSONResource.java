@@ -32,11 +32,7 @@ import java.util.Iterator;
 public class JSONResource implements Resource {
 	Object object;
 
-	public JSONResource(JSONObject object) {
-		this.object = object;
-	}
-
-	public JSONResource(JSONArray object) {
+	public JSONResource(Object object) {
 		this.object = object;
 	}
 

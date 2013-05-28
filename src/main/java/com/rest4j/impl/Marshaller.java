@@ -112,6 +112,10 @@ public class Marshaller {
 		return new ArrayApiTypeImpl(models.get(model));
 	}
 
+	public ApiType getMapType(String model) {
+		return new MapApiTypeImpl(models.get(model));
+	}
+
 	public Class getClassForModel(String model) {
 		return models.get(model).clz;
 	}

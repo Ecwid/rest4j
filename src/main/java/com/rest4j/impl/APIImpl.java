@@ -328,7 +328,7 @@ public class APIImpl implements API {
 		}
 
 		private ArgHandler checkBodyType(ContentType contentType, Type type) throws ConfigurationException {
-			Class expect;
+			Class expect = null;
 			ArgHandler argHandler;
 			if (contentType.getBinary() != null) {
 				expect = InputStream.class;
@@ -338,7 +338,7 @@ public class APIImpl implements API {
 						return request.binaryInput();
 					}
 				};
-			} else if (endpoint.getBody().getText() != null) {
+			} else if (contentType.getText() != null) {
 				expect = Reader.class;
 				argHandler = new ArgHandler() {
 					@Override
@@ -347,35 +347,19 @@ public class APIImpl implements API {
 					}
 				};
 			} else {
-				if (endpoint.getBody().getJson() != null) {
-					JsonType jsonType = endpoint.getBody().getJson();
-					expect = marshaller.getClassForModel(jsonType.getType());
-					if (jsonType.isArray()) {
-						if (type instanceof ParameterizedType) {
-							ParameterizedType ptype = (ParameterizedType) type;
-							if (ptype.getRawType() == List.class) {
-								if (ptype.getActualTypeArguments()[0] == expect) {
-									final ApiType arrayType = marshaller.getArrayType(jsonType.getType());
-									return new ArgHandler() {
-										@Override
-										public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
-											return arrayType.unmarshal(request.arrayInput());
-										}
-									};
-								}
-							}
-						}
-						throw new ConfigurationException("Body argument of " + this.method + " is expected to be List<" + expect.getName() + ">");
+				if (contentType.getJson() != null) {
+					final ApiType apiType = resourceFactory.getApiType(contentType);
+					if (!apiType.check(type)) {
+						throw new ConfigurationException("Body argument of " + this.method + " is expected to be "+apiType.getJavaName());
 					}
-					final ApiType objectType = marshaller.getObjectType(jsonType.getType());
 					argHandler = new ArgHandler() {
 						@Override
 						public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
-							return objectType.unmarshal(request.objectInput());
+							return apiType.unmarshal(request.objectInput());
 						}
 					};
-				} else if (endpoint.getBody().getPatch() != null) {
-					PatchType patchType = endpoint.getBody().getPatch();
+				} else if (contentType.getPatch() != null) {
+					PatchType patchType = contentType.getPatch();
 					expect = marshaller.getClassForModel(patchType.getType());
 					if (type instanceof ParameterizedType) {
 						ParameterizedType ptype = (ParameterizedType) type;
@@ -405,7 +389,7 @@ public class APIImpl implements API {
 					throw new ConfigurationException("Not a well-formed <body> tag");
 				}
 			}
-			if (type != expect) {
+			if (expect != null && type != expect) {
 				throw new ConfigurationException("Body argument of "+this.method+" is expected to be "+expect);
 			}
 			return argHandler;

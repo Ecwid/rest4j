@@ -245,9 +245,11 @@ documentation and client libraries, as well as for query dispatching.
 				Fields are optional by default.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="array" type="xsd:boolean" default="false">
+		<xsd:attribute name="collection" type="CollectionType" default="singleton">
 			<xsd:annotation><xsd:documentation>
-				'true' if this field is an array of a specified type.
+				'array' if this field is an array of a specified type.
+				'map' if this field is an JSON object with arbitrary property names and property values of a specified type.
+				Default is 'singleton', which is a single value.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="prop" type="xsd:string" use="optional">
@@ -518,12 +520,20 @@ documentation and client libraries, as well as for query dispatching.
 
 	<xsd:complexType name="JsonType">
 		<xsd:attribute name="type" type="xsd:string"/>
-		<xsd:attribute name="array" type="xsd:boolean" default="false"/>
+		<xsd:attribute name="collection" type="CollectionType" default="singleton"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="PatchType">
 		<xsd:attribute name="type" type="xsd:string"/>
 	</xsd:complexType>
+
+	<xsd:simpleType name="CollectionType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="singleton" />
+			<xsd:enumeration value="array" />
+			<xsd:enumeration value="map" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="ServiceEntry">
 		<xsd:attribute name="name" type="identifier" use="required">

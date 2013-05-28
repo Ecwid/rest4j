@@ -35,7 +35,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import java.io.*;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -580,6 +582,20 @@ public class APIImplTest {
 
 		APIResponse response = api.serve(request);
 		assertEquals("\001\002\003\004\005", getBody(response)); // no jsonp support for binaries
+	}
+
+	@Test public void testServe_map_response_body() throws Exception {
+		pets = new Object() {
+			public Map<String,Pet> get() {
+				Map<String,Pet> pets = new HashMap<String,Pet>();
+				pets.put("Max", MarshallerTest.createMax());
+				return pets;
+			}
+		};
+		api = (APIImpl) new APIFactory(getClass().getResource("map-type.xml"), "/api/v2", serviceProvider).createAPI();
+		APIRequest request = mockRequest("GET", "/api/v2/test");
+		APIResponse response = api.serve(request);
+		assertEquals("{\"Max\":{\"id\":123,\"name\":\"Max\"}}", getBody(response));
 	}
 
 	void iniJsonpApi() throws ConfigurationException {

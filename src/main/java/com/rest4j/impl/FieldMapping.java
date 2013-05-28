@@ -55,8 +55,8 @@ abstract class FieldMapping {
 			SimpleField simple = (SimpleField) field;
 			if (isConstant()) {
 				// this field should have constant value
-				if (simple.isArray()) {
-					throw new ConfigurationException("Field " + name + " cannot be an array and have 'value' attribute at the same time");
+				if (simple.getCollection() != CollectionType.SINGLETON) {
+					throw new ConfigurationException("Field " + name + " cannot be a collection and have 'value' attribute at the same time");
 				}
 				if (simple.getValues() != null) {
 					throw new ConfigurationException("Field " + name + " cannot have 'values' tag and a 'value' attribute at the same time");
@@ -180,10 +180,16 @@ abstract class FieldMapping {
 			elementType = SimpleApiTypeImpl.create(simple.getType(), marshaller.parse(simple.getDefault(), simple.getType()), values);
 		}
 
-		if (field.isArray()) {
-			type = new ArrayApiTypeImpl(elementType);
-		} else {
-			type = elementType;
+		switch (field.getCollection()) {
+			case ARRAY:
+				type = new ArrayApiTypeImpl(elementType);
+				break;
+			case SINGLETON:
+				type = elementType;
+				break;
+			case MAP:
+				type = new MapApiTypeImpl(elementType);
+				break;
 		}
 
 	}

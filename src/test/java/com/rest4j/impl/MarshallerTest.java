@@ -23,10 +23,7 @@ import com.rest4j.ObjectFactoryChain;
 import com.rest4j.impl.model.API;
 import com.rest4j.impl.model.FieldType;
 import com.rest4j.impl.model.Model;
-import com.rest4j.impl.petapi.Gender;
-import com.rest4j.impl.petapi.NestedPet;
-import com.rest4j.impl.petapi.Pet;
-import com.rest4j.impl.petapi.PetMapping;
+import com.rest4j.impl.petapi.*;
 import com.rest4j.impl.polymorphic.Bird;
 import com.rest4j.impl.polymorphic.Cat;
 import com.rest4j.impl.polymorphic.ObjectFactory;
@@ -348,6 +345,25 @@ public class MarshallerTest {
 		JSONObject json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
 		assertEquals(555, json.getInt("id"));
 		assertEquals(0.77, json.getDouble("weight"), 1e-5);
+	}
+
+	@Test public void testMarshal_maps() throws Exception {
+		createMarshaller("map-type.xml");
+		PetCompany company = new PetCompany();
+		company.getPetsHashMap().put("Max", Long.valueOf(123)); // Max is a lonely cat
+		company.getPetsMap().put("Max", createMax());
+		JSONObject json = (JSONObject) marshaller.getObjectType("PetCompany").marshal(company);
+		assertEquals("{\"Max\":{\"id\":123,\"name\":\"Max\"}}", json.getJSONObject("petsMap").toString());
+		assertEquals("{\"Max\":123}", json.getJSONObject("petsHashMap").toString());
+	}
+
+	@Test public void testUnmarshal_maps() throws Exception {
+		createMarshaller("map-type.xml");
+		PetCompany company = (PetCompany) marshaller.getObjectType("PetCompany")
+				.unmarshal(new JSONObject("{petsHashMap:{'Max':123},petsMap:{Max:{id:123,name:'Max'}}}"));
+		assertEquals("{Max=123}", company.getPetsHashMap().toString());
+		assertEquals("[Max]", company.getPetsMap().keySet().toString());
+		assertEquals("Max", company.getPetsMap().get("Max").getName());
 	}
 
 	static JSONObject createMaxJson() throws JSONException {

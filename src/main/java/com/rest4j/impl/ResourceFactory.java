@@ -19,10 +19,7 @@ package com.rest4j.impl;
 
 import com.rest4j.*;
 import com.rest4j.impl.model.ContentType;
-import com.rest4j.impl.model.JsonType;
 import com.rest4j.type.ApiType;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -50,13 +47,9 @@ public class ResourceFactory {
 		}
 		if (returnClass != null && Resource.class.isAssignableFrom(returnClass)) return;
 		if (contentType.getJson() != null) {
-			ApiType apiType;
-			if (contentType.getJson().isArray()) {
-				apiType = marshaller.getArrayType(contentType.getJson().getType());
-			} else {
-				apiType = marshaller.getObjectType(contentType.getJson().getType());
-			}
+			ApiType apiType = getApiType(contentType);
 			if (!apiType.check(returnType)) {
+				apiType.check(returnType);
 				throw new ConfigurationException("Wrong return type of "+method+". Expected "+apiType.getJavaName()+" or "+Resource.class.getName());
 			}
 			return;
@@ -74,16 +67,28 @@ public class ResourceFactory {
 		throw new AssertionError();
 	}
 
+	ApiType getApiType(ContentType contentType) {
+		ApiType apiType;
+		switch (contentType.getJson().getCollection()) {
+			case ARRAY:
+				apiType = marshaller.getArrayType(contentType.getJson().getType());
+				break;
+			case SINGLETON:
+				apiType = marshaller.getObjectType(contentType.getJson().getType());
+				break;
+			case MAP:
+			default:
+				apiType = marshaller.getMapType(contentType.getJson().getType());
+				break;
+		}
+		return apiType;
+	}
+
 	public Resource createResourceFrom(Object content, ContentType contentType) throws ApiException {
 		if (content == null) return null;
 		if (content instanceof Resource) return (Resource)content;
 		if (contentType.getJson() != null) {
-			JsonType jsonType = contentType.getJson();
-			if (jsonType.isArray()) {
-				return new JSONResource((JSONArray)marshaller.getArrayType(jsonType.getType()).marshal(content));
-			} else {
-				return new JSONResource((JSONObject)marshaller.getObjectType(jsonType.getType()).marshal(content));
-			}
+			return new JSONResource(getApiType(contentType).marshal(content));
 		} else if (contentType.getBinary() != null) {
 			if (content instanceof InputStream) {
 				return new BinaryResource("application/octet-stream", null, (InputStream)content);

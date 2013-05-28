@@ -36,7 +36,7 @@
 				</values>
 			</simple>
 			<simple name="writeonly" type="boolean" access="writeonly"/>
-			<complex name="relations" array="true" type="PetRelation" mapping-method="petRelations"  optional="false"/>
+			<complex name="relations" collection="array" type="PetRelation" mapping-method="petRelations"  optional="false"/>
 		</fields>
 	</model>
 
@@ -79,7 +79,7 @@
 			</parameter>
 		</parameters>
 		<response>
-			<json array="true" type="Pet"/>
+			<json collection="array" type="Pet"/>
 		</response>
 		<errors></errors>
 		<service name="pets" method="list"/>

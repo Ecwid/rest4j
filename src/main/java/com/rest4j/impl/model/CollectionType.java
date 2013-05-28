@@ -14,37 +14,34 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for FieldType.
+ * <p>Java class for CollectionType.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="FieldType">
+ * &lt;simpleType name="CollectionType">
  *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="number"/>
- *     &lt;enumeration value="string"/>
- *     &lt;enumeration value="boolean"/>
- *     &lt;enumeration value="date"/>
+ *     &lt;enumeration value="singleton"/>
+ *     &lt;enumeration value="array"/>
+ *     &lt;enumeration value="map"/>
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
  * 
  */
-@XmlType(name = "FieldType")
+@XmlType(name = "CollectionType")
 @XmlEnum
-public enum FieldType {
+public enum CollectionType {
 
-    @XmlEnumValue("number")
-    NUMBER("number"),
-    @XmlEnumValue("string")
-    STRING("string"),
-    @XmlEnumValue("boolean")
-    BOOLEAN("boolean"),
-    @XmlEnumValue("date")
-    DATE("date");
+    @XmlEnumValue("singleton")
+    SINGLETON("singleton"),
+    @XmlEnumValue("array")
+    ARRAY("array"),
+    @XmlEnumValue("map")
+    MAP("map");
     private final String value;
 
-    FieldType(String v) {
+    CollectionType(String v) {
         value = v;
     }
 
@@ -52,8 +49,8 @@ public enum FieldType {
         return value;
     }
 
-    public static FieldType fromValue(String v) {
-        for (FieldType c: FieldType.values()) {
+    public static CollectionType fromValue(String v) {
+        for (CollectionType c: CollectionType.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

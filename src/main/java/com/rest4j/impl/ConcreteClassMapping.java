@@ -31,6 +31,11 @@ public class ConcreteClassMapping {
 		this.customMapper = customMapper;
 		this.model = model;
 
+		if (model.getFields() == null) {
+			this.fields = new FieldMapping[0];
+			return;
+		}
+
 		List<FieldMapping> fields = new ArrayList<FieldMapping>(model.getFields().getSimpleAndComplex().size());
 		for (Field fld : model.getFields().getSimpleAndComplex()) {
 			FieldMapping fieldMapping;
