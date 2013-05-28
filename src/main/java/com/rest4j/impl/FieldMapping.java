@@ -31,29 +31,25 @@ import java.lang.reflect.Type;
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-class FieldMapping {
+abstract class FieldMapping {
 	String name;
 	String parent;
 	boolean optional;
-	String mapping; // call getter/setter on a CustomMapping object, not the bean itself
 	Method propGetter;
 	Method propSetter;
 	FieldAccessType access;
 
 	ApiType type;
-	Object customMapper;
 	Object value; // constant
 	Field field;
 	Type propType;
 
-	public FieldMapping(Marshaller marshaller, Field fld, Object customMapper, String parent) throws ConfigurationException {
-		this.customMapper = customMapper;
+	FieldMapping(Marshaller marshaller, Field fld, String parent) throws ConfigurationException {
 		name = fld.getName();
 		this.parent = parent;
 		optional = fld.isOptional();
 		access = fld.getAccess();
 		field = fld;
-		mapping = fld.getMappingMethod();
 
 		if (fld instanceof SimpleField) {
 			SimpleField simple = (SimpleField) field;
@@ -72,6 +68,12 @@ class FieldMapping {
 			}
 		}
 
+	}
+
+	abstract boolean initAccessors(Class clz) throws ConfigurationException;
+
+	boolean isReadonly() {
+		return propGetter == null;
 	}
 
 	public Object unmarshal(Object val) throws ApiException {
@@ -97,27 +99,15 @@ class FieldMapping {
 	public void set(Object inst, Object fieldVal) throws ApiException {
 		if (propSetter == null) return; // the field is probably mapped to a Service method argument
 		try {
-			if (mapping == null) {
-				if (propType == null) {
-					propType = propSetter.getGenericParameterTypes()[0];
-				}
-				try {
-					fieldVal = type.cast(fieldVal, propType);
-				} catch (NullPointerException npe) {
-					throw new ApiException("Field " + parent + "." + name + " value is absent");
-				}
-				propSetter.invoke(inst, fieldVal);
-			} else {
-				if (propType == null) {
-					propType = propSetter.getGenericParameterTypes()[1];
-				}
-				try {
-					fieldVal = type.cast(fieldVal, propType);
-				} catch (NullPointerException npe) {
-					throw new ApiException("Field " + parent + "." + name + " value is absent");
-				}
-				propSetter.invoke(customMapper, inst, fieldVal);
+			if (propType == null) {
+				propType = propSetter.getGenericParameterTypes()[0];
 			}
+			try {
+				fieldVal = type.cast(fieldVal, propType);
+			} catch (NullPointerException npe) {
+				throw new ApiException("Field " + parent + "." + name + " value is absent");
+			}
+			propSetter.invoke(inst, fieldVal);
 
 		} catch (IllegalAccessException e) {
 			throw new ApiException("Cannot invoke "+propSetter+" "+e.getMessage()).setHttpStatus(500);
@@ -145,11 +135,7 @@ class FieldMapping {
 
 	public Object get(Object inst) throws ApiException {
 		try {
-			if (mapping == null) {
-				return propGetter.invoke(inst);
-			} else {
-				return propGetter.invoke(customMapper, inst);
-			}
+			return propGetter.invoke(inst);
 		} catch (IllegalAccessException e) {
 			throw new ApiException("Cannot invoke "+propGetter+" "+e.getMessage()).setHttpStatus(500);
 		} catch (InvocationTargetException e) {
@@ -168,7 +154,7 @@ class FieldMapping {
 	}
 
 	void link(Marshaller marshaller) throws ConfigurationException {
-		String inField = " in field " + name + "." + name;
+		String inField = " in field " + parent + "." + name;
 
 		ApiType elementType;
 		if (field instanceof ComplexField) {
@@ -200,18 +186,10 @@ class FieldMapping {
 			type = elementType;
 		}
 
-		if (mapping != null) {
-			if (customMapper == null)
-				throw new ConfigurationException("'mapping' attribute used when no custom mapper supplied " +
-						inField + ". Use 'mapping' attribute of <model> to specify custom mapper object.");
-			if (propGetter != null) {
-				type.check(propGetter.getGenericReturnType());
-			}
-			if (propSetter != null) {
-				Type[] genericParameterTypes = propSetter.getGenericParameterTypes();
-				type.check(genericParameterTypes[genericParameterTypes.length - 1]);
-			}
-		}
+	}
 
+	public String getEffectivePropName() {
+		if (field.getProp() == null) return field.getName();
+		else return field.getProp();
 	}
 }

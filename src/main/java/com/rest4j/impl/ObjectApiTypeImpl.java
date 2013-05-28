@@ -154,8 +154,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 	FieldMapping checkFieldAsArgument(String name, Type paramType) throws ConfigurationException {
 		for (Field field: model.getFields().getSimpleAndComplex()) {
 			if (field.getName().equals(name)) {
-				FieldMapping fieldMapping = new FieldMapping(marshaller, field, null, this.name);
-				fieldMapping.mapping = null;
+				FieldMapping fieldMapping = new SimpleFieldMapping(marshaller, field, this.name);
 				fieldMapping.link(marshaller);
 				return fieldMapping;
 			}

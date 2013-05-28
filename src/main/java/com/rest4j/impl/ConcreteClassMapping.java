@@ -8,12 +8,9 @@ import com.rest4j.impl.model.Model;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -33,78 +30,24 @@ public class ConcreteClassMapping {
 		this.clz = clz;
 		this.customMapper = customMapper;
 		this.model = model;
-		Map<String, PropertyDescriptor> descriptors = new HashMap<String, PropertyDescriptor>();
-		try {
-			BeanInfo info = Introspector.getBeanInfo(clz);
-			for (PropertyDescriptor descr : info.getPropertyDescriptors()) {
-				descriptors.put(descr.getName().toLowerCase(), descr);
-			}
-		} catch (IntrospectionException e) {
-			throw new ConfigurationException("Cannot introspect bean " + clz, e);
-		}
+
 		List<FieldMapping> fields = new ArrayList<FieldMapping>(model.getFields().getSimpleAndComplex().size());
 		for (Field fld : model.getFields().getSimpleAndComplex()) {
-			FieldMapping fieldMapping = new FieldMapping(marshaller, fld, customMapper, name /* owner name */);
+			FieldMapping fieldMapping;
 
-			String forClause = " for " + model.getName() + "." + fld.getName();
 			if (fld.getMappingMethod() == null) {
-				String propName;
-				if (fld.getProp() == null) propName = fld.getName();
-				else propName = fld.getProp();
-				PropertyDescriptor descr = descriptors.get(propName.toLowerCase());
-				if (descr == null) {
-					if (fld.getAccess() != FieldAccessType.WRITEONLY && !fieldMapping.isConstant()) {
-						if (fld.isOptional()) {
-							leftoverFields.add(fld);
-						} else {
-							throw new ConfigurationException("Cannot find property " + propName + " in class " + clz);
-						}
-						continue;
-					}
+
+				if (fld.getProp() != null && fld.getProp().contains(".")) {
+					fieldMapping = new NestedFieldMapping(marshaller, fld, name /* owner name */);
 				} else {
-					fieldMapping.propGetter = descr.getReadMethod();
-					fieldMapping.propSetter = descr.getWriteMethod();
+					fieldMapping = new SimpleFieldMapping(marshaller, fld, name /* owner name */);
 				}
 			} else {
-				if (customMapper == null) {
-					throw new ConfigurationException("No field mapper specified, but mapping method is set"+forClause);
-				}
-				for (Method method : customMapper.getClass().getMethods()) {
-					if (method.getName().equals(fieldMapping.mapping)) {
-						if (method.getParameterTypes().length <= 0 || method.getParameterTypes().length > 2) {
-							throw new ConfigurationException("Wrong accessor " + method.getName() + " parameter count: " + method.getParameterTypes().length + forClause + ". Should be one parameter (getter) or two parameters (setter).");
-						}
-						Class paramType = method.getParameterTypes()[0];
-						if (!paramType.isAssignableFrom(clz)) {
-							throw new ConfigurationException("Wrong accessor '" + method.getName() + "' parameter type: " + paramType + "; expected " + clz + forClause);
-						}
-						if (method.getParameterTypes().length == 1) {
-							if (fieldMapping.propGetter != null) {
-								throw new ConfigurationException("Ambiguous getter '" + method.getName() + "'" + forClause);
-							}
-							if (method.getReturnType() == void.class) {
-								throw new ConfigurationException("Void return value of getter '" + method.getName() + "'" + forClause);
-							}
-							fieldMapping.propGetter = method;
-						} else {
-							if (fieldMapping.propSetter != null) {
-								throw new ConfigurationException("Ambiguous setter '" + method.getName() + "'" + forClause);
-							}
-							if (method.getReturnType() != void.class) {
-								throw new ConfigurationException("Non-void return value " + method.getReturnType() + " of setter '" + method.getName() + "'" + forClause);
-							}
-							fieldMapping.propSetter = method;
-						}
-					}
-				}
+				fieldMapping = new CustomFieldMapping(marshaller, fld, customMapper, name /* owner name */);
 			}
-			if (fieldMapping.propGetter == null && fld.getAccess() != FieldAccessType.WRITEONLY && !fieldMapping.isConstant()) {
-				if (fld.isOptional()) {
-					leftoverFields.add(fld);
-					continue;
-				} else {
-					throw new ConfigurationException("No getter " + forClause + ", but it is not declared as writeonly. Use access='writeonly' in <complex> and <simple> tags.");
-				}
+			if (!fieldMapping.initAccessors(clz)) {
+				leftoverFields.add(fld);
+				continue;
 			}
 			fields.add(fieldMapping);
 		}
@@ -113,14 +56,7 @@ public class ConcreteClassMapping {
 
 	void unmarshal(JSONObject object, Object inst) throws ApiException {
 		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic
-		for (FieldMapping field : fields) {
-			if (field.mapping != null || field.access == FieldAccessType.READONLY) continue;
-			Object fieldVal = object.opt(field.name);
-			fieldVal = field.unmarshal(fieldVal);
-			field.set(inst, fieldVal);
-		}
-		for (FieldMapping field : fields) {
-			if (field.mapping == null || field.access == FieldAccessType.READONLY) continue;
+		for (FieldMapping field : getOrderedFieldsForUnmarshal()) {
 			Object fieldVal = object.opt(field.name);
 			fieldVal = field.unmarshal(fieldVal);
 			field.set(inst, fieldVal);
@@ -145,17 +81,7 @@ public class ConcreteClassMapping {
 	HashMap<String, Object> unmarshalPatch(JSONObject object, Object patched) throws ApiException {
 		HashMap<String, Object> result = new HashMap<String, Object>();
 
-		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic
-		ArrayList<FieldMapping> ordered = new ArrayList<FieldMapping>();
-		for (FieldMapping field : fields) {
-			if (field.mapping != null || field.access == FieldAccessType.READONLY) continue;
-			ordered.add(field);
-		}
-		for (FieldMapping field : fields) {
-			if (field.mapping == null || field.access == FieldAccessType.READONLY) continue;
-			ordered.add(field);
-		}
-		for (FieldMapping field : ordered) {
+		for (FieldMapping field : getOrderedFieldsForUnmarshal()) {
 			if (object.has(field.name)) {
 				Object fieldVal = object.opt(field.name);
 				fieldVal = field.unmarshal(fieldVal);
@@ -164,6 +90,20 @@ public class ConcreteClassMapping {
 			}
 		}
 		return result;
+	}
+
+	private ArrayList<FieldMapping> getOrderedFieldsForUnmarshal() {
+		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic
+		ArrayList<FieldMapping> ordered = new ArrayList<FieldMapping>();
+		for (FieldMapping field : fields) {
+			if (field instanceof CustomFieldMapping || field.access == FieldAccessType.READONLY) continue;
+			ordered.add(field);
+		}
+		for (FieldMapping field : fields) {
+			if (!(field instanceof CustomFieldMapping) || field.access == FieldAccessType.READONLY) continue;
+			ordered.add(field);
+		}
+		return ordered;
 	}
 
 	void link() throws ConfigurationException {

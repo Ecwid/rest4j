@@ -19,10 +19,12 @@ package com.rest4j.impl;
 
 import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
+import com.rest4j.ObjectFactoryChain;
 import com.rest4j.impl.model.API;
 import com.rest4j.impl.model.FieldType;
 import com.rest4j.impl.model.Model;
 import com.rest4j.impl.petapi.Gender;
+import com.rest4j.impl.petapi.NestedPet;
 import com.rest4j.impl.petapi.Pet;
 import com.rest4j.impl.petapi.PetMapping;
 import com.rest4j.impl.polymorphic.Bird;
@@ -35,6 +37,8 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -312,6 +316,38 @@ public class MarshallerTest {
 		Bird bird = (Bird) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{id:555,beakStrength:1.23,type:'bird'}"));
 		assertEquals(555, bird.getId());
 		assertEquals(1.23, bird.getBeakStrength(), 1e-5);
+	}
+
+	@Test public void testUnmarshal_nested_property() throws Exception {
+		createMarshaller("nested-properties.xml");
+		NestedPet pet = (NestedPet) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{id:555,weight:0.55}"));
+		assertEquals(555, pet.getId());
+		assertEquals(0.55, pet.getPhysicalCharacteristics().getWeight(), 1e-5);
+	}
+
+	@Test public void testUnmarshal_nested_property_creates_intermediate() throws Exception {
+		createMarshaller("nested-properties.xml", new ObjectFactory() {
+			@Nullable
+			@Override
+			public Object createInstance(@Nonnull String modelName, @Nonnull Class clz, @Nonnull JSONObject object, @Nonnull ObjectFactoryChain next) throws JSONException, ApiException {
+				NestedPet pet = new NestedPet();
+				pet.setPhysicalCharacteristics(null); // create this object
+				return pet;
+			}
+		});
+		NestedPet pet = (NestedPet) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{id:555,weight:0.55}"));
+		assertEquals(555, pet.getId());
+		assertEquals(0.55, pet.getPhysicalCharacteristics().getWeight(), 1e-5);
+	}
+
+	@Test public void testMarshal_nested_property() throws Exception {
+		createMarshaller("nested-properties.xml");
+		NestedPet pet = new NestedPet();
+		pet.setId(555);
+		pet.getPhysicalCharacteristics().setWeight(0.77);
+		JSONObject json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
+		assertEquals(555, json.getInt("id"));
+		assertEquals(0.77, json.getDouble("weight"), 1e-5);
 	}
 
 	static JSONObject createMaxJson() throws JSONException {
