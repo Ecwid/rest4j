@@ -18,7 +18,6 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
-import com.rest4j.impl.SimpleApiTypeImpl;
 import com.rest4j.type.NumberApiType;
 import org.json.JSONObject;
 
@@ -33,7 +32,8 @@ public class NumberApiTypeImpl extends SimpleApiTypeImpl implements NumberApiTyp
 		if (!(javaType instanceof Class)) return false;
 		Class clz = (Class)javaType;
 		if (clz == null) return false;
-		return clz == Number.class || clz == Double.class || clz == double.class || clz == Integer.class || clz == int.class || clz == Long.class || clz == long.class;
+		return clz == Number.class || clz == Double.class || clz == double.class || clz == Integer.class ||
+				clz == int.class || clz == Long.class || clz == long.class || clz == Character.class || clz == char.class;
 	}
 
 	@Override
@@ -54,6 +54,13 @@ public class NumberApiTypeImpl extends SimpleApiTypeImpl implements NumberApiTyp
 			if (javaClass == Integer.class || javaClass == int.class) return numValue.intValue();
 			if (javaClass == Double.class || javaClass == double.class) return numValue.doubleValue();
 			if (javaClass == Long.class || javaClass == long.class) return numValue.longValue();
+			if (javaClass == Character.class || javaClass == char.class) return Character.valueOf((char)numValue.intValue());
+			return value;
+		} else if (value instanceof Character) {
+			char charValue = ((Character)value).charValue();
+			if (javaClass == Integer.class || javaClass == int.class) return Integer.valueOf(charValue);
+			if (javaClass == Double.class || javaClass == double.class) return Double.valueOf(charValue);
+			if (javaClass == Long.class || javaClass == long.class) return Long.valueOf(charValue);
 			return value;
 		}
 		return value;
@@ -61,7 +68,7 @@ public class NumberApiTypeImpl extends SimpleApiTypeImpl implements NumberApiTyp
 
 	@Override
 	public String getJavaName() {
-		return "Number, Double, double, Integer, int, Long, or long";
+		return "Number, Double, double, Integer, int, Long, long, Character, or char";
 	}
 
 	@Override
@@ -76,6 +83,7 @@ public class NumberApiTypeImpl extends SimpleApiTypeImpl implements NumberApiTyp
 	@Override
 	public Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
+		if (val instanceof Character) return Integer.valueOf(((Character)val).charValue());
 		if (!(val instanceof Number)) {
 			throw new ApiException("Expected Number, "+val.getClass()+" given").setHttpStatus(500);
 		}

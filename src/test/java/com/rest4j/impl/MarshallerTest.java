@@ -366,6 +366,28 @@ public class MarshallerTest {
 		assertEquals("Max", company.getPetsMap().get("Max").getName());
 	}
 
+	@Test public void testMarshal_char() throws Exception {
+		createMarshaller("char-type.xml");
+		Pet pet = new Pet();
+		pet.setId(123);
+		pet.setMiddlename('\1');
+		JSONObject json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
+		assertEquals(123, json.getInt("id"));
+		assertFalse(json.has("middlename"));  // 1 is the default value
+		assertFalse(json.has("middlename-int"));
+
+		pet.setMiddlename('\0');
+		json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
+		assertEquals("\0", json.getString("middlename"));
+		assertEquals(0, json.getInt("middlename-int"));
+	}
+
+	@Test public void testUnmarshal_char() throws Exception {
+		createMarshaller("char-type.xml");
+		Pet pet = (Pet) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{middlename:'A',\"middlename-int\":32}"));
+		assertEquals(' ', pet.getMiddlename()); // middlename-int takes over cause it is the latest
+	}
+
 	static JSONObject createMaxJson() throws JSONException {
 		JSONObject pet = new JSONObject();
 		pet.put("id", 123);

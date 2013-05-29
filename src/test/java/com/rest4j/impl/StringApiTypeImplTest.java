@@ -17,9 +17,29 @@
 
 package com.rest4j.impl;
 
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public enum TestEnum {
-	TEST, TEST1, S
+public class StringApiTypeImplTest {
+	StringApiTypeImpl type = new StringApiTypeImpl(null);
+
+	@Test public void testCast_success() throws Exception {
+		assertEquals(Character.valueOf('A'), type.cast("A", Character.class));
+		assertEquals(Character.valueOf('A'), type.cast("A", char.class));
+		assertEquals(Character.valueOf('\0'), type.cast("", char.class));
+		assertNull(type.cast("", Character.class));
+		assertEquals(TestEnum.TEST, type.cast("TEST", TestEnum.class));
+		assertEquals("TEST", type.cast(TestEnum.TEST, String.class));
+		assertEquals(Character.valueOf('S'), type.cast(TestEnum.S, char.class));
+		assertEquals("SIMPL", type.cast("SIMPL", String.class));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCast_more_then_one() throws Exception {
+		type.cast("AAA", Character.class);
+	}
 }

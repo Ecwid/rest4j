@@ -17,16 +17,19 @@
 
 package com.rest4j.impl;
 
+import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
 import com.rest4j.impl.model.Field;
 import com.rest4j.impl.model.FieldAccessType;
 
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 class SimpleFieldMapping extends FieldMapping {
+
 	SimpleFieldMapping(Marshaller marshaller, Field fld, String parent) throws ConfigurationException {
 		super(marshaller, fld, parent);
 	}
@@ -54,5 +57,53 @@ class SimpleFieldMapping extends FieldMapping {
 			}
 		}
 		return true;
+	}
+
+	@Override
+	protected void checkType() throws ConfigurationException {
+		if (propGetter != null && !type.check(propGetter.getGenericReturnType())) {
+			throw new ConfigurationException("Wrong getter type: "+propGetter.getGenericReturnType()+" for " + parent+"."+name+"; expected "+type.getJavaName());
+		}
+		if (propSetter != null && !type.check(propSetter.getGenericParameterTypes()[0])) {
+			throw new ConfigurationException("Wrong getter type: "+propSetter.getGenericParameterTypes()[0]+" for " + parent+"."+name+"; expected "+type.getJavaName());
+		}
+	}
+
+	public void set(Object inst, Object fieldVal) throws ApiException {
+		if (propSetter == null) return; // the field is probably mapped to a Service method argument
+		try {
+			if (propType == null) {
+				propType = propSetter.getGenericParameterTypes()[0];
+			}
+			fieldVal = cast(fieldVal);
+			propSetter.invoke(inst, fieldVal);
+
+		} catch (IllegalAccessException e) {
+			throw new ApiException("Cannot invoke "+propSetter+" "+e.getMessage()).setHttpStatus(500);
+		} catch (InvocationTargetException e) {
+			if (e.getTargetException() instanceof ApiException) {
+				throw (ApiException)e.getTargetException();
+			}
+			if (e.getTargetException() instanceof RuntimeException) {
+				throw (RuntimeException)e.getTargetException();
+			}
+			throw new RuntimeException("Cannot set "+name, e.getTargetException());
+		}
+	}
+
+	public Object get(Object inst) throws ApiException {
+		try {
+			return propGetter.invoke(inst);
+		} catch (IllegalAccessException e) {
+			throw new ApiException("Cannot invoke "+propGetter+" "+e.getMessage()).setHttpStatus(500);
+		} catch (InvocationTargetException e) {
+			if (e.getTargetException() instanceof ApiException) {
+				throw (ApiException)e.getTargetException();
+			}
+			if (e.getTargetException() instanceof RuntimeException) {
+				throw (RuntimeException)e.getTargetException();
+			}
+			throw new RuntimeException("Cannot get "+name, e.getTargetException());
+		}
 	}
 }

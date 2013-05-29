@@ -25,6 +25,7 @@ import com.rest4j.impl.model.ContentType;
 import com.rest4j.impl.model.Error;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.SimpleApiType;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONObject;
 
@@ -267,6 +268,8 @@ public class APIImpl implements API {
 									return fieldMapping.type.cast(val, paramType);
 								} catch (NullPointerException npe) {
 									throw new ApiException("Field "+fieldMapping.parent+"."+name+" value is absent");
+								} catch (IllegalArgumentException iae) {
+									throw new ApiException("Field "+fieldMapping.parent+"."+name+" has wrong value: "+iae.getMessage());
 								}
 							}
 						};
@@ -286,7 +289,7 @@ public class APIImpl implements API {
 					}
 					final SimpleApiType paramApiType;
 					try {
-						Object defaultValue = param.getDefault() == null ? null : parseParam(param, param.getDefault());
+						Object defaultValue = param.getDefault() == null ? null : parseParam(param, StringEscapeUtils.unescapeJavaScript(param.getDefault()));
 						paramApiType = SimpleApiTypeImpl.create(param.getType(), defaultValue, enumValues);
 					} catch (ApiException e) {
 						throw new ConfigurationException("Cannot parse default param value "+param.getDefault()+": "+e.getMessage());

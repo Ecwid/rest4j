@@ -22,9 +22,9 @@ import com.rest4j.ConfigurationException;
 import com.rest4j.impl.model.*;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.SimpleApiType;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONObject;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -96,31 +96,7 @@ abstract class FieldMapping {
 		}
 	}
 
-	public void set(Object inst, Object fieldVal) throws ApiException {
-		if (propSetter == null) return; // the field is probably mapped to a Service method argument
-		try {
-			if (propType == null) {
-				propType = propSetter.getGenericParameterTypes()[0];
-			}
-			try {
-				fieldVal = type.cast(fieldVal, propType);
-			} catch (NullPointerException npe) {
-				throw new ApiException("Field " + parent + "." + name + " value is absent");
-			}
-			propSetter.invoke(inst, fieldVal);
-
-		} catch (IllegalAccessException e) {
-			throw new ApiException("Cannot invoke "+propSetter+" "+e.getMessage()).setHttpStatus(500);
-		} catch (InvocationTargetException e) {
-			if (e.getTargetException() instanceof ApiException) {
-				throw (ApiException)e.getTargetException();
-			}
-			if (e.getTargetException() instanceof RuntimeException) {
-				throw (RuntimeException)e.getTargetException();
-			}
-			throw new RuntimeException("Cannot set "+name, e.getTargetException());
-		}
-	}
+	public abstract void set(Object inst, Object fieldVal) throws ApiException;
 
 	public Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
@@ -133,21 +109,7 @@ abstract class FieldMapping {
 		return type.marshal(val);
 	}
 
-	public Object get(Object inst) throws ApiException {
-		try {
-			return propGetter.invoke(inst);
-		} catch (IllegalAccessException e) {
-			throw new ApiException("Cannot invoke "+propGetter+" "+e.getMessage()).setHttpStatus(500);
-		} catch (InvocationTargetException e) {
-			if (e.getTargetException() instanceof ApiException) {
-				throw (ApiException)e.getTargetException();
-			}
-			if (e.getTargetException() instanceof RuntimeException) {
-				throw (RuntimeException)e.getTargetException();
-			}
-			throw new RuntimeException("Cannot get "+name, e.getTargetException());
-		}
-	}
+	public abstract Object get(Object inst) throws ApiException;
 
 	boolean isConstant() {
 		return field instanceof SimpleField && ((SimpleField)field).getValue() != null;
@@ -177,7 +139,7 @@ abstract class FieldMapping {
 					}
 				}
 			}
-			elementType = SimpleApiTypeImpl.create(simple.getType(), marshaller.parse(simple.getDefault(), simple.getType()), values);
+			elementType = SimpleApiTypeImpl.create(simple.getType(), marshaller.parse(StringEscapeUtils.unescapeJavaScript(simple.getDefault()), simple.getType()), values);
 		}
 
 		switch (field.getCollection()) {
@@ -192,10 +154,24 @@ abstract class FieldMapping {
 				break;
 		}
 
+		checkType();
 	}
+
+	protected abstract void checkType() throws ConfigurationException;
 
 	public String getEffectivePropName() {
 		if (field.getProp() == null) return field.getName();
 		else return field.getProp();
+	}
+
+	protected Object cast(Object fieldVal) throws ApiException {
+		try {
+			fieldVal = type.cast(fieldVal, propType);
+		} catch (NullPointerException npe) {
+			throw new ApiException("Field " + parent + "." + name + " value is absent");
+		} catch (IllegalArgumentException iae) {
+			throw new ApiException("Field " + parent + "." + name + " has wrong value: "+iae.getMessage());
+		}
+		return fieldVal;
 	}
 }

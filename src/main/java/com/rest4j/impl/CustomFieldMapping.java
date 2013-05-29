@@ -62,12 +62,15 @@ public class CustomFieldMapping extends FieldMapping {
 						throw new ConfigurationException("Void return value of getter '" + method.getName() + "'" + forClause);
 					}
 					propGetter = method;
-				} else {
+				} else if (method.getParameterTypes().length == 2) {
 					if (propSetter != null) {
 						throw new ConfigurationException("Ambiguous setter '" + method.getName() + "'" + forClause);
 					}
 					if (method.getReturnType() != void.class) {
 						throw new ConfigurationException("Non-void return value " + method.getReturnType() + " of setter '" + method.getName() + "'" + forClause);
+					}
+					if (!method.getParameterTypes()[0].isAssignableFrom(clz)) {
+						throw new ConfigurationException("Wrong first parameter type of setter '" + method.getName() + "'" + forClause+". Expected "+clz.getName()+" or its ancestors.");
 					}
 					propSetter = method;
 				}
@@ -90,11 +93,7 @@ public class CustomFieldMapping extends FieldMapping {
 			if (propType == null) {
 				propType = propSetter.getGenericParameterTypes()[1];
 			}
-			try {
-				fieldVal = type.cast(fieldVal, propType);
-			} catch (NullPointerException npe) {
-				throw new ApiException("Field " + parent + "." + name + " value is absent");
-			}
+			fieldVal = cast(fieldVal);
 			propSetter.invoke(customMapper, inst, fieldVal);
 
 		} catch (IllegalAccessException e) {
@@ -140,6 +139,15 @@ public class CustomFieldMapping extends FieldMapping {
 			Type[] genericParameterTypes = propSetter.getGenericParameterTypes();
 			type.check(genericParameterTypes[genericParameterTypes.length - 1]);
 		}
+	}
 
+	@Override
+	protected void checkType() throws ConfigurationException {
+		if (propGetter != null && !type.check(propGetter.getGenericReturnType())) {
+			throw new ConfigurationException("Wrong getter type: "+propGetter.getGenericReturnType()+" for " + parent+"."+name+"; expected "+type.getJavaName());
+		}
+		if (propSetter != null && !type.check(propSetter.getGenericParameterTypes()[1])) {
+			throw new ConfigurationException("Wrong getter type: "+propSetter.getGenericParameterTypes()[1]+" for " + parent+"."+name+"; expected "+type.getJavaName());
+		}
 	}
 }

@@ -115,11 +115,7 @@ public class NestedFieldMapping extends FieldMapping {
 				if (propType == null) {
 					propType = setter.getGenericParameterTypes()[0];
 				}
-				try {
-					fieldVal = type.cast(fieldVal, propType);
-				} catch (NullPointerException npe) {
-					throw new ApiException("Field " + parent + "." + name + " value is absent");
-				}
+				fieldVal = cast(fieldVal);
 				setter.invoke(inst, fieldVal);
 			} catch (IllegalAccessException e) {
 				throw new ApiException("Cannot invoke "+setter+" "+e.getMessage()).setHttpStatus(500);
@@ -157,6 +153,19 @@ public class NestedFieldMapping extends FieldMapping {
 				throw (RuntimeException)e.getTargetException();
 			}
 			throw new RuntimeException("Cannot get "+name, e.getTargetException());
+		}
+	}
+
+	@Override
+	protected void checkType() throws ConfigurationException {
+		Method propGetter = propGetters[propGetters.length-1];
+		Method propSetter = propSetters[propSetters.length-1];
+
+		if (propGetter != null && !type.check(propGetter.getGenericReturnType())) {
+			throw new ConfigurationException("Wrong getter type: "+propGetter.getGenericReturnType()+" for " + parent+"."+name+"; expected "+type.getJavaName());
+		}
+		if (propSetter != null && !type.check(propSetter.getGenericParameterTypes()[0])) {
+			throw new ConfigurationException("Wrong getter type: "+propSetter.getGenericParameterTypes()[0]+" for " + parent+"."+name+"; expected "+type.getJavaName());
 		}
 	}
 

@@ -17,9 +17,24 @@
 
 package com.rest4j.impl;
 
+import org.junit.Test;
+import static org.junit.Assert.*;
+
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public enum TestEnum {
-	TEST, TEST1, S
+public class NumberApiTypeImplTest {
+	NumberApiTypeImpl type = new NumberApiTypeImpl();
+
+	@Test public void testCast() throws Exception {
+		assertEquals(Double.valueOf(1.23), type.cast(1.23, double.class));
+		assertEquals(Long.valueOf(23l), type.cast(23, Long.class));
+		assertEquals('\1', type.cast(1, Character.class));
+		assertEquals('\1', type.cast(1l, char.class));
+	}
+
+	@Test public void testMarshal() throws Exception {
+		assertEquals(1, type.marshal('\1'));
+		assertEquals(1, type.marshal(1));
+	}
 }

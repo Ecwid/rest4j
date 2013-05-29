@@ -17,7 +17,6 @@
 
 package com.rest4j.impl.petapi;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +33,7 @@ public class Pet {
 	List<Integer> mated = new ArrayList<Integer>();
 	List<Integer> ate = new ArrayList<Integer>();
 	boolean writeonly;
+	char middlename;
 
 	public boolean isWriteonly() {
 		return writeonly;
@@ -105,5 +105,13 @@ public class Pet {
 
 	public void setAte(List<Integer> ate) {
 		this.ate = ate;
+	}
+
+	public char getMiddlename() {
+		return middlename;
+	}
+
+	public void setMiddlename(char middlename) {
+		this.middlename = middlename;
 	}
 }

@@ -45,15 +45,17 @@ class StringApiTypeImpl extends SimpleApiTypeImpl implements StringApiType {
 		Class clz = (Class)javaType;
 		if (clz == null) return false;
 		if (clz.isEnum()) {
-			try {
-				Marshaller.checkEnum(clz, enumValues);
-			} catch(ConfigurationException ex) {
-				ex.printStackTrace();
-				return false;
+			if (enumValues != null) {
+				try {
+					Marshaller.checkEnum(clz, enumValues);
+				} catch(ConfigurationException ex) {
+					ex.printStackTrace();
+					return false;
+				}
 			}
 			return true;
 		} else {
-			return clz == String.class;
+			return clz == String.class || clz == Character.class || clz == char.class;
 		}
 	}
 
@@ -62,21 +64,34 @@ class StringApiTypeImpl extends SimpleApiTypeImpl implements StringApiType {
 		if (value == null) return null;
 		if (value instanceof String) {
 			Class clz = (Class)javaClass;
+			String str = (String) value;
 			if (clz.isEnum()) {
-				return Util.getEnumConstant(clz, (String) value);
+				return Util.getEnumConstant(clz, str);
+			} else if (javaClass == char.class) {
+				return Character.valueOf(str.length() == 0 ? '\0' : asChar(str));
+			} else if (javaClass == Character.class) {
+				return str.length() == 0 ? null : Character.valueOf(asChar(str));
 			}
+		} else if (value instanceof Character) {
+			if (javaClass != Character.class && javaClass != char.class) return cast(value.toString(), javaClass);
 		} else if (value instanceof Enum) {
-			if (javaClass == String.class) return ((Enum) value).name();
+			Class clz = (Class)javaClass;
+			if (!clz.isEnum()) return cast(((Enum) value).name(), javaClass);
 		}
 		return value;
+	}
+
+	private char asChar(String str) {
+		if (str.length() > 1) throw new IllegalArgumentException("Expected single character");
+		return str.charAt(0);
 	}
 
 	@Override
 	public String getJavaName() {
 		if (enumValues != null) {
-			return "String or enum";
+			return "String, char, or enum";
 		} else {
-			return "String";
+			return "String or char";
 		}
 	}
 
@@ -113,8 +128,10 @@ class StringApiTypeImpl extends SimpleApiTypeImpl implements StringApiType {
 			return val;
 		} else if (val instanceof Enum) {
 			return ((Enum)val).name();
+		} else if (val instanceof Character) {
+			return val.toString();
 		} else {
-			throw new ApiException("Expected String or Enum, "+val.getClass()+" given").setHttpStatus(500);
+			throw new ApiException("Expected "+getJavaName()+", "+val.getClass()+" given").setHttpStatus(500);
 		}
 	}
 
