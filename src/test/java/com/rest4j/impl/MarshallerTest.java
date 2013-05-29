@@ -388,6 +388,20 @@ public class MarshallerTest {
 		assertEquals(' ', pet.getMiddlename()); // middlename-int takes over cause it is the latest
 	}
 
+	@Test public void testMarshal_weaker_enum() throws Exception {
+		createMarshaller("weaker-enum.xml");
+		Pet pet = new Pet();
+		pet.setGender(Gender.male);
+		JSONObject json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
+		assertEquals("male", json.getString("gender"));
+	}
+
+	@Test public void testUnmarshal_weaker_enum() throws Exception {
+		createMarshaller("weaker-enum.xml");
+		Pet pet = (Pet) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{gender:'male'}"));
+		assertEquals(Gender.male, pet.getGender());
+	}
+
 	static JSONObject createMaxJson() throws JSONException {
 		JSONObject pet = new JSONObject();
 		pet.put("id", 123);
