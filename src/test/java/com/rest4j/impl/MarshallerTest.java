@@ -41,6 +41,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -68,7 +69,12 @@ public class MarshallerTest {
 		modelConfig = new ArrayList<Marshaller.ModelConfig>();
 		for (Object entry: root.getEndpointAndModel()) {
 			if (entry instanceof Model) {
-				modelConfig.add(new Marshaller.ModelConfig((Model)entry, customMapping));
+				Model model = (Model) entry;
+				Object mapper = null;
+				if ("petMapping".equals(model.getFieldMapper())) {
+					mapper = customMapping;
+				}
+				modelConfig.add(new Marshaller.ModelConfig(model, mapper));
 			}
 		}
 		marshaller = new Marshaller(modelConfig, ofs);
@@ -400,6 +406,37 @@ public class MarshallerTest {
 		createMarshaller("weaker-enum.xml");
 		Pet pet = (Pet) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{gender:'male'}"));
 		assertEquals(Gender.male, pet.getGender());
+	}
+
+	@Test public void testMarshal_with_dynamic_mapper() throws Exception {
+		customMapping = new DynamicPetMapper();
+		createMarshaller("petapi-dynamic.xml");
+		HashMap<String, Object> pet = createDynamicMax();
+		JSONObject object = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
+		JSONObject max = createMaxJson();
+		max.remove("writeonly");
+		assertEquals(max.toString(), object.toString());
+	}
+
+	private HashMap<String, Object> createDynamicMax() {
+		HashMap<String, Object> pet = new HashMap<String, Object>();
+		pet.put("id", 123);
+		pet.put("type", "cat");
+		pet.put("name", "Max");
+		pet.put("gender", Gender.male);
+		pet.put("weight", 4.3);
+		pet.put("relations", Collections.singletonList(new PetRelation(RelationType.friend, 234)));
+		pet.put("writeonly", true);
+		return pet;
+	}
+
+	@Test public void testUnmarshal_with_dynamic_mapper() throws Exception {
+		customMapping = new DynamicPetMapper();
+		createMarshaller("petapi-dynamic.xml");
+		HashMap<String, Object> pet = (HashMap<String, Object>) marshaller.getObjectType("Pet").unmarshal(createMaxJson());
+		HashMap<String, Object> expected = createDynamicMax();
+		expected.remove("id"); // the read-only property should be lost
+		assertEquals(expected.toString(), pet.toString());
 	}
 
 	static JSONObject createMaxJson() throws JSONException {

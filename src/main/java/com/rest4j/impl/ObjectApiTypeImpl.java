@@ -161,4 +161,9 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 		}
 		return null;
 	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
 }

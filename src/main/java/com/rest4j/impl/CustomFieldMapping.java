@@ -32,6 +32,8 @@ import java.lang.reflect.Type;
 public class CustomFieldMapping extends FieldMapping {
 	private final Object customMapper;
 	String mapping; // call getter/setter on a CustomMapping object, not the bean itself
+	Method propGetter;
+	Method propSetter;
 
 	CustomFieldMapping(Marshaller marshaller, Field fld, Object customMapper, String parent) throws ConfigurationException {
 		super(marshaller, fld, parent);
@@ -75,7 +77,9 @@ public class CustomFieldMapping extends FieldMapping {
 					propSetter = method;
 				}
 			}
+
 		}
+		if (propSetter != null) propType = propSetter.getGenericParameterTypes()[1];
 		if (propGetter == null && field.getAccess() != FieldAccessType.WRITEONLY && !isConstant()) {
 			if (field.isOptional()) {
 				return false;
@@ -87,12 +91,14 @@ public class CustomFieldMapping extends FieldMapping {
 	}
 
 	@Override
+	boolean isReadonly() {
+		return propGetter == null;
+	}
+
+	@Override
 	public void set(Object inst, Object fieldVal) throws ApiException {
 		if (propSetter == null) return;
 		try {
-			if (propType == null) {
-				propType = propSetter.getGenericParameterTypes()[1];
-			}
 			fieldVal = cast(fieldVal);
 			propSetter.invoke(customMapper, inst, fieldVal);
 

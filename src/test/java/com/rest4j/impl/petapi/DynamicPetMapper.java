@@ -15,13 +15,25 @@
  * limitations under the License.
  */
 
-package com.rest4j;
+package com.rest4j.impl.petapi;
+
+import com.rest4j.DynamicMapper;
+import com.rest4j.Field;
+
+import java.util.HashMap;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public interface DynamicModel {
-	Object get(String fieldName) throws ApiException;
-	void set(String fieldName, Object propValue) throws ApiException;
-	Object cast(Class clz) throws ClassCastException, ApiException;
+public class DynamicPetMapper implements DynamicMapper<HashMap<String, Object>> {
+
+	@Override
+	public Object get(HashMap<String, Object> instance, Field field) {
+		return instance.get(field.getName());
+	}
+
+	@Override
+	public void set(HashMap<String, Object> instance, Field field, Object value) {
+		instance.put(field.getName(), value);
+	}
 }

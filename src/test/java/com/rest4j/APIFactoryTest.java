@@ -17,6 +17,7 @@
 
 package com.rest4j;
 
+import com.rest4j.impl.petapi.DynamicPetMapper;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
@@ -27,6 +28,7 @@ import static org.junit.Assert.fail;
  */
 public class APIFactoryTest {
 	Object dao = new Object() {};
+	Object mapper = null;
 	ServiceProvider provider = new ServiceProvider() {
 		@Override
 		public Object lookupService(String name) {
@@ -35,7 +37,7 @@ public class APIFactoryTest {
 
 		@Override
 		public Object lookupFieldMapper(String model, String name) {
-			return null;
+			return mapper;
 		}
 
 		@Override
@@ -45,20 +47,26 @@ public class APIFactoryTest {
 	};
 
 	@Test
-	public void testGetObject_wrong_field_model_reference() throws ConfigurationException {
+	public void testCreateAPI_wrong_field_model_reference() throws ConfigurationException {
 		String exceptionMessageSubstring = "complex-field-type";
 		String xmlFile = "wrong_field_model_reference.xml";
 		validate(exceptionMessageSubstring, xmlFile);
 	}
 
 	@Test
-	public void testGetObject_wrong_response_model_reference() throws ConfigurationException {
+	public void testCreateAPI_wrong_response_model_reference() throws ConfigurationException {
 		validate("body-or-response-type", "wrong_response_model_reference.xml");
 	}
 
 	@Test
-	public void testGetObject_wrong_path_parameter_reference() throws ConfigurationException {
+	public void testCreateAPI_wrong_path_parameter_reference() throws ConfigurationException {
 		validate("route-param-name", "wrong_path_parameter_reference.xml");
+	}
+	
+	@Test
+	public void testCreateAPI_mapping_method_with_dynamic_mapper() throws Exception {
+		mapper = new DynamicPetMapper();
+		validate("DynamicMapper", "mapper-method-with-dynamic-mapper.xml");
 	}
 
 	private void validate(String exceptionMessageSubstring, String xmlFile) {

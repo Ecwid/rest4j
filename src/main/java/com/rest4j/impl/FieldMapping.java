@@ -25,18 +25,15 @@ import com.rest4j.type.SimpleApiType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONObject;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-abstract class FieldMapping {
+abstract class FieldMapping implements com.rest4j.Field {
 	String name;
 	String parent;
 	boolean optional;
-	Method propGetter;
-	Method propSetter;
 	FieldAccessType access;
 
 	ApiType type;
@@ -72,9 +69,7 @@ abstract class FieldMapping {
 
 	abstract boolean initAccessors(Class clz) throws ConfigurationException;
 
-	boolean isReadonly() {
-		return propGetter == null;
-	}
+	abstract boolean isReadonly();
 
 	public Object unmarshal(Object val) throws ApiException {
 		if (JSONObject.NULL == val) {
@@ -173,5 +168,15 @@ abstract class FieldMapping {
 			throw new ApiException("Field " + parent + "." + name + " has wrong value: "+iae.getMessage());
 		}
 		return fieldVal;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public ApiType getType() {
+		return type;
 	}
 }

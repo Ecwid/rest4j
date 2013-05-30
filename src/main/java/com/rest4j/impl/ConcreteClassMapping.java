@@ -2,6 +2,7 @@ package com.rest4j.impl;
 
 import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
+import com.rest4j.DynamicMapper;
 import com.rest4j.impl.model.Field;
 import com.rest4j.impl.model.FieldAccessType;
 import com.rest4j.impl.model.Model;
@@ -40,7 +41,12 @@ public class ConcreteClassMapping {
 		for (Field fld : model.getFields().getSimpleAndComplex()) {
 			FieldMapping fieldMapping;
 
-			if (fld.getMappingMethod() == null) {
+			if (customMapper instanceof DynamicMapper) {
+				if (fld.getMappingMethod() != null) {
+					throw new ConfigurationException("mapping-method cannot be used along with DynamicMapper");
+				}
+				fieldMapping = new DynamicFieldMapping(marshaller, fld, (DynamicMapper)customMapper, name /* owner name */);
+			} else if (fld.getMappingMethod() == null) {
 
 				if (fld.getProp() != null && fld.getProp().contains(".")) {
 					fieldMapping = new NestedFieldMapping(marshaller, fld, name /* owner name */);

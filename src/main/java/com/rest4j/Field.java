@@ -15,17 +15,14 @@
  * limitations under the License.
  */
 
-package com.rest4j.type;
+package com.rest4j;
 
-import com.rest4j.ApiException;
-import com.rest4j.Patch;
-import org.json.JSONObject;
+import com.rest4j.type.ApiType;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public interface ObjectApiType extends ApiType {
+public interface Field {
 	String getName();
-	Patch unmarshalPatch(Object original, JSONObject object) throws ApiException;
-
+	ApiType getType();
 }

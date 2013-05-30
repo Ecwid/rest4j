@@ -68,11 +68,16 @@ public class NestedFieldMapping extends FieldMapping {
 			}
 			i++;
 		}
+		Method setter = propSetters[propSetters.length - 1];
+		if (setter != null) {
+			propType = setter.getGenericParameterTypes()[0];
+		}
 		return true;
 	}
 
+	@Override
 	boolean isReadonly() {
-		return propGetter == null;
+		return propGetters[propGetters.length-1] == null;
 	}
 
 	@Override
@@ -112,9 +117,6 @@ public class NestedFieldMapping extends FieldMapping {
 			// set field value
 			Method setter = propSetters[propSetters.length - 1];
 			try {
-				if (propType == null) {
-					propType = setter.getGenericParameterTypes()[0];
-				}
 				fieldVal = cast(fieldVal);
 				setter.invoke(inst, fieldVal);
 			} catch (IllegalAccessException e) {

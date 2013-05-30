@@ -24,11 +24,14 @@ import com.rest4j.impl.model.FieldAccessType;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 class SimpleFieldMapping extends FieldMapping {
+	Method propGetter;
+	Method propSetter;
 
 	SimpleFieldMapping(Marshaller marshaller, Field fld, String parent) throws ConfigurationException {
 		super(marshaller, fld, parent);
@@ -55,6 +58,7 @@ class SimpleFieldMapping extends FieldMapping {
 					throw new ConfigurationException("No getter for " + parent+"."+name + ", but it is not declared as writeonly. Use access='writeonly' in <complex> and <simple> tags.");
 				}
 			}
+			if (propSetter != null) propType = propSetter.getGenericParameterTypes()[0];
 		}
 		return true;
 	}
@@ -72,9 +76,6 @@ class SimpleFieldMapping extends FieldMapping {
 	public void set(Object inst, Object fieldVal) throws ApiException {
 		if (propSetter == null) return; // the field is probably mapped to a Service method argument
 		try {
-			if (propType == null) {
-				propType = propSetter.getGenericParameterTypes()[0];
-			}
 			fieldVal = cast(fieldVal);
 			propSetter.invoke(inst, fieldVal);
 
@@ -106,4 +107,10 @@ class SimpleFieldMapping extends FieldMapping {
 			throw new RuntimeException("Cannot get "+name, e.getTargetException());
 		}
 	}
+
+	@Override
+	boolean isReadonly() {
+		return propGetter == null;
+	}
+
 }
