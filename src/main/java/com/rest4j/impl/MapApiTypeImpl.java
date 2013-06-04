@@ -36,6 +36,7 @@ import java.util.Map;
 */
 public class MapApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	ApiType elementType;
+	StringApiTypeImpl stringApiType = new StringApiTypeImpl(null);
 
 	MapApiTypeImpl(ApiType elementType) {
 		this.elementType = elementType;
@@ -49,8 +50,8 @@ public class MapApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 		if (javaClass instanceof ParameterizedType) {
 			ParameterizedType pType = (ParameterizedType) javaClass;
 			if (pType.getActualTypeArguments().length != 2) return false;
-			// the first parameter is String
-			if (pType.getActualTypeArguments()[0] != String.class) return false;
+			// the first parameter is a string
+			if (!stringApiType.check(pType.getActualTypeArguments()[0])) return false;
 			// the second parameter is the element type
 			return elementType.check(pType.getActualTypeArguments()[1]);
 		} else {
@@ -66,20 +67,20 @@ public class MapApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	@Override
 	public Object cast(Object value, Type javaClass) {
 		if (value == null) return null;
-		Class clz = Util.getClass(javaClass);
 		ParameterizedType pType = (ParameterizedType) javaClass;
+		Type keyJavaType = pType.getActualTypeArguments()[0];
 		Type elementJavaType = pType.getActualTypeArguments()[1];
 		Map map = (Map)value;
 		Map newMap = new LinkedHashMap();
 		for (Object key: map.keySet()) {
-			newMap.put(key, elementType.cast(map.get(key), elementJavaType));
+			newMap.put(stringApiType.cast(key, keyJavaType), elementType.cast(map.get(key), elementJavaType));
 		}
 		return newMap;
 	}
 
 	@Override
 	public String getJavaName() {
-		return "Map<String,"+elementType.getJavaName()+">";
+		return "Map<"+ stringApiType.getJavaName()+","+elementType.getJavaName()+">";
 	}
 
 	@Override
@@ -114,9 +115,9 @@ public class MapApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 		if (!(val instanceof Map)) {
 			throw new ApiException("Expected Map, "+val.getClass()+" given").setHttpStatus(500);
 		}
-		for (Map.Entry<String, Object> entry: ((Map<String, Object>)val).entrySet()) {
+		for (Map.Entry entry: ((Map<String, Object>)val).entrySet()) {
 			try {
-				object.put(entry.getKey().toString(), elementType.marshal(entry.getValue()));
+				object.put((String)stringApiType.marshal(entry.getKey()), elementType.marshal(entry.getValue()));
 			} catch (JSONException e) {
 				throw new ApiException("Cannot create JSON object from "+val).setHttpStatus(500);
 			}

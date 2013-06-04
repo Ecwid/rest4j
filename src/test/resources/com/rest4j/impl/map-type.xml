@@ -20,6 +20,7 @@
 		<fields>
 			<complex collection="map" name="petsMap" type="Pet"></complex>
 			<simple collection="map" name="petsHashMap" type="number"></simple>
+			<complex collection="map" name="enumMap" type="Pet"></complex>
 		</fields>
 	</model>
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">

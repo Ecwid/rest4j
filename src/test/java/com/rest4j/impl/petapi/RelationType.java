@@ -21,5 +21,10 @@ package com.rest4j.impl.petapi;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public enum RelationType {
-	friend, mated, ate
+	friend, mated, ate {
+		@Override
+		public String toString() {
+			return "ATE!"; // custom toString() should not be used when serializing data
+		}
+	}
 }

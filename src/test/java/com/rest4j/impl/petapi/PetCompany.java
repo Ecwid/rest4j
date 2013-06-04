@@ -29,6 +29,7 @@ public class PetCompany {
 	Map<String, Pet> petsMap = new HashMap<String, Pet>();
 	HashMap<String, Long> petsHashMap = new HashMap<String, Long>();
 	Set<Pet> petsSet = new LinkedHashSet<Pet>();
+	Map<RelationType, Pet> enumMap = new HashMap<RelationType, Pet>();
 
 	public Map<String, Pet> getPetsMap() {
 		return petsMap;
@@ -52,5 +53,13 @@ public class PetCompany {
 
 	public void setPetsHashMap(HashMap<String, Long> petsHashMap) {
 		this.petsHashMap = petsHashMap;
+	}
+
+	public Map<RelationType, Pet> getEnumMap() {
+		return enumMap;
+	}
+
+	public void setEnumMap(Map<RelationType, Pet> enumMap) {
+		this.enumMap = enumMap;
 	}
 }

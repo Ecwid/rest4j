@@ -455,6 +455,22 @@ public class MarshallerTest {
 		assertEquals("Max", pet.getName());
 	}
 
+	@Test public void testMarshal_enum_map() throws Exception {
+		createMarshaller("map-type.xml");
+		PetCompany company = new PetCompany();
+		company.getEnumMap().put(RelationType.ate, createMax());
+		JSONObject json = (JSONObject) marshaller.getObjectType("PetCompany").marshal(company);
+		assertEquals("{\"ate\":{\"id\":123,\"name\":\"Max\"}}", json.getJSONObject("enumMap").toString());
+	}
+
+	@Test public void testUnmarshal_enum_map() throws Exception {
+		createMarshaller("map-type.xml");
+		PetCompany company = (PetCompany) marshaller.getObjectType("PetCompany").unmarshal(new JSONObject("{\"enumMap\":{\"ate\":{\"name\":\"Max\"}}}"));
+		assertEquals(1, company.getEnumMap().size());
+		Pet pet = company.getEnumMap().get(RelationType.ate);
+		assertEquals("Max", pet.getName());
+	}
+
 	static JSONObject createMaxJson() throws JSONException {
 		JSONObject pet = new JSONObject();
 		pet.put("id", 123);
