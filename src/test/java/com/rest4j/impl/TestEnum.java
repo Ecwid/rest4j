@@ -21,5 +21,10 @@ package com.rest4j.impl;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public enum TestEnum {
-	TEST, TEST1, S
+	TEST {
+		@Override
+		public String toString() {
+			return "Just TEST";
+		}
+	}, TEST1, S
 }

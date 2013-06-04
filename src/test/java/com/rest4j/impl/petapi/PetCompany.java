@@ -18,7 +18,9 @@
 package com.rest4j.impl.petapi;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -26,6 +28,7 @@ import java.util.Map;
 public class PetCompany {
 	Map<String, Pet> petsMap = new HashMap<String, Pet>();
 	HashMap<String, Long> petsHashMap = new HashMap<String, Long>();
+	Set<Pet> petsSet = new LinkedHashSet<Pet>();
 
 	public Map<String, Pet> getPetsMap() {
 		return petsMap;
@@ -37,6 +40,14 @@ public class PetCompany {
 
 	public HashMap<String, Long> getPetsHashMap() {
 		return petsHashMap;
+	}
+
+	public Set<Pet> getPetsSet() {
+		return petsSet;
+	}
+
+	public void setPetsSet(Set<Pet> petsSet) {
+		this.petsSet = petsSet;
 	}
 
 	public void setPetsHashMap(HashMap<String, Long> petsHashMap) {

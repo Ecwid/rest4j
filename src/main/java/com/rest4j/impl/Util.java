@@ -53,7 +53,7 @@ public class Util {
 
 	static Object getEnumConstant(Class clz, Object value) {
 		for (Object option: clz.getEnumConstants()) {
-			if (option.toString().equals(value)) {
+			if (((Enum)option).name().equals(value)) {
 				return option;
 			}
 		}

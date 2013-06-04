@@ -34,10 +34,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import java.io.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -596,6 +593,20 @@ public class APIImplTest {
 		APIRequest request = mockRequest("GET", "/api/v2/test");
 		APIResponse response = api.serve(request);
 		assertEquals("{\"Max\":{\"id\":123,\"name\":\"Max\"}}", getBody(response));
+	}
+
+	@Test public void testServe_set_response_body() throws Exception {
+		pets = new Object() {
+			public Set<Pet> get() {
+				Set<Pet> pets = new LinkedHashSet<Pet>();
+				pets.add(MarshallerTest.createMax());
+				return pets;
+			}
+		};
+		api = (APIImpl) new APIFactory(getClass().getResource("set-type.xml"), "/api/v2", serviceProvider).createAPI();
+		APIRequest request = mockRequest("GET", "/api/v2/test");
+		APIResponse response = api.serve(request);
+		assertEquals("[{\"id\":123,\"name\":\"Max\"}]", getBody(response));
 	}
 
 	void iniJsonpApi() throws ConfigurationException {

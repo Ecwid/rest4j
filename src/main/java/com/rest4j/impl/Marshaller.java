@@ -142,7 +142,7 @@ public class Marshaller {
 		for (String declaredValue: enumValues) {
 			boolean found = false;
 			for (Object option: clz.getEnumConstants()) {
-				if (option.toString().equals(declaredValue)) found = true;
+				if (((Enum)option).name().equals(declaredValue)) found = true;
 			}
 			if (!found) {
 				throw new ConfigurationException("Cannot find a enum value "+declaredValue+" in "+clz);

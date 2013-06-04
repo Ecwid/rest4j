@@ -18,8 +18,6 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
-import com.rest4j.impl.ApiTypeImpl;
-import com.rest4j.impl.Util;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.ArrayApiType;
 import org.json.JSONArray;
@@ -28,8 +26,7 @@ import org.json.JSONObject;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
@@ -45,7 +42,7 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	public boolean check(Type javaClass) {
 		Class clz = Util.getClass(javaClass);
 		if (clz == null) return false;
-		if (clz != List.class) return false;
+		if (clz != List.class && clz != Set.class) return false;
 		if (javaClass instanceof ParameterizedType) {
 			ParameterizedType pType = (ParameterizedType) javaClass;
 			// a parameter is the element type
@@ -65,17 +62,24 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 		if (value == null) return null;
 		ParameterizedType pType = (ParameterizedType) javaClass;
 		Type elementJavaType = pType.getActualTypeArguments()[0];
-		List list = (List)value;
-		ArrayList newList = new ArrayList(list.size());
-		for (Object element: list) {
-			newList.add(elementType.cast(element, elementJavaType));
+		Collection input = (Collection)value;
+		Collection newCollection;
+		if (Util.getClass(javaClass) == List.class) {
+			newCollection = new ArrayList(input.size());
+		} else if (Util.getClass(javaClass) == Set.class) {
+			newCollection = new LinkedHashSet(input.size());
+		} else {
+			throw new AssertionError("Unexpected array type "+value.getClass());
 		}
-		return newList;
+		for (Object element: input) {
+			newCollection.add(elementType.cast(element, elementJavaType));
+		}
+		return newCollection;
 	}
 
 	@Override
 	public String getJavaName() {
-		return "List<"+elementType.getJavaName()+">";
+		return "List<"+elementType.getJavaName()+"> or Set<"+elementType.getJavaName()+">";
 	}
 
 	@Override
@@ -106,11 +110,11 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	public Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
 		JSONArray array = new JSONArray();
-		if (!(val instanceof List)) {
-			throw new ApiException("Expected List, "+val.getClass()+" given").setHttpStatus(500);
+		if (!(val instanceof Collection)) {
+			throw new ApiException("Expected "+getJavaName()+", "+val.getClass()+" given").setHttpStatus(500);
 		}
 		int i=0;
-		for (Object element: (List)val) {
+		for (Object element: (Collection)val) {
 			try {
 				array.put(i++, elementType.marshal(element));
 			} catch (JSONException e) {

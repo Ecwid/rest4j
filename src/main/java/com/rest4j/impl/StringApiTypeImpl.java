@@ -88,11 +88,7 @@ class StringApiTypeImpl extends SimpleApiTypeImpl implements StringApiType {
 
 	@Override
 	public String getJavaName() {
-		if (enumValues != null) {
-			return "String, char, or enum";
-		} else {
-			return "String or char";
-		}
+		return "String, char, or enum";
 	}
 
 	@Override

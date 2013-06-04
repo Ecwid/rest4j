@@ -439,6 +439,22 @@ public class MarshallerTest {
 		assertEquals(expected.toString(), pet.toString());
 	}
 
+	@Test public void testMarshal_set() throws Exception {
+		createMarshaller("set-type.xml");
+		PetCompany company = new PetCompany();
+		company.getPetsSet().add(createMax());
+		JSONObject json = (JSONObject) marshaller.getObjectType("PetCompany").marshal(company);
+		assertEquals("{\"petsSet\":[{\"id\":123,\"name\":\"Max\"}]}", json.toString());
+	}
+
+	@Test public void testUnmarshal_set() throws Exception {
+		createMarshaller("set-type.xml");
+		PetCompany company = (PetCompany) marshaller.getObjectType("PetCompany").unmarshal(new JSONObject("{\"petsSet\":[{\"name\":\"Max\"}]}"));
+		assertEquals(1, company.getPetsSet().size());
+		Pet pet = company.getPetsSet().iterator().next();
+		assertEquals("Max", pet.getName());
+	}
+
 	static JSONObject createMaxJson() throws JSONException {
 		JSONObject pet = new JSONObject();
 		pet.put("id", 123);
