@@ -149,6 +149,7 @@ documentation and client libraries, as well as for query dispatching.
 					</p>
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
+			<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo"/>
 		</xsd:sequence>
 		<xsd:attribute name="http" type="HttpMethod" use="required">
 			<xsd:annotation><xsd:documentation>
@@ -184,6 +185,7 @@ documentation and client libraries, as well as for query dispatching.
 					that reference other JSON objects and arrays of objects.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
+			<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo"/>
 		</xsd:sequence>
 		<xsd:attribute name="name" type="identifier" use="required">
 			<xsd:annotation><xsd:documentation>
@@ -223,6 +225,15 @@ documentation and client libraries, as well as for query dispatching.
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<xsd:complexType name="ExtraInfo">
+		<xsd:annotation><xsd:documentation>
+			Any arbitrary user-defined tags
+		</xsd:documentation></xsd:annotation>
+		<xsd:sequence>
+			<xsd:any minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
 	<xsd:complexType name="Field">
 		<xsd:sequence>
 			<xsd:element name="description" type="Description" minOccurs="0" maxOccurs="1">
@@ -231,6 +242,7 @@ documentation and client libraries, as well as for query dispatching.
 					(or null value).
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
+			<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo"/>
 		</xsd:sequence>
 		<xsd:attribute name="name" type="xsd:string" use="required">
 			<xsd:annotation><xsd:documentation>
@@ -366,6 +378,7 @@ documentation and client libraries, as well as for query dispatching.
 					values listed in the nesten &lt;value> tags.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
+			<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo"/>
 		</xsd:sequence>
 		<xsd:attribute name="name" type="xsd:string" use="required">
 			<xsd:annotation><xsd:documentation>

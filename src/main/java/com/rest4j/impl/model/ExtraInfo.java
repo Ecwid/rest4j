@@ -12,20 +12,25 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for Errors complex type.
+ * 
+ * 			Any arbitrary user-defined tags
+ * 		
+ * 
+ * <p>Java class for ExtraInfo complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Errors">
+ * &lt;complexType name="ExtraInfo">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence maxOccurs="unbounded" minOccurs="0">
- *         &lt;element name="error" type="{http://rest4j.com/api-description}Error"/>
+ *       &lt;sequence>
+ *         &lt;any maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -35,40 +40,41 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Errors", propOrder = {
-    "error"
+@XmlType(name = "ExtraInfo", propOrder = {
+    "any"
 })
-public class Errors {
+public class ExtraInfo {
 
-    protected List<Error> error;
+    @XmlAnyElement(lax = true)
+    protected List<Object> any;
 
     /**
-     * Gets the value of the error property.
+     * Gets the value of the any property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the error property.
+     * This is why there is not a <CODE>set</CODE> method for the any property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getError().add(newItem);
+     *    getAny().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link Error }
+     * {@link Object }
      * 
      * 
      */
-    public List<Error> getError() {
-        if (error == null) {
-            error = new ArrayList<Error>();
+    public List<Object> getAny() {
+        if (any == null) {
+            any = new ArrayList<Object>();
         }
-        return this.error;
+        return this.any;
     }
 
 }
