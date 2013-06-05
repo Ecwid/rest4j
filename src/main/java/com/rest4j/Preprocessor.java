@@ -15,26 +15,15 @@
  * limitations under the License.
  */
 
-package com.rest4j.impl;
+package com.rest4j;
+
+import org.w3c.dom.Document;
 
 /**
+ * Pre-processes API xml definition. Register pre-processors with APIFactory#addPreprocessor.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public enum TestEnum {
-	TEST("TEST doc") {
-		@Override
-		public String toString() {
-			return "Just TEST";
-		}
-	}, TEST1("TEST1 doc"), S("S doc");
-
-	final String doc;
-
-	TestEnum(String doc) {
-		this.doc = doc;
-	}
-
-	public String getDoc() {
-		return doc;
-	}
+public interface Preprocessor {
+	void process(Document xml) throws ConfigurationException;
 }

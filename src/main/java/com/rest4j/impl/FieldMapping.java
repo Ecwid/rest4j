@@ -126,7 +126,7 @@ abstract class FieldMapping implements com.rest4j.Field {
 			if (simple.getValues() != null && simple.getType() == FieldType.STRING) {
 				values = new String[simple.getValues().getValue().size()];
 				for (int j = 0; j < values.length; j++) {
-					values[j] = simple.getValues().getValue().get(j);
+					values[j] = simple.getValues().getValue().get(j).getContent();
 				}
 				if (isConstant()) {
 					if (simple.getType() == FieldType.STRING) {

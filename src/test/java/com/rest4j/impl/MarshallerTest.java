@@ -471,6 +471,14 @@ public class MarshallerTest {
 		assertEquals("Max", pet.getName());
 	}
 
+	@Test public void testMarshal_dynamic_enum() throws Exception {
+		createMarshaller("dynamic-enums.xml");
+		TestWithConstants test = new TestWithConstants();
+		test.setEnumProp(TestEnum.TEST);
+		JSONObject json = (JSONObject) marshaller.getObjectType("Test1").marshal(test);
+		assertEquals("{\"enumProp\":\"TEST\"}", json.toString());
+	}
+
 	static JSONObject createMaxJson() throws JSONException {
 		JSONObject pet = new JSONObject();
 		pet.put("id", 123);

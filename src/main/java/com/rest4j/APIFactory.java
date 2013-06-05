@@ -18,6 +18,7 @@
 package com.rest4j;
 
 import com.rest4j.impl.APIImpl;
+import org.w3c.dom.Document;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.XMLConstants;
@@ -25,6 +26,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.net.URL;
@@ -42,6 +45,7 @@ public class APIFactory {
 	ServiceProvider serviceProvider;
 	private JAXBContext context;
 	List<ObjectFactory> factories = new ArrayList<ObjectFactory>();
+	List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
 
 	/**
 	 * Create a factory that can be used to create API objects. This constructor does not accept ObjectFactories.
@@ -69,16 +73,29 @@ public class APIFactory {
 		factories.add(of);
 	}
 
+	public void addPreprocessor(Preprocessor proc) {
+		preprocessors.add(proc);
+	}
+
 	public API createAPI() throws ConfigurationException {
 		try {
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+			documentBuilderFactory.setNamespaceAware(true);
+			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+			Document xml = documentBuilder.parse(apiDescriptionXml.openStream());
+			for (Preprocessor pre: preprocessors) {
+				pre.process(xml);
+			}
+
 			Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(getClass().getResource("api.xsd"));
 
 			Unmarshaller unmarshaller = context.createUnmarshaller();
 			unmarshaller.setSchema(schema);
-			JAXBElement<com.rest4j.impl.model.API> element = (JAXBElement<com.rest4j.impl.model.API>) unmarshaller.unmarshal(apiDescriptionXml);
+			JAXBElement<com.rest4j.impl.model.API> element = (JAXBElement<com.rest4j.impl.model.API>) unmarshaller.unmarshal(xml);
 			com.rest4j.impl.model.API root = element.getValue();
 			APIImpl api;
-			api = new APIImpl(root, pathPrefix, serviceProvider, factories.toArray(new ObjectFactory[factories.size()]));
+			api = new APIImpl(root, pathPrefix, serviceProvider,
+					factories.toArray(new ObjectFactory[factories.size()]));
 			return api;
 		} catch (javax.xml.bind.UnmarshalException e) {
 			if (e.getLinkedException() instanceof SAXParseException) {
@@ -86,9 +103,9 @@ public class APIFactory {
 			}
 			throw new AssertionError(e);
 		} catch (ConfigurationException e) {
-			throw (ConfigurationException)e;
+			throw e;
 		} catch (RuntimeException e) {
-			throw (RuntimeException)e;
+			throw e;
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}

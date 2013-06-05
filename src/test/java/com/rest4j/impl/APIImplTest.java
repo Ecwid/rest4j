@@ -19,9 +19,7 @@ package com.rest4j.impl;
 
 import com.rest4j.*;
 import com.rest4j.impl.model.API;
-import com.rest4j.impl.model.FieldType;
-import com.rest4j.impl.model.Parameter;
-import com.rest4j.impl.model.Values;
+import com.rest4j.impl.model.*;
 import com.rest4j.impl.petapi.*;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -227,12 +225,18 @@ public class APIImplTest {
 		param.setType(FieldType.STRING);
 		param.setName("test");
 		Values values = new Values();
-		values.getValue().add("one");
-		values.getValue().add("two");
-		values.getValue().add("three");
+		values.getValue().add(value("one"));
+		values.getValue().add(value("two"));
+		values.getValue().add(value("three"));
 		param.setValues(values);
 		assertEquals("one", api.parseParam(param, "one"));
 		parseParam_exception(param, "four", 400, "Wrong parameter 'test' value: expected one of one, two, three");
+	}
+
+	Value value(String name) {
+		Value v = new Value();
+		v.setContent(name);
+		return v;
 	}
 
 	void parseParam_exception(Parameter param, String val, int status, String msg) {

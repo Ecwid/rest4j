@@ -491,14 +491,26 @@ documentation and client libraries, as well as for query dispatching.
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:simpleType name="Value">
-		<xsd:restriction base="xsd:string"></xsd:restriction>
-	</xsd:simpleType>
+	<xsd:complexType name="Value" mixed="true">
+		<xsd:attribute name="description" type="xsd:string"/>
+	</xsd:complexType>
 
 	<xsd:complexType name="Values">
-		<xsd:sequence minOccurs="1" maxOccurs="unbounded">
-			<xsd:element name="value" type="Value"></xsd:element>
+		<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="value" type="Value">
+			</xsd:element>
 		</xsd:sequence>
+		<xsd:attribute name="enum" type="xsd:string" use="optional">
+			<xsd:annotation><xsd:documentation>
+			Full name of a Java enum that will be used to populate values.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="doc-method" type="identifier" use="optional" default="toString">
+			<xsd:annotation><xsd:documentation>
+			If the 'enum' attribute is specified, the doc-method tells which method of enum constants
+			returns documentation for the value. Default is 'toString', as long as it differs from the name() of the enum constant.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:simpleType name="FieldAccessType">

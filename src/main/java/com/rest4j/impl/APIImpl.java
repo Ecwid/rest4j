@@ -284,8 +284,11 @@ public class APIImpl implements API {
 				} else {
 					String[] enumValues = null;
 					if (param.getValues() != null) {
-						List<String> list = param.getValues().getValue();
-						enumValues = list.toArray(new String[list.size()]);
+						List<Value> list = param.getValues().getValue();
+						enumValues = new String[list.size()];
+						for (int k = 0; k < enumValues.length; k++) {
+							enumValues[k] = list.get(k).getContent();
+						}
 					}
 					final SimpleApiType paramApiType;
 					try {
@@ -564,14 +567,31 @@ public class APIImpl implements API {
 		case STRING:
 			if (param.getValues() != null) {
 				// check allowed values
-				if (!param.getValues().getValue().contains(valueStr)) {
+				if (!contains(param.getValues().getValue(), valueStr)) {
 					throw new ApiException("Wrong parameter '"+param.getName()+"' value: expected one of "+
-						StringUtils.join(param.getValues().getValue(), ", "));
+							join(param.getValues().getValue(), ", "));
 				}
 			}
 			return valueStr;
 		}
 		throw new AssertionError();
 	}
+
+	private String join(List<Value> value, String s) {
+		StringBuilder result = new StringBuilder();
+		for (Value v: value) {
+			if (result.length() > 0) result.append(", ");
+			result.append(v.getContent());
+		}
+		return result.toString();
+	}
+
+	private boolean contains(List<Value> value, String valueStr) {
+		for (Value v: value) {
+			if (v.getContent().equals(valueStr)) return true;
+		}
+		return false;
+	}
+
 
 }
