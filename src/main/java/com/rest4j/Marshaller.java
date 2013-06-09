@@ -17,8 +17,30 @@
 
 package com.rest4j;
 
+import com.rest4j.type.*;
+import org.json.JSONObject;
+
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public enum ContentType {
+public interface Marshaller {
+	Object marshal(ApiType apiType, Object content) throws ApiException;
+
+	Object unmarshal(ApiType elementType, Object value) throws ApiException;
+
+	Patch unmarshalPatch(ObjectApiType type, Object original, JSONObject object) throws ApiException;
+
+	ObjectApiType getObjectType(String model);
+
+	ArrayApiType getArrayType(ApiType type);
+
+	MapApiType getMapType(ApiType type);
+
+	StringApiType getStringType(String[] values);
+
+	NumberApiType getNumberType();
+
+	BooleanApiType getBooleanType();
+
+	DateApiType getDateType();
 }

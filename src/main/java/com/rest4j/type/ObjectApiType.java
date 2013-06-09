@@ -20,12 +20,15 @@ package com.rest4j.type;
 import com.rest4j.ApiException;
 import com.rest4j.Patch;
 import org.json.JSONObject;
+import org.w3c.dom.Element;
+
+import java.util.List;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ObjectApiType extends ApiType {
 	String getName();
-	Patch unmarshalPatch(Object original, JSONObject object) throws ApiException;
-
+	List<Field> getFields(Class clz) throws ApiException;
+	List<Element> getExtra();
 }

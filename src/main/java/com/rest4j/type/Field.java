@@ -17,19 +17,13 @@
 
 package com.rest4j.type;
 
-import javax.annotation.Nullable;
-import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public interface ApiType {
-	boolean check(Type javaClass);
-
-	Object defaultValue();
-
-	Object cast(@Nullable Object value, Type javaClass) throws NullPointerException;
-
-	String getJavaName();
-
+public interface Field {
+	String getName();
+	ApiType getType();
+	List getExtra();
 }

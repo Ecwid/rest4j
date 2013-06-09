@@ -18,6 +18,7 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
+import com.rest4j.Marshaller;
 import com.rest4j.type.NumberApiType;
 import org.json.JSONObject;
 
@@ -27,6 +28,10 @@ import java.lang.reflect.Type;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class NumberApiTypeImpl extends SimpleApiTypeImpl implements NumberApiType {
+	public NumberApiTypeImpl(Marshaller marshaller) {
+		super(marshaller);
+	}
+
 	@Override
 	public boolean check(Type javaType) {
 		if (!(javaType instanceof Class)) return false;
@@ -72,7 +77,7 @@ public class NumberApiTypeImpl extends SimpleApiTypeImpl implements NumberApiTyp
 	}
 
 	@Override
-	public Object unmarshal(Object val) throws ApiException {
+	Object unmarshal(Object val) throws ApiException {
 		if (JSONObject.NULL == val) val = null;
 		if (!(val instanceof Number)) {
 			throw new ApiException("{value} is expected to be a number");
@@ -81,7 +86,7 @@ public class NumberApiTypeImpl extends SimpleApiTypeImpl implements NumberApiTyp
 	}
 
 	@Override
-	public Object marshal(Object val) throws ApiException {
+	Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
 		if (val instanceof Character) return Integer.valueOf(((Character)val).charValue());
 		if (!(val instanceof Number)) {

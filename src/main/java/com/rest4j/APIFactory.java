@@ -18,16 +18,18 @@
 package com.rest4j;
 
 import com.rest4j.impl.APIImpl;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import java.net.URL;
@@ -43,9 +45,10 @@ public class APIFactory {
 	URL apiDescriptionXml;
 	String pathPrefix;
 	ServiceProvider serviceProvider;
-	private JAXBContext context;
 	List<ObjectFactory> factories = new ArrayList<ObjectFactory>();
 	List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
+	String extSchema;
+	Class extObjectFactory;
 
 	/**
 	 * Create a factory that can be used to create API objects. This constructor does not accept ObjectFactories.
@@ -55,6 +58,7 @@ public class APIFactory {
 	 * @param apiDescriptionXml An URL to the API description conforming to the api.xsd schema.
 	 * @param pathPrefix An prefix that all requests should have. The prefix is removed prior matching against
 	 *                   endpoint route specified in the API description XML.
+	 *
 	 * @param serviceProvider Used to lookup services and custom field mappers during initialization step.
 	 *                        Services are looked up once during the call to createAPI().
 	 */
@@ -62,11 +66,6 @@ public class APIFactory {
 		this.apiDescriptionXml = apiDescriptionXml;
 		this.pathPrefix = pathPrefix;
 		this.serviceProvider = serviceProvider;
-		try {
-			this.context = JAXBContext.newInstance("com.rest4j.impl.model");
-		} catch (JAXBException e) {
-			throw new AssertionError(e);
-		}
 	}
 
 	public void addObjectFactory(ObjectFactory of) {
@@ -77,8 +76,22 @@ public class APIFactory {
 		preprocessors.add(proc);
 	}
 
+	/**
+	 * Sets path inside a classpath to the resource containing XML Schema for extra info (&lt;extra> tags).
+	 * @param extObjectFactory ObjectFactory to use when reading extra info.
+	 */
+	public void setExtSchema(String extSchema, Class extObjectFactory) {
+		this.extSchema = extSchema;
+		this.extObjectFactory = extObjectFactory;
+	}
+
 	public API createAPI() throws ConfigurationException {
 		try {
+			JAXBContext context;
+			if (extObjectFactory == null)
+				context = JAXBContext.newInstance(com.rest4j.impl.model.ObjectFactory.class);
+			else
+				context = JAXBContext.newInstance(com.rest4j.impl.model.ObjectFactory.class, extObjectFactory);
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 			documentBuilderFactory.setNamespaceAware(true);
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -87,7 +100,15 @@ public class APIFactory {
 				pre.process(xml);
 			}
 
-			Schema schema = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI).newSchema(getClass().getResource("api.xsd"));
+			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+			Source apiXsdSource = new StreamSource(getClass().getResourceAsStream("api.xsd"));
+			Schema schema;
+			if (StringUtils.isEmpty(extSchema)) {
+				schema = schemaFactory.newSchema(apiXsdSource);
+			} else {
+				Source extSchemaSource = new StreamSource(getClass().getClassLoader().getResourceAsStream(extSchema));
+				schema = schemaFactory.newSchema(new Source[]{apiXsdSource, extSchemaSource});
+			}
 
 			Unmarshaller unmarshaller = context.createUnmarshaller();
 			unmarshaller.setSchema(schema);

@@ -22,9 +22,4 @@ public class ObjectFactory implements com.rest4j.ObjectFactory {
 		return next.createInstance(modelName, clz, object);
 	}
 
-	@Nullable
-	@Override
-	public Object replaceModel(@Nonnull String modelName, @Nonnull Class clz, @Nullable Object object, @Nonnull ObjectFactoryChain next) throws ApiException {
-		return next.replaceModel(modelName, clz, object);
-	}
 }

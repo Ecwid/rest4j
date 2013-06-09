@@ -19,6 +19,7 @@ package com.rest4j.impl;
 
 import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
+import com.rest4j.Marshaller;
 import com.rest4j.impl.model.*;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.SimpleApiType;
@@ -26,11 +27,12 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.util.List;
 
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-abstract class FieldMapping implements com.rest4j.Field {
+abstract class FieldMapping implements com.rest4j.type.Field {
 	String name;
 	String parent;
 	boolean optional;
@@ -40,13 +42,15 @@ abstract class FieldMapping implements com.rest4j.Field {
 	Object value; // constant
 	Field field;
 	Type propType;
+	Marshaller marshaller;
 
-	FieldMapping(Marshaller marshaller, Field fld, String parent) throws ConfigurationException {
+	FieldMapping(MarshallerImpl marshaller, Field fld, String parent) throws ConfigurationException {
 		name = fld.getName();
 		this.parent = parent;
 		optional = fld.isOptional();
 		access = fld.getAccess();
 		field = fld;
+		this.marshaller = marshaller;
 
 		if (fld instanceof SimpleField) {
 			SimpleField simple = (SimpleField) field;
@@ -81,7 +85,7 @@ abstract class FieldMapping implements com.rest4j.Field {
 			throw new ApiException("Field " + parent + "." + name + " is absent");
 		}
 		try {
-			Object result = type.unmarshal(val);
+			Object result = marshaller.unmarshal(type, val);
 			if (value != null && !((SimpleApiType)type).equals(value, result)) {
 				throw new ApiException("Field " + parent + "." + name + " should have value "+value);
 			}
@@ -101,7 +105,7 @@ abstract class FieldMapping implements com.rest4j.Field {
 				return null;
 			}
 		}
-		return type.marshal(val);
+		return marshaller.marshal(type, val);
 	}
 
 	public abstract Object get(Object inst) throws ApiException;
@@ -110,7 +114,7 @@ abstract class FieldMapping implements com.rest4j.Field {
 		return field instanceof SimpleField && ((SimpleField)field).getValue() != null;
 	}
 
-	void link(Marshaller marshaller) throws ConfigurationException {
+	void link(MarshallerImpl marshaller) throws ConfigurationException {
 		String inField = " in field " + parent + "." + name;
 
 		ApiType elementType;
@@ -134,20 +138,12 @@ abstract class FieldMapping implements com.rest4j.Field {
 					}
 				}
 			}
-			elementType = SimpleApiTypeImpl.create(simple.getType(), marshaller.parse(StringEscapeUtils.unescapeJavaScript(simple.getDefault()), simple.getType()), values);
+			elementType = marshaller.createSimpleType(
+					simple.getType(),
+					marshaller.parse(StringEscapeUtils.unescapeJavaScript(simple.getDefault()), simple.getType()), values);
 		}
 
-		switch (field.getCollection()) {
-			case ARRAY:
-				type = new ArrayApiTypeImpl(elementType);
-				break;
-			case SINGLETON:
-				type = elementType;
-				break;
-			case MAP:
-				type = new MapApiTypeImpl(elementType);
-				break;
-		}
+		type = marshaller.createType(field.getCollection(), elementType);
 
 		checkType();
 	}
@@ -178,5 +174,18 @@ abstract class FieldMapping implements com.rest4j.Field {
 	@Override
 	public ApiType getType() {
 		return type;
+	}
+
+	@Override
+	public List getExtra() {
+		ExtraInfo extra;
+		if (field instanceof SimpleField) {
+			extra = ((SimpleField) field).getExtra();
+		} else if (field instanceof ComplexField) {
+			extra = ((ComplexField) field).getExtra();
+		} else {
+			throw new AssertionError();
+		}
+		return extra.getAny();
 	}
 }

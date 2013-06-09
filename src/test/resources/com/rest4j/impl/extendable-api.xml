@@ -1,0 +1,55 @@
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Demonstrates use of custom-specified extensions in the api description. The extension schema
+ for this API is described in api-ext.xsd -->
+<api xmlns="http://rest4j.com/api-description" xmlns:ext="http://rest4j.com/api-description/ext">
+
+	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">
+		<fields>
+			<simple name="id" type="number" access="readonly" optional="false">
+				<description></description>
+				<extra><ext:field-ext attr="ID"></ext:field-ext></extra>
+			</simple>
+			<simple name="type" type="string" default="dog">
+				<values>
+					<value>dog</value>
+					<value>cat</value>
+					<value>hamster</value>
+				</values>
+				<extra><ext:field-ext attr="TYPE"></ext:field-ext></extra>
+			</simple>
+		</fields>
+		<extra><ext:model-ext/></extra>
+	</model>
+	
+	<endpoint http="GET">
+		<route>xxx</route>
+		<description></description>
+		<parameters>
+			<parameter name="param">
+				<extra><ext:param-ext/></extra>
+			</parameter>
+		</parameters>
+		<response>
+			<json type="Pet"/>
+		</response>
+		<errors></errors>
+		<service name="test"/>
+		<extra><ext:endpoint-ext/></extra>
+	</endpoint>
+</api>

@@ -17,6 +17,7 @@
 
 package com.rest4j.impl;
 
+import com.rest4j.Marshaller;
 import com.rest4j.impl.model.FieldType;
 import com.rest4j.type.SimpleApiType;
 
@@ -26,27 +27,8 @@ import com.rest4j.type.SimpleApiType;
 abstract class SimpleApiTypeImpl extends ApiTypeImpl implements SimpleApiType { // SimpleField
 	Object defaultValue;
 
-	public static SimpleApiType create(FieldType type, Object defaultValue, String[] enumValues) {
-		SimpleApiTypeImpl apiType;
-		switch (type) {
-			case STRING:
-				apiType = new StringApiTypeImpl(enumValues);
-				break;
-			case NUMBER:
-				apiType = new NumberApiTypeImpl();
-				break;
-			case BOOLEAN:
-				apiType = new BooleanApiTypeImpl();
-				break;
-			case DATE:
-				apiType = new DateApiTypeImpl();
-				break;
-			default:
-				throw new AssertionError();
-
-		}
-		apiType.defaultValue = defaultValue;
-		return apiType;
+	protected SimpleApiTypeImpl(Marshaller marshaller) {
+		super(marshaller);
 	}
 
 	@Override

@@ -18,8 +18,10 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
+import com.rest4j.Marshaller;
 import com.rest4j.type.ApiType;
-import com.rest4j.type.ArrayApiType;
+import com.rest4j.type.MapApiType;
+import com.rest4j.type.StringApiType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,12 +36,19 @@ import java.util.Map;
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-public class MapApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
+public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType {
 	ApiType elementType;
-	StringApiTypeImpl stringApiType = new StringApiTypeImpl(null);
+	final StringApiType stringApiType;
 
-	MapApiTypeImpl(ApiType elementType) {
+	MapApiTypeImpl(Marshaller marshaller, ApiType elementType) {
+		super(marshaller);
 		this.elementType = elementType;
+		stringApiType = marshaller.getStringType(null);
+	}
+
+	@Override
+	public ApiType getElementType() {
+		return elementType;
 	}
 
 	@Override
@@ -97,7 +106,7 @@ public class MapApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 					throw new ApiException("{value}[\""+ StringEscapeUtils.escapeJavaScript(key)+"\"] should not be null");
 				}
 				try {
-					map.put(key, elementType.unmarshal(element));
+					map.put(key, marshaller.unmarshal(elementType, element));
 				} catch (ApiException apiex) {
 					throw Util.replaceValue(apiex, "{value}[\"" + StringEscapeUtils.escapeJavaScript(key) + "\"]");
 				}
@@ -117,7 +126,7 @@ public class MapApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 		}
 		for (Map.Entry entry: ((Map<String, Object>)val).entrySet()) {
 			try {
-				object.put((String)stringApiType.marshal(entry.getKey()), elementType.marshal(entry.getValue()));
+				object.put((String)marshaller.marshal(stringApiType, entry.getKey()), marshaller.marshal(elementType, entry.getValue()));
 			} catch (JSONException e) {
 				throw new ApiException("Cannot create JSON object from "+val).setHttpStatus(500);
 			}

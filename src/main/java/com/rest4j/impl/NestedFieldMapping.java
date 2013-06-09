@@ -33,7 +33,7 @@ public class NestedFieldMapping extends FieldMapping {
 	Class[] types;
 	Method[] propSetters;
 
-	NestedFieldMapping(Marshaller marshaller, Field fld, String parent) throws ConfigurationException {
+	NestedFieldMapping(MarshallerImpl marshaller, Field fld, String parent) throws ConfigurationException {
 		super(marshaller, fld, parent);
 	}
 

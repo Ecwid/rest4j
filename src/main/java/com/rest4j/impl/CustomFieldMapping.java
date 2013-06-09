@@ -35,7 +35,7 @@ public class CustomFieldMapping extends FieldMapping {
 	Method propGetter;
 	Method propSetter;
 
-	CustomFieldMapping(Marshaller marshaller, Field fld, Object customMapper, String parent) throws ConfigurationException {
+	CustomFieldMapping(MarshallerImpl marshaller, Field fld, Object customMapper, String parent) throws ConfigurationException {
 		super(marshaller, fld, parent);
 		this.customMapper = customMapper;
 		mapping = fld.getMappingMethod();
@@ -133,7 +133,7 @@ public class CustomFieldMapping extends FieldMapping {
 	}
 
 	@Override
-	void link(Marshaller marshaller) throws ConfigurationException {
+	void link(MarshallerImpl marshaller) throws ConfigurationException {
 		super.link(marshaller);
 		if (customMapper == null)
 			throw new ConfigurationException("'mapping' attribute used when no custom mapper supplied " +

@@ -17,9 +17,15 @@
 
 package com.rest4j;
 
+import com.rest4j.impl.ext.FieldExt;
 import com.rest4j.impl.petapi.DynamicPetMapper;
+import com.rest4j.impl.petapi.Pet;
+import com.rest4j.type.Field;
 import org.junit.Test;
 
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -67,6 +73,24 @@ public class APIFactoryTest {
 	public void testCreateAPI_mapping_method_with_dynamic_mapper() throws Exception {
 		mapper = new DynamicPetMapper();
 		validate("DynamicMapper", "mapper-method-with-dynamic-mapper.xml");
+	}
+
+	@Test public void testCreateApi_with_extensions() throws Exception {
+		APIFactory fac = new APIFactory(getClass().getResource("impl/extendable-api.xml"), "", provider);
+		fac.setExtSchema("com/rest4j/impl/api-ext.xsd", com.rest4j.impl.ext.ObjectFactory.class);
+		dao = new Object() {
+			public com.rest4j.impl.petapi.Pet get() {
+				return new com.rest4j.impl.petapi.Pet();
+			}
+		};
+		API api = fac.createAPI();
+		List<Field> fields = api.getMarshaller().getObjectType("Pet").getFields(Pet.class);
+		Field idField = fields.get(0);
+		FieldExt ext = (FieldExt) idField.getExtra().get(0);
+		assertEquals("ID", ext.getAttr());
+		Field typeField = fields.get(1);
+		ext = (FieldExt) typeField.getExtra().get(0);
+		assertEquals("TYPE", ext.getAttr());
 	}
 
 	private void validate(String exceptionMessageSubstring, String xmlFile) {

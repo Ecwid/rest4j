@@ -33,7 +33,7 @@ class SimpleFieldMapping extends FieldMapping {
 	Method propGetter;
 	Method propSetter;
 
-	SimpleFieldMapping(Marshaller marshaller, Field fld, String parent) throws ConfigurationException {
+	SimpleFieldMapping(MarshallerImpl marshaller, Field fld, String parent) throws ConfigurationException {
 		super(marshaller, fld, parent);
 	}
 

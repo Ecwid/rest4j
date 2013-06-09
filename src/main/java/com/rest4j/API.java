@@ -36,4 +36,5 @@ public interface API {
 
 	List<String> getAllowedMethods(APIRequest request) throws IOException, ApiException;
 
+	Marshaller getMarshaller();
 }

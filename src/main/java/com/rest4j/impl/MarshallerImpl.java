@@ -17,12 +17,11 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.ApiException;
-import com.rest4j.ConfigurationException;
-import com.rest4j.ObjectFactoryChain;
+import com.rest4j.*;
+import com.rest4j.impl.model.CollectionType;
 import com.rest4j.impl.model.FieldType;
 import com.rest4j.impl.model.Model;
-import com.rest4j.type.ApiType;
+import com.rest4j.type.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -36,7 +35,7 @@ import java.util.regex.Pattern;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class Marshaller {
+public class MarshallerImpl implements Marshaller {
 	Map<String, ObjectApiTypeImpl> models = new HashMap<String, ObjectApiTypeImpl>();
 	ObjectFactoryChain chain = new ObjectFactoryChain() {
 		@Nullable
@@ -54,11 +53,6 @@ public class Marshaller {
 			return inst;
 		}
 
-		@Nullable
-		@Override
-		public Object replaceModel(@Nonnull String modelName, @Nonnull Class clz, @Nullable Object object) throws ApiException {
-			return object;
-		}
 	};
 
 	public static class ModelConfig {
@@ -71,15 +65,15 @@ public class Marshaller {
 		}
 	}
 
-	Marshaller(List<ModelConfig> modelConfigs) throws ConfigurationException {
+	MarshallerImpl(List<ModelConfig> modelConfigs) throws ConfigurationException {
 		this(modelConfigs, new com.rest4j.ObjectFactory[0]);
 	}
 
-	Marshaller(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory factory) throws ConfigurationException {
+	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory factory) throws ConfigurationException {
 		this(modelConfigs, new com.rest4j.ObjectFactory[]{factory});
 	}
 
-	Marshaller(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories) throws ConfigurationException {
+	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories) throws ConfigurationException {
 		for (com.rest4j.ObjectFactory of: factories) {
 			addObjectFactory(of);
 		}
@@ -104,19 +98,93 @@ public class Marshaller {
 		}
 	}
 
+	@Override
 	public ObjectApiTypeImpl getObjectType(String model) {
 		return models.get(model);
 	}
 
-	public ApiType getArrayType(String model) {
-		return new ArrayApiTypeImpl(models.get(model));
+	@Override
+	public ArrayApiTypeImpl getArrayType(ApiType type) {
+		return new ArrayApiTypeImpl(this, type);
 	}
 
-	public ApiType getMapType(String model) {
-		return new MapApiTypeImpl(models.get(model));
+	@Override
+	public MapApiTypeImpl getMapType(ApiType type) {
+		return new MapApiTypeImpl(this, type);
 	}
 
-	public Class getClassForModel(String model) {
+	@Override
+	public StringApiType getStringType(String[] values) {
+		return new StringApiTypeImpl(this, values);
+	}
+
+	@Override
+	public NumberApiType getNumberType() {
+		return new NumberApiTypeImpl(this);
+	}
+
+	@Override
+	public BooleanApiType getBooleanType() {
+		return new BooleanApiTypeImpl(this);
+	}
+
+	@Override
+	public DateApiType getDateType() {
+		return new DateApiTypeImpl(this);
+	}
+
+	@Override
+	public Object marshal(ApiType apiType, Object value) throws ApiException {
+		return ((ApiTypeImpl)apiType).marshal(value);
+	}
+
+	@Override
+	public Object unmarshal(ApiType elementType, Object value) throws ApiException {
+		return ((ApiTypeImpl)elementType).unmarshal(value);
+	}
+
+	@Override
+	public Patch unmarshalPatch(ObjectApiType type, Object original, JSONObject object) throws ApiException {
+		return ((ObjectApiTypeImpl)type).unmarshalPatch(original, object);
+	}
+
+	SimpleApiType createSimpleType(FieldType type, Object defaultValue, String[] enumValues) {
+		SimpleApiType apiType;
+		switch (type) {
+			case STRING:
+				apiType = getStringType(enumValues);
+				break;
+			case NUMBER:
+				apiType = getNumberType();
+				break;
+			case BOOLEAN:
+				apiType = getBooleanType();
+				break;
+			case DATE:
+				apiType = getDateType();
+				break;
+			default:
+				throw new AssertionError();
+
+		}
+		((SimpleApiTypeImpl)apiType).defaultValue = defaultValue;
+		return apiType;
+	}
+
+	ApiType createType(CollectionType collection, ApiType elementType) {
+		switch (collection) {
+			case ARRAY:
+				return getArrayType(elementType);
+			case SINGLETON:
+				return elementType;
+			case MAP:
+				return getMapType(elementType);
+			default:
+				throw new AssertionError();
+		}
+	}
+
+	Class getClassForModel(String model) {
 		return models.get(model).clz;
 	}
 
@@ -160,11 +228,6 @@ public class Marshaller {
 				return factory.createInstance(modelName, clz, object, nextChain);
 			}
 
-			@Nullable
-			@Override
-			public Object replaceModel(@Nonnull String modelName, @Nonnull Class clz, @Nullable Object object) throws ApiException {
-				return factory.replaceModel(modelName, clz, object, nextChain);
-			}
 		};
 	}
 

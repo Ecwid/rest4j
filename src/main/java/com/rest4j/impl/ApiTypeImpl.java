@@ -18,14 +18,21 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
+import com.rest4j.Marshaller;
 import com.rest4j.type.ApiType;
-
-import javax.annotation.Nullable;
-import java.lang.reflect.Type;
 
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
 public abstract class ApiTypeImpl implements ApiType {
 
+	public Marshaller marshaller;
+
+	protected ApiTypeImpl(Marshaller marshaller) {
+		this.marshaller = marshaller;
+	}
+
+	abstract Object unmarshal(Object val) throws ApiException;
+
+	abstract Object marshal(Object val) throws ApiException;
 }

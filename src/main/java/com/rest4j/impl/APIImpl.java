@@ -24,6 +24,7 @@ import com.rest4j.impl.model.*;
 import com.rest4j.impl.model.ContentType;
 import com.rest4j.impl.model.Error;
 import com.rest4j.type.ApiType;
+import com.rest4j.type.ObjectApiType;
 import com.rest4j.type.SimpleApiType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -44,7 +45,7 @@ import java.util.regex.Pattern;
 public class APIImpl implements API {
 	final com.rest4j.impl.model.API root;
 	final String pathPrefix;
-	final Marshaller marshaller;
+	final MarshallerImpl marshaller;
 	final List<EndpointMapping> endpoints = new ArrayList<EndpointMapping>();
 	final ResourceFactory resourceFactory;
 	final APIParams params;
@@ -60,15 +61,15 @@ public class APIImpl implements API {
 		else this.params = root.getParams();
 
 		// configure and create marshaller
-		List<Marshaller.ModelConfig> modelConfig = new ArrayList<Marshaller.ModelConfig>();
+		List<MarshallerImpl.ModelConfig> modelConfig = new ArrayList<MarshallerImpl.ModelConfig>();
 		for (Object child: root.getEndpointAndModel()) {
 			if (child instanceof Model) {
 				Model model = (Model) child;
 				Object customMapper = serviceProvider.lookupFieldMapper(model.getName(), model.getFieldMapper());
-				modelConfig.add(new Marshaller.ModelConfig(model, customMapper));
+				modelConfig.add(new MarshallerImpl.ModelConfig(model, customMapper));
 			}
 		}
-		marshaller = new Marshaller(modelConfig, factories);
+		marshaller = new MarshallerImpl(modelConfig, factories);
 
 		// create resourceFactory
 		resourceFactory = new ResourceFactory(marshaller);
@@ -293,7 +294,7 @@ public class APIImpl implements API {
 					final SimpleApiType paramApiType;
 					try {
 						Object defaultValue = param.getDefault() == null ? null : parseParam(param, StringEscapeUtils.unescapeJavaScript(param.getDefault()));
-						paramApiType = SimpleApiTypeImpl.create(param.getType(), defaultValue, enumValues);
+						paramApiType = marshaller.createSimpleType(param.getType(), defaultValue, enumValues);
 					} catch (ApiException e) {
 						throw new ConfigurationException("Cannot parse default param value "+param.getDefault()+": "+e.getMessage());
 					}
@@ -361,7 +362,7 @@ public class APIImpl implements API {
 					argHandler = new ArgHandler() {
 						@Override
 						public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
-							return apiType.unmarshal(request.objectInput());
+							return marshaller.unmarshal(apiType, request.objectInput());
 						}
 					};
 				} else if (contentType.getPatch() != null) {
@@ -472,6 +473,7 @@ public class APIImpl implements API {
 		public boolean isPatch() {
 			return patch;
 		}
+
 	}
 
 	private List<String> parseList(String header) {
@@ -531,6 +533,11 @@ public class APIImpl implements API {
 			}
 		}
 		return methods;
+	}
+
+	@Override
+	public MarshallerImpl getMarshaller() {
+		return marshaller;
 	}
 
 	static private final Pattern ISDOUBLE = Pattern.compile("[\\.eE]");

@@ -18,6 +18,7 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
+import com.rest4j.Marshaller;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.ArrayApiType;
 import org.json.JSONArray;
@@ -34,7 +35,8 @@ import java.util.*;
 public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	ApiType elementType;
 
-	ArrayApiTypeImpl(ApiType elementType) {
+	ArrayApiTypeImpl(Marshaller marshaller, ApiType elementType) {
+		super(marshaller);
 		this.elementType = elementType;
 	}
 
@@ -83,7 +85,7 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	}
 
 	@Override
-	public Object unmarshal(Object val) throws ApiException {
+	Object unmarshal(Object val) throws ApiException {
 		if (val instanceof JSONArray) {
 			JSONArray array = (JSONArray) val;
 			int l = array.length();
@@ -95,7 +97,7 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 					throw new ApiException("{value}["+i+"] should not be null");
 				}
 				try {
-					list.add(elementType.unmarshal(element));
+					list.add(marshaller.unmarshal(elementType, element));
 				} catch (ApiException apiex) {
 					throw Util.replaceValue(apiex, "{value}[" + i + "]");
 				}
@@ -107,7 +109,7 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	}
 
 	@Override
-	public Object marshal(Object val) throws ApiException {
+	Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
 		JSONArray array = new JSONArray();
 		if (!(val instanceof Collection)) {
@@ -116,7 +118,7 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 		int i=0;
 		for (Object element: (Collection)val) {
 			try {
-				array.put(i++, elementType.marshal(element));
+				array.put(i++, marshaller.marshal(elementType, element));
 			} catch (JSONException e) {
 				throw new ApiException("Cannot create JSON array from "+val).setHttpStatus(500);
 			}
@@ -124,4 +126,8 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 		return array;
 	}
 
+	@Override
+	public ApiType getElementType() {
+		return elementType;
+	}
 }

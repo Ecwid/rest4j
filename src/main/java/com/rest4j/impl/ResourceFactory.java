@@ -71,14 +71,14 @@ public class ResourceFactory {
 		ApiType apiType;
 		switch (contentType.getJson().getCollection()) {
 			case ARRAY:
-				apiType = marshaller.getArrayType(contentType.getJson().getType());
+				apiType = marshaller.getArrayType(marshaller.getObjectType(contentType.getJson().getType()));
 				break;
 			case SINGLETON:
 				apiType = marshaller.getObjectType(contentType.getJson().getType());
 				break;
 			case MAP:
 			default:
-				apiType = marshaller.getMapType(contentType.getJson().getType());
+				apiType = marshaller.getMapType(marshaller.getObjectType(contentType.getJson().getType()));
 				break;
 		}
 		return apiType;
@@ -88,7 +88,7 @@ public class ResourceFactory {
 		if (content == null) return null;
 		if (content instanceof Resource) return (Resource)content;
 		if (contentType.getJson() != null) {
-			return new JSONResource(getApiType(contentType).marshal(content));
+			return new JSONResource(marshaller.marshal(getApiType(contentType), content));
 		} else if (contentType.getBinary() != null) {
 			if (content instanceof InputStream) {
 				return new BinaryResource("application/octet-stream", null, (InputStream)content);

@@ -18,7 +18,7 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
-import com.rest4j.impl.SimpleApiTypeImpl;
+import com.rest4j.Marshaller;
 import com.rest4j.type.DateApiType;
 import org.json.JSONObject;
 
@@ -35,6 +35,10 @@ import java.util.regex.Pattern;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class DateApiTypeImpl extends SimpleApiTypeImpl implements DateApiType {
+	protected DateApiTypeImpl(Marshaller marshaller) {
+		super(marshaller);
+	}
+
 	@Override
 	public boolean check(Type javaType) {
 		if (!(javaType instanceof Class)) return false;
@@ -64,7 +68,7 @@ public class DateApiTypeImpl extends SimpleApiTypeImpl implements DateApiType {
 	Pattern iso8601Timezone = Pattern.compile("[^T]*T.*(Z|[+-]([0-9]{4,4}|[0-9][0-9]|[0-9][0-9]:[0-9][0-9]))");
 
 	@Override
-	public Object unmarshal(Object val) throws ApiException {
+	Object unmarshal(Object val) throws ApiException {
 		if (JSONObject.NULL == val) val = null;
 		if (val instanceof String) {
 			String stringValue = (String) val;
@@ -112,7 +116,7 @@ public class DateApiTypeImpl extends SimpleApiTypeImpl implements DateApiType {
 	};
 
 	@Override
-	public Object marshal(Object val) throws ApiException {
+	Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
 		// equivalent of Date.toJSON in JavaScript
 		if (val instanceof java.sql.Date) {

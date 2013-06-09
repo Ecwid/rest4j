@@ -27,7 +27,6 @@ import com.rest4j.impl.petapi.*;
 import com.rest4j.impl.polymorphic.Bird;
 import com.rest4j.impl.polymorphic.Cat;
 import com.rest4j.impl.polymorphic.ObjectFactory;
-import com.rest4j.type.ObjectApiType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -52,8 +51,8 @@ import static org.junit.Assert.*;
 public class MarshallerTest {
 
 	private Object customMapping = new PetMapping();
-	List<Marshaller.ModelConfig> modelConfig;
-	Marshaller marshaller;
+	List<MarshallerImpl.ModelConfig> modelConfig;
+	MarshallerImpl marshaller;
 
 	@Before
 	public void init() throws JAXBException, ConfigurationException {
@@ -66,7 +65,7 @@ public class MarshallerTest {
 
 		JAXBElement<API> element = (JAXBElement<API>) context.createUnmarshaller().unmarshal(MarshallerTest.class.getResourceAsStream(xml));
 		API root = element.getValue();
-		modelConfig = new ArrayList<Marshaller.ModelConfig>();
+		modelConfig = new ArrayList<MarshallerImpl.ModelConfig>();
 		for (Object entry: root.getEndpointAndModel()) {
 			if (entry instanceof Model) {
 				Model model = (Model) entry;
@@ -74,10 +73,10 @@ public class MarshallerTest {
 				if ("petMapping".equals(model.getFieldMapper())) {
 					mapper = customMapping;
 				}
-				modelConfig.add(new Marshaller.ModelConfig(model, mapper));
+				modelConfig.add(new MarshallerImpl.ModelConfig(model, mapper));
 			}
 		}
-		marshaller = new Marshaller(modelConfig, ofs);
+		marshaller = new MarshallerImpl(modelConfig, ofs);
 	}
 
 	@Test public void testParse_number() throws Exception {
@@ -247,7 +246,7 @@ public class MarshallerTest {
 	@Test public void testMarshal_constants() throws Exception {
 		createMarshaller("constants.xml");
 		TestWithConstants test = new TestWithConstants();
-		final ObjectApiType type = marshaller.getObjectType("Test");
+		final ObjectApiTypeImpl type = marshaller.getObjectType("Test");
 		JSONObject json = (JSONObject) type.marshal(test);
 		assertEquals(555, json.getInt("integer"));
 		assertEquals("TEST", json.getString("notMapped"));

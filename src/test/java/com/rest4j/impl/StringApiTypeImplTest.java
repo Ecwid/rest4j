@@ -25,7 +25,7 @@ import static org.junit.Assert.*;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class StringApiTypeImplTest {
-	StringApiTypeImpl type = new StringApiTypeImpl(null);
+	StringApiTypeImpl type = new StringApiTypeImpl(null, null);
 
 	@Test public void testCast_success() throws Exception {
 		assertEquals(Character.valueOf('A'), type.cast("A", Character.class));

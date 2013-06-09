@@ -30,6 +30,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,7 +40,7 @@ import java.util.logging.Logger;
 public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 	static final Logger log = Logger.getLogger(ObjectApiType.class.getName());
 	final Model model;
-	final Marshaller marshaller;
+	final MarshallerImpl marshaller;
 	final String name;
 	final Class clz;
 	// there could be several concrete subclasses corresponding to an abstract class
@@ -47,7 +48,8 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 	final ObjectFactoryChain factory;
 	final Object fieldMapper;
 
-	ObjectApiTypeImpl(Marshaller marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory) throws ConfigurationException {
+	ObjectApiTypeImpl(MarshallerImpl marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory) throws ConfigurationException {
+		super(marshaller);
 		this.marshaller = marshaller;
 		this.name = name;
 		this.clz = clz;
@@ -78,7 +80,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 	}
 
 	@Override
-	public Object unmarshal(Object val) throws ApiException {
+	Object unmarshal(Object val) throws ApiException {
 		if (val == null) return null;
 
 		if (!(val instanceof JSONObject)) {
@@ -101,7 +103,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 	}
 
 	@Override
-	public Object marshal(Object val) throws ApiException {
+	Object marshal(Object val) throws ApiException {
 		if (val == null) return null;
 		if (!clz.isAssignableFrom(val.getClass())) {
 			throw new ApiException("Unexpected value "+val+" where "+clz+" was expected").setHttpStatus(500);
@@ -112,8 +114,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 		return json;
 	}
 
-	@Override
-	public Patch unmarshalPatch(Object original, JSONObject object) throws ApiException {
+	Patch unmarshalPatch(Object original, JSONObject object) throws ApiException {
 		if (original == null) return new Patch(null, null, new HashMap<String, Object>());
 
 		Object patched = Util.deepClone(original);
@@ -121,6 +122,17 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 		HashMap<String, Object> result = getMapping(original.getClass()).unmarshalPatch(object, patched);
 
 		return new Patch(original, patched, result);
+	}
+
+	@Override
+	public List<com.rest4j.type.Field> getFields(Class clz) throws ApiException {
+		ConcreteClassMapping mapping = getMapping(clz);
+		return mapping.getFields();
+	}
+
+	@Override
+	public List getExtra() {
+		return model.getExtra().getAny();
 	}
 
 	ConcreteClassMapping getMapping(Class clz) throws ApiException {

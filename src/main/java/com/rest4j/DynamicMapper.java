@@ -17,6 +17,8 @@
 
 package com.rest4j;
 
+import com.rest4j.type.Field;
+
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */

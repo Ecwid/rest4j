@@ -18,6 +18,7 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
+import com.rest4j.Marshaller;
 import com.rest4j.type.BooleanApiType;
 import org.json.JSONObject;
 
@@ -27,6 +28,10 @@ import java.lang.reflect.Type;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 class BooleanApiTypeImpl extends SimpleApiTypeImpl implements BooleanApiType {
+	protected BooleanApiTypeImpl(Marshaller marshaller) {
+		super(marshaller);
+	}
+
 	@Override
 	public boolean check(Type javaType) {
 		if (!(javaType instanceof Class)) return false;
@@ -55,7 +60,7 @@ class BooleanApiTypeImpl extends SimpleApiTypeImpl implements BooleanApiType {
 	}
 
 	@Override
-	public Object unmarshal(Object val) throws ApiException {
+	Object unmarshal(Object val) throws ApiException {
 		if (JSONObject.NULL == val) val = null;
 		if (!(val instanceof Boolean)) {
 			throw new ApiException("{value} is expected to be boolean");
@@ -64,7 +69,7 @@ class BooleanApiTypeImpl extends SimpleApiTypeImpl implements BooleanApiType {
 	}
 
 	@Override
-	public Object marshal(Object val) throws ApiException {
+	Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
 		if (!(val instanceof Boolean)) {
 			throw new ApiException("Expected Boolean, "+val.getClass()+" given").setHttpStatus(500);

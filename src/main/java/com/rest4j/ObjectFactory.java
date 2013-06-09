@@ -47,17 +47,4 @@ public interface ObjectFactory {
 			@Nonnull JSONObject object,
 			@Nonnull ObjectFactoryChain next) throws JSONException, ApiException;
 
-	/**
-	 * Replaces an object during marshalling.
-	 *
-	 * @param modelName The 'name' attribute of the &lt;model>.
-	 * @param clz The 'class' attribute of the &lt;model>.
-	 * @param object The java object being marshalled. May be null.
-	 * @param next The chain-of-responsibility delegate.
-	 * @return The object that will be marshalled instead. May be null, in which case no object is marshalled.
-	 */
-	@Nullable Object replaceModel(@Nonnull String modelName,
-								  @Nonnull Class clz,
-								  @Nullable Object object,
-								  @Nonnull ObjectFactoryChain next) throws ApiException;
 }

@@ -19,6 +19,7 @@ package com.rest4j.impl;
 
 import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
+import com.rest4j.Marshaller;
 import com.rest4j.type.StringApiType;
 import org.json.JSONObject;
 
@@ -30,7 +31,8 @@ import java.lang.reflect.Type;
 class StringApiTypeImpl extends SimpleApiTypeImpl implements StringApiType {
 	String[] enumValues;
 
-	StringApiTypeImpl(String[] enumValues) {
+	StringApiTypeImpl(Marshaller marshaller, String[] enumValues) {
+		super(marshaller);
 		this.enumValues = enumValues;
 	}
 
@@ -47,7 +49,7 @@ class StringApiTypeImpl extends SimpleApiTypeImpl implements StringApiType {
 		if (clz.isEnum()) {
 			if (enumValues != null) {
 				try {
-					Marshaller.checkEnum(clz, enumValues);
+					MarshallerImpl.checkEnum(clz, enumValues);
 				} catch(ConfigurationException ex) {
 					ex.printStackTrace();
 					return false;

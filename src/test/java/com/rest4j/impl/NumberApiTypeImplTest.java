@@ -24,7 +24,7 @@ import static org.junit.Assert.*;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class NumberApiTypeImplTest {
-	NumberApiTypeImpl type = new NumberApiTypeImpl();
+	NumberApiTypeImpl type = new NumberApiTypeImpl(null);
 
 	@Test public void testCast() throws Exception {
 		assertEquals(Double.valueOf(1.23), type.cast(1.23, double.class));

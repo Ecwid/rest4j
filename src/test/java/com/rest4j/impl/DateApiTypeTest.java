@@ -18,19 +18,18 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
-import com.rest4j.type.DateApiType;
 import org.junit.Test;
 
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class DateApiTypeTest {
-	DateApiType type = new DateApiTypeImpl();
+	DateApiTypeImpl type = new DateApiTypeImpl(null);
 
 	@Test public void testUnmarshal_string() throws ApiException {
 		Date date = (Date) type.unmarshal("Wed, 24 Apr 2013 09:06:00 +0400");

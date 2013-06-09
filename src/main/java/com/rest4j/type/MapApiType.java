@@ -15,14 +15,11 @@
  * limitations under the License.
  */
 
-package com.rest4j;
-
-import com.rest4j.type.ApiType;
+package com.rest4j.type;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public interface Field {
-	String getName();
-	ApiType getType();
+public interface MapApiType extends ApiType {
+	ApiType getElementType();
 }

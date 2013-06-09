@@ -18,7 +18,7 @@
 package com.rest4j.impl.petapi;
 
 import com.rest4j.DynamicMapper;
-import com.rest4j.Field;
+import com.rest4j.type.Field;
 
 import java.util.HashMap;
 

@@ -20,5 +20,5 @@ package com.rest4j.type;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public interface NumberApiType {
+public interface NumberApiType extends SimpleApiType {
 }

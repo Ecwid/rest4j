@@ -18,14 +18,14 @@ import java.util.List;
  */
 public class ConcreteClassMapping {
 	private final Model model;
-	private final Marshaller marshaller;
+	private final MarshallerImpl marshaller;
 	String name;
 	Class clz;
 	FieldMapping[] fields;
 	List<Field> leftoverFields = new ArrayList<Field>();
 	Object customMapper;
 
-	public ConcreteClassMapping(Marshaller marshaller, Class clz, Model model, Object customMapper) throws ConfigurationException {
+	public ConcreteClassMapping(MarshallerImpl marshaller, Class clz, Model model, Object customMapper) throws ConfigurationException {
 		this.marshaller = marshaller;
 		this.name = model.getName();
 		this.clz = clz;
@@ -123,5 +123,13 @@ public class ConcreteClassMapping {
 			fieldImpl.link(marshaller);
 		}
 
+	}
+
+	public List<com.rest4j.type.Field> getFields() {
+		ArrayList<com.rest4j.type.Field> list = new ArrayList<com.rest4j.type.Field>();
+		for (FieldMapping mapping: fields) {
+			list.add(mapping);
+		}
+		return list;
 	}
 }

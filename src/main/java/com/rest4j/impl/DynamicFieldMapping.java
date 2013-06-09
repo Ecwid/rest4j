@@ -28,7 +28,7 @@ import com.rest4j.impl.model.Field;
 public class DynamicFieldMapping extends FieldMapping {
 	private final DynamicMapper customMapper;
 
-	public DynamicFieldMapping(Marshaller marshaller, Field fld, DynamicMapper customMapper, String parent) throws ConfigurationException {
+	public DynamicFieldMapping(MarshallerImpl marshaller, Field fld, DynamicMapper customMapper, String parent) throws ConfigurationException {
 		super(marshaller, fld, parent);
 		this.customMapper = customMapper;
 	}
