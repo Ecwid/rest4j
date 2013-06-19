@@ -19,9 +19,9 @@
 
 	<model name="Test" class="com.rest4j.impl.TestWithConstants">
 		<fields>
-			<simple name='integer' type='number' value='555' optional="false"/>
-			<simple name='notMapped' type='string' value='TEST'/>
-			<simple name='enumProp' type='string' value='TEST'/>
+			<simple name='integer' type='number' value='555' nullable="false"/>
+			<simple name='notMapped' type='string' nullable="false" value='TEST'/>
+			<simple name='enumProp' type='string' nullable="false" value='TEST'/>
 		</fields>
 	</model>
 </api>

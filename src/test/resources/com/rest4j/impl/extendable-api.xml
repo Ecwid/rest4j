@@ -21,11 +21,11 @@
 
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">
 		<fields>
-			<simple name="id" type="number" access="readonly" optional="false">
+			<simple name="id" type="number" access="readonly" nullable="false">
 				<description></description>
 				<extra><ext:field-ext attr="ID"></ext:field-ext></extra>
 			</simple>
-			<simple name="type" type="string" default="dog">
+			<simple name="type" type="string" default="dog" nullable="true">
 				<values>
 					<value>dog</value>
 					<value>cat</value>

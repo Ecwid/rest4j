@@ -19,7 +19,7 @@
 
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">
 		<fields>
-			<simple name="gender" type="string" optional="false">
+			<simple name="gender" type="string" nullable="false">
 				<!--values> check that it works without enumerating possible values
 					<value>male</value>
 					<value>female</value>

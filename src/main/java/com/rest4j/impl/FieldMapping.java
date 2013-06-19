@@ -23,7 +23,6 @@ import com.rest4j.Marshaller;
 import com.rest4j.impl.model.*;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.SimpleApiType;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
@@ -35,7 +34,8 @@ import java.util.List;
 abstract class FieldMapping implements com.rest4j.type.Field {
 	String name;
 	String parent;
-	boolean optional;
+	boolean nullable;
+	boolean hasDefault;
 	FieldAccessType access;
 
 	ApiType type;
@@ -47,7 +47,8 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 	FieldMapping(MarshallerImpl marshaller, Field fld, String parent) throws ConfigurationException {
 		name = fld.getName();
 		this.parent = parent;
-		optional = fld.isOptional();
+		nullable = fld.isNullable();
+		hasDefault = fld.getDefault() != null;
 		access = fld.getAccess();
 		field = fld;
 		this.marshaller = marshaller;
@@ -77,11 +78,10 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 
 	public Object unmarshal(Object val) throws ApiException {
 		if (JSONObject.NULL == val) {
-			if (optional) return null;
+			if (nullable) return null;
 			throw new ApiException("Field " + parent + "." + name + " cannot be null");
 		}
 		if (val == null) {
-			if (optional || type.defaultValue() != null) return type.defaultValue();
 			throw new ApiException("Field " + parent + "." + name + " is absent");
 		}
 		try {
@@ -99,12 +99,6 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 
 	public Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
-		if (optional && type instanceof SimpleApiType && type.defaultValue() != null && val != null) {
-			if (((SimpleApiType) type).equals(type.defaultValue(), val)) {
-				// Don't serialize optional fields having default values
-				return null;
-			}
-		}
 		return marshaller.marshal(type, val);
 	}
 
@@ -138,9 +132,7 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 					}
 				}
 			}
-			elementType = marshaller.createSimpleType(
-					simple.getType(),
-					marshaller.parse(StringEscapeUtils.unescapeJavaScript(simple.getDefault()), simple.getType()), values);
+			elementType = marshaller.createSimpleType(simple.getType(), values);
 		}
 
 		type = marshaller.createType(field.getCollection(), elementType);
@@ -187,5 +179,9 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 			throw new AssertionError();
 		}
 		return extra.getAny();
+	}
+
+	public boolean isOptional() {
+		return nullable || hasDefault;
 	}
 }

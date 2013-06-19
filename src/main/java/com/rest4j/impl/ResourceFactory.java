@@ -85,9 +85,13 @@ public class ResourceFactory {
 	}
 
 	public Resource createResourceFrom(Object content, ContentType contentType) throws ApiException {
-		if (content == null) return null;
 		if (content instanceof Resource) return (Resource)content;
+		if (contentType == null) return null; // no body expected
 		if (contentType.getJson() != null) {
+			if (content == null) {
+				if (contentType.getJson().isOptional()) return null;
+				throw new ApiException("no response").setHttpStatus(500);
+			}
 			return new JSONResource(marshaller.marshal(getApiType(contentType), content));
 		} else if (contentType.getBinary() != null) {
 			if (content instanceof InputStream) {
@@ -106,6 +110,6 @@ public class ResourceFactory {
 				throw new ApiException("Wrong content type: "+content.getClass()+"; expected one of TextResource, Reader, or String").setHttpStatus(500);
 			}
 		}
-		throw new AssertionError();
+		throw new AssertionError("Cannot return a patch");
 	}
 }

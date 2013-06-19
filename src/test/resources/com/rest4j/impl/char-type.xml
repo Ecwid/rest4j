@@ -18,9 +18,9 @@
 <api xmlns="http://rest4j.com/api-description">
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">
 		<fields>
-			<simple name="id" type="number" access="readonly" optional="false"/>
-			<simple name="middlename" type="string" default="\u0001"/>
-			<simple name="middlename-int" type="number" prop="middlename" default="1"/>
+			<simple name="id" type="number" access="readonly" nullable="false"/>
+			<simple name="middlename" type="string" default="1" nullable="true"/>
+			<simple name="middlename-int" type="number" prop="middlename" default="1" nullable="true"/>
 		</fields>
 	</model>
 </api>

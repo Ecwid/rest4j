@@ -19,12 +19,12 @@
 
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet">
 		<fields>
-			<simple name="id" type="number" access="readonly"/>
-			<simple name="name" type="string"/>
+			<simple name="id" type="number" access="readonly" nullable="false"/>
+			<simple name="name" type="string" nullable="true"/>
 
 			<!-- No such property in com.rest4j.impl.Pet; test that this field is mapped
 			to a Service method argument -->
-			<simple name="testProp" type="string" access="writeonly"/>
+			<simple name="testProp" type="string" access="writeonly" nullable="true"/>
 		</fields>
 	</model>
 

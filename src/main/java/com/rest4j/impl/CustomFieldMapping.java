@@ -81,7 +81,7 @@ public class CustomFieldMapping extends FieldMapping {
 		}
 		if (propSetter != null) propType = propSetter.getGenericParameterTypes()[1];
 		if (propGetter == null && field.getAccess() != FieldAccessType.WRITEONLY && !isConstant()) {
-			if (field.isOptional()) {
+			if (isOptional()) {
 				return false;
 			} else {
 				throw new ConfigurationException("No getter for " + parent+"."+name + ", but it is not declared as writeonly. Use access='writeonly' in <complex> and <simple> tags.");

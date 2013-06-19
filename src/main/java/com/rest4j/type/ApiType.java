@@ -26,8 +26,6 @@ import java.lang.reflect.Type;
 public interface ApiType {
 	boolean check(Type javaClass);
 
-	Object defaultValue();
-
 	Object cast(@Nullable Object value, Type javaClass) throws NullPointerException;
 
 	String getJavaName();

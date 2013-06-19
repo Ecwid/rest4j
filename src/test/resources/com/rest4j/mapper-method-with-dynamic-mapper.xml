@@ -18,7 +18,7 @@
 <api xmlns="http://rest4j.com/api-description">
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">
 		<fields>
-			<simple name="id" type="number" mapping-method="some"/>
+			<simple name="id" type="number" mapping-method="some" nullable="false"/>
 		</fields>
 	</model>
 </api>

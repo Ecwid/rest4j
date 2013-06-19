@@ -69,11 +69,6 @@ public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType {
 	}
 
 	@Override
-	public Object defaultValue() {
-		return new LinkedHashMap();
-	}
-
-	@Override
 	public Object cast(Object value, Type javaClass) {
 		if (value == null) return null;
 		ParameterizedType pType = (ParameterizedType) javaClass;

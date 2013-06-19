@@ -148,7 +148,7 @@ public class MarshallerImpl implements Marshaller {
 		return ((ObjectApiTypeImpl)type).unmarshalPatch(original, object);
 	}
 
-	SimpleApiType createSimpleType(FieldType type, Object defaultValue, String[] enumValues) {
+	SimpleApiType createSimpleType(FieldType type, String[] enumValues) {
 		SimpleApiType apiType;
 		switch (type) {
 			case STRING:
@@ -167,7 +167,6 @@ public class MarshallerImpl implements Marshaller {
 				throw new AssertionError();
 
 		}
-		((SimpleApiTypeImpl)apiType).defaultValue = defaultValue;
 		return apiType;
 	}
 

@@ -9,6 +9,11 @@
 	To regenerate java files after api.xsd was changed:
 
 		mvn org.codehaus.mojo:jaxb2-maven-plugin:xjc
+
+	To build an executable jar:
+
+		mvn clean compile assembly:single
+
 	-->
 
 
@@ -33,6 +38,19 @@
 				<schemaDirectory>${project.basedir}/src/main/resources/com/rest4j</schemaDirectory>
 				<packageName>com.rest4j.impl.model</packageName>
 				<clearOutputDir>false</clearOutputDir>
+			</configuration>
+		</plugin>
+		<plugin>
+			<artifactId>maven-assembly-plugin</artifactId>
+			<configuration>
+				<archive>
+					<manifest>
+						<mainClass>com.rest4j.impl.Main</mainClass>
+					</manifest>
+				</archive>
+				<descriptorRefs>
+					<descriptorRef>jar-with-dependencies</descriptorRef>
+				</descriptorRefs>
 			</configuration>
 		</plugin>
 		</plugins>
@@ -81,6 +99,17 @@
 			<artifactId>jsr305</artifactId>
 			<version>2.0.0</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.ant</groupId>
+			<artifactId>ant</artifactId>
+			<version>1.7.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.saxon</groupId>
+			<artifactId>Saxon-HE</artifactId>
+			<version>9.5.0.2</version>
 		</dependency>
 
 		<!-- optional dependencies for Spring users -->
@@ -155,5 +184,5 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-    
+
 </project>

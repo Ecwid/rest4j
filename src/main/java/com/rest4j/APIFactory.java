@@ -18,8 +18,10 @@
 package com.rest4j;
 
 import com.rest4j.impl.APIImpl;
+import com.rest4j.impl.DefaultsPreprocessor;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.XMLConstants;
@@ -28,10 +30,13 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +71,7 @@ public class APIFactory {
 		this.apiDescriptionXml = apiDescriptionXml;
 		this.pathPrefix = pathPrefix;
 		this.serviceProvider = serviceProvider;
+		preprocessors.add(new DefaultsPreprocessor());
 	}
 
 	public void addObjectFactory(ObjectFactory of) {
@@ -92,13 +98,7 @@ public class APIFactory {
 				context = JAXBContext.newInstance(com.rest4j.impl.model.ObjectFactory.class);
 			else
 				context = JAXBContext.newInstance(com.rest4j.impl.model.ObjectFactory.class, extObjectFactory);
-			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-			documentBuilderFactory.setNamespaceAware(true);
-			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-			Document xml = documentBuilder.parse(apiDescriptionXml.openStream());
-			for (Preprocessor pre: preprocessors) {
-				pre.process(xml);
-			}
+			Document xml = getDocument();
 
 			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 			Source apiXsdSource = new StreamSource(getClass().getResourceAsStream("api.xsd"));
@@ -130,6 +130,22 @@ public class APIFactory {
 		} catch (Exception e) {
 			throw new AssertionError(e);
 		}
+	}
+
+	public Document getDocument() throws ParserConfigurationException, SAXException, IOException, ConfigurationException {
+		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+		documentBuilderFactory.setNamespaceAware(true);
+		DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+		Document xml = null;
+		try {
+			xml = documentBuilder.parse(apiDescriptionXml.toURI().toString());
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		for (Preprocessor pre: preprocessors) {
+			pre.process(xml);
+		}
+		return xml;
 	}
 
 }

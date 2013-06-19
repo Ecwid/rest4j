@@ -18,17 +18,20 @@
 package com.rest4j.impl;
 
 import com.rest4j.ConfigurationException;
+import com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
+import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -36,12 +39,12 @@ import static org.junit.Assert.fail;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class DynamicEnumsPreprocessorTest {
+public class DefaultsPreprocessorTest {
 
-	DynamicEnumsPreprocessor preprocessor = new DynamicEnumsPreprocessor();
+	DefaultsPreprocessor preprocessor = new DefaultsPreprocessor();
 
 	@Test public void testProcess_doc_method_not_found() throws Exception {
-		Document xml = parse("doc-method-not-found.xml");
+		Document xml = parse("method-not-found.xml");
 		try {
 			preprocessor.process(xml);
 			fail();
@@ -64,7 +67,7 @@ public class DynamicEnumsPreprocessorTest {
 		Document xml = parse("dynamic-enums.xml");
 		preprocessor.process(xml);
 
-		XPathFactory xPathfactory = XPathFactory.newInstance();
+		XPathFactory xPathfactory = new XPathFactoryImpl();
 		XPath xpath = xPathfactory.newXPath();
 		NodeList nodes = (NodeList) xpath.compile("//model[@name='Test1']/fields/simple/values/value/text()").evaluate(xml, XPathConstants.NODESET);
 		assertEquals("TEST,TEST1,S", join(nodes));
@@ -89,4 +92,20 @@ public class DynamicEnumsPreprocessorTest {
 		return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(getClass().getResourceAsStream(name));
 	}
 
+	private class MyNamespaceContext implements NamespaceContext {
+		@Override
+		public String getNamespaceURI(String prefix) {
+			return "http://rest4j.com/api-description";
+		}
+
+		@Override
+		public String getPrefix(String namespaceURI) {
+			return null;
+		}
+
+		@Override
+		public Iterator getPrefixes(String namespaceURI) {
+			return null;
+		}
+	}
 }

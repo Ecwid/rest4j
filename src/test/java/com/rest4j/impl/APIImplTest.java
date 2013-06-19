@@ -53,7 +53,7 @@ public class APIImplTest {
 	String testProp;
 	Pet created;
 	String type;
-	List<Pet> listedPets;
+	List<Pet> listedPets = new ArrayList<Pet>();
 	boolean patchCalled;
 
 	private Object pets = new Object() {
@@ -62,7 +62,7 @@ public class APIImplTest {
 			return listedPets;
 		}
 		public Pet get(int id) { return pet; }
-		public UpdateResult create(Pet newPet) { created = newPet; return null; }
+		public UpdateResult create(Pet newPet) { created = newPet; return new UpdateResult(); }
 		public void delete(int id, String access_token) {
 			deleted = id;
 			APIImplTest.this.access_token = access_token;
@@ -80,6 +80,7 @@ public class APIImplTest {
 	private ServiceProvider serviceProvider;
 	private API root;
 	private JAXBContext context;
+	private boolean called;
 
 	@Before
 	public void init() throws JAXBException, ConfigurationException {
@@ -332,7 +333,7 @@ public class APIImplTest {
 		ApiResponseImpl response = (ApiResponseImpl) api.serve(request);
 
 		assertEquals(200, response.getStatus());
-		assertNull(response.getJSONResponse());
+		assertNotNull(response.getJSONResponse());
 		assertEquals(0, created.getId());
 		assertEquals(Collections.singletonList(234), created.getFriends());
 		assertEquals(4.3, created.getPetWeight(), 1e-5);
@@ -442,7 +443,7 @@ public class APIImplTest {
 
 	@Test public void testServe_httpsonly_param() throws Exception {
 		pets = new Object() {
-			public Pet get(int id, String access_token) { return null; }
+			public Pet get(int id, String access_token) { return new Pet(); }
 			public void put(int id, Pet patched) { }
 		};
 		api = (APIImpl) new APIFactory(getClass().getResource("securepetapi.xml"), "/api/v2", serviceProvider).createAPI();
@@ -546,7 +547,7 @@ public class APIImplTest {
 			fail();
 		} catch (ApiException ex) {
 			assertEquals(400, ex.getHttpStatus());
-			assertEquals("Field Pet.weight value is absent", ex.getMessage());
+			assertEquals("Field Pet.weight is absent", ex.getMessage());
 		}
 	}
 
@@ -611,6 +612,38 @@ public class APIImplTest {
 		APIRequest request = mockRequest("GET", "/api/v2/test");
 		APIResponse response = api.serve(request);
 		assertEquals("[{\"id\":123,\"name\":\"Max\"}]", getBody(response));
+	}
+
+	@Test public void testServe_optional_request() throws Exception {
+		pets = new Object() {
+			public Pet post(Pet pet) {
+				called = true;
+				assertNull(pet);
+				pet = new Pet();
+				pet.setId(123);
+				return pet;
+			}
+		};
+		api = (APIImpl) new APIFactory(getClass().getResource("optional-body.xml"), "/api/v2", serviceProvider).createAPI();
+		APIRequest request = mockRequest("POST", "/api/v2/test");
+		when(request.objectInput()).thenThrow(new ApiException("Missing body"));
+		APIResponse response = api.serve(request);
+		assertTrue(called);
+		assertEquals("{\"id\":123,\"name\":null}", getBody(response));
+	}
+
+	@Test public void testServe_optional_response() throws Exception {
+		pets = new Object() {
+			public Pet post(Pet pet) {
+				called = true;
+				return null;
+			}
+		};
+		api = (APIImpl) new APIFactory(getClass().getResource("optional-body.xml"), "/api/v2", serviceProvider).createAPI();
+		APIRequest request = mockRequest("POST", "/api/v2/test");
+		APIResponse response = api.serve(request);
+		assertTrue(called);
+		assertEquals("", getBody(response));
 	}
 
 	void iniJsonpApi() throws ConfigurationException {

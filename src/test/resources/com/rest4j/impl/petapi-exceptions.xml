@@ -19,15 +19,15 @@
 
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet">
 		<fields>
-			<simple name="id" type="number" access="readonly"/>
-			<simple name="name" type="string"/>
+			<simple name="id" type="number" access="readonly" nullable="false"/>
+			<simple name="name" type="string" nullable="true"/>
 		</fields>
 	</model>
 
 	<model name="PetIndisposed" class="com.rest4j.impl.petapi.PetIndisposedException">
 		<fields>
-			<simple name="code" type="string" value="INDISPOSED"/>
-			<simple name="param" type="string"/>
+			<simple name="code" type="string" value="INDISPOSED" nullable="true"/>
+			<simple name="param" type="string" nullable="true"/>
 		</fields>
 	</model>
 

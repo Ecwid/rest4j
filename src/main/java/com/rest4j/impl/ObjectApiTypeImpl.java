@@ -65,11 +65,6 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 	}
 
 	@Override
-	public Object defaultValue() {
-		return null;
-	}
-
-	@Override
 	public Object cast(Object value, Type javaClass) {
 		return value;
 	}

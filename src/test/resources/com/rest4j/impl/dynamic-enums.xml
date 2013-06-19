@@ -19,7 +19,7 @@
 
 	<model name="Test1" class="com.rest4j.impl.TestWithConstants">
 		<fields>
-			<simple name='enumProp' type='string'>
+			<simple name='enumProp' type='string' nullable="true">
 				<values enum="com.rest4j.impl.TestEnum">
 				</values>
 			</simple>
@@ -28,7 +28,7 @@
 
 	<model name="Test2" class="com.rest4j.impl.TestWithConstants">
 		<fields>
-			<simple name='enumProp' type='string'>
+			<simple name='enumProp' type='string' nullable="true">
 				<values enum="com.rest4j.impl.TestEnum" doc-method="getDoc">
 				</values>
 			</simple>

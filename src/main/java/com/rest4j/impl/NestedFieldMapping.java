@@ -51,7 +51,7 @@ public class NestedFieldMapping extends FieldMapping {
 			PropertyDescriptor descr = BeanInfo.getBeanInfo(clz).getPropertyDescription(part);
 			if (descr == null) {
 				if (!isConstant()) {
-					if (field.isOptional()) {
+					if (isOptional()) {
 						return false;
 					} else {
 						throw new ConfigurationException("Cannot find property " + part + " in class " + clz);

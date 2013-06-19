@@ -18,22 +18,15 @@
 package com.rest4j.impl;
 
 import com.rest4j.Marshaller;
-import com.rest4j.impl.model.FieldType;
 import com.rest4j.type.SimpleApiType;
 
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
 abstract class SimpleApiTypeImpl extends ApiTypeImpl implements SimpleApiType { // SimpleField
-	Object defaultValue;
 
 	protected SimpleApiTypeImpl(Marshaller marshaller) {
 		super(marshaller);
-	}
-
-	@Override
-	public Object defaultValue() {
-		return defaultValue;
 	}
 
 }

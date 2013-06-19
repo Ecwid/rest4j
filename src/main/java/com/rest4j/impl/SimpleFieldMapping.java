@@ -42,7 +42,7 @@ class SimpleFieldMapping extends FieldMapping {
 		PropertyDescriptor descr = BeanInfo.getBeanInfo(clz).getPropertyDescription(getEffectivePropName());
 		if (descr == null) {
 			if (field.getAccess() != FieldAccessType.WRITEONLY && !isConstant()) {
-				if (field.isOptional()) {
+				if (isOptional()) {
 					return false;
 				} else {
 					throw new ConfigurationException("Cannot find property " + name + " in class " + clz);
@@ -52,7 +52,7 @@ class SimpleFieldMapping extends FieldMapping {
 			propGetter = descr.getReadMethod();
 			propSetter = descr.getWriteMethod();
 			if (propGetter == null && field.getAccess() != FieldAccessType.WRITEONLY && !isConstant()) {
-				if (field.isOptional()) {
+				if (isOptional()) {
 					return false;
 				} else {
 					throw new ConfigurationException("No getter for " + parent+"."+name + ", but it is not declared as writeonly. Use access='writeonly' in <complex> and <simple> tags.");

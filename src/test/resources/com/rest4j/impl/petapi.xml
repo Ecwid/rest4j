@@ -19,50 +19,50 @@
 
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">
 		<fields>
-			<simple name="id" type="number" access="readonly" optional="false"/>
-			<simple name="type" type="string" default="dog">
+			<simple name="id" type="number" access="readonly" nullable="false"/>
+			<simple name="type" type="string" default="dog" nullable="true">
 				<values>
 					<value>dog</value>
 					<value>cat</value>
 					<value>hamster</value>
 				</values>
 			</simple>
-			<simple name="name" type="string" optional="false"/>
-			<simple name="weight" type="number" prop="petWeight"/>
-			<simple name="gender" type="string" optional="false">
+			<simple name="name" type="string" nullable="false"/>
+			<simple name="weight" type="number" prop="petWeight" nullable="true"/>
+			<simple name="gender" type="string" nullable="false">
 				<values>
 					<value>male</value>
 					<value>female</value>
 				</values>
 			</simple>
-			<simple name="writeonly" type="boolean" access="writeonly"/>
-			<complex name="relations" collection="array" type="PetRelation" mapping-method="petRelations"  optional="false"/>
+			<simple name="writeonly" type="boolean" access="writeonly" nullable="true"/>
+			<complex name="relations" collection="array" type="PetRelation" mapping-method="petRelations" nullable="false" default="empty"/>
 		</fields>
 	</model>
 
 	<model name="PetRelation" class="com.rest4j.impl.petapi.PetRelation">
 		<fields>
-			<simple name="type" type="string" default="friend">
+			<simple name="type" type="string" default="friend" nullable="false">
 				<values>
 					<value>friend</value>
 					<value>mated</value>
 					<value>ate</value>
 				</values>
 			</simple>
-			<simple name="petId" type="number" />
+			<simple name="petId" type="number" nullable="false"/>
 		</fields>
 	</model>
 	
 	<model name="UpdateResult" class="com.rest4j.impl.petapi.UpdateResult">
 		<fields>
-			<simple name="id" type="number"></simple>
+			<simple name="id" type="number" nullable="true"></simple>
 		</fields>
 	</model>
 
 	<model name="Error" class="com.rest4j.impl.petapi.PetIndisposedException">
 		<fields>
-			<simple name="code" type="string" optional="false"/>
-			<simple name="param" type="string"/>
+			<simple name="code" type="string" nullable="false"/>
+			<simple name="param" type="string" nullable="true"/>
 		</fields>
 	</model>
 

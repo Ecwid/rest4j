@@ -95,7 +95,9 @@ documentation and client libraries, as well as for query dispatching.
 			</xsd:element>
 			<xsd:element name="description" type="Description" minOccurs="1" maxOccurs="1">
 				<xsd:annotation><xsd:documentation>
-					Documentation for this endpoint in English. Can contain HTML tags. Should not contain description of
+					Documentation for this endpoint in English. Should have a &lt;title> subtag
+					containing the endpoint title in documentation. Can contain HTML tags, except for the &lt;title>.
+					Should not contain description of
 					a request/response body or any parameters, because this information is already presented elsewhere.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
@@ -197,6 +199,8 @@ documentation and client libraries, as well as for query dispatching.
 			<xsd:annotation><xsd:documentation>
 				A fully qualified Java class name that represents this model on a service level. Services
 				receive and return objects of this class. An exception can also be mapped to a JSON model.
+				For inner classes, separate their names from
+				the containing outer class with $ sign, like this: com.acme.apple.Outer$Inner.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="field-mapper" type="xsd:string" use="optional">
@@ -250,11 +254,17 @@ documentation and client libraries, as well as for query dispatching.
 				overriden by 'prop' and 'mapping' attributes.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="optional" default="true" type="xsd:boolean" use="optional">
+		<xsd:attribute name="nullable" type="xsd:boolean" use="optional" default="false">
 			<xsd:annotation><xsd:documentation>
-				Set to 'false' if you want this field to be mandatory. It is a good idea to make all array fields
-				mandatory, unless you want null value to be distinguished from an empty array.
-				Fields are optional by default.
+				Set to 'false' if you want this field to be non-nullable. Fields are nullable by default, except
+				for the collection fields, which are empty-collections by default.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="default" type="xsd:string" use="optional">
+			<xsd:annotation><xsd:documentation>
+				For input objects, the value of a field that is assumed when the field value is missing. This is
+				just a plain-text description used for documentation, the value itself should be set in the
+				object initializer.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="collection" type="CollectionType" default="singleton">
@@ -324,12 +334,6 @@ documentation and client libraries, as well as for query dispatching.
 							<tr><td>boolean</td><td>boolean or java.lang.Boolean</td></tr>
 							<tr><td>date</td><td>java.lang.Date or java.sql.Date</td></tr>
 						</table>
-					</xsd:documentation></xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="default" type="xsd:string">
-					<xsd:annotation><xsd:documentation>
-						For input objects, the value of an optional field that is assumed when the field value is missing.
-						For output objects, the value that the client should assume when the field value is missing.
 					</xsd:documentation></xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="value" type="xsd:string">
@@ -453,7 +457,8 @@ documentation and client libraries, as well as for query dispatching.
 		</xsd:attribute>
 		<xsd:attribute name="type" type="xsd:string">
 			<xsd:annotation><xsd:documentation>
-
+				The corresponding Exception class model. Should refer to a model that has its @class attribute
+				set to the exception class name.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -519,7 +524,8 @@ documentation and client libraries, as well as for query dispatching.
 		</xsd:sequence>
 		<xsd:attribute name="enum" type="xsd:string" use="optional">
 			<xsd:annotation><xsd:documentation>
-			Full name of a Java enum that will be used to populate values.
+			Full name of a Java enum that will be used to populate values. For inner classes, separate their names from
+				the containing outer class with $ sign, like this: com.acme.apple.Outer$InnerEnum.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="doc-method" type="identifier" use="optional" default="toString">
@@ -550,10 +556,20 @@ documentation and client libraries, as well as for query dispatching.
 	<xsd:complexType name="JsonType">
 		<xsd:attribute name="type" type="xsd:string"/>
 		<xsd:attribute name="collection" type="CollectionType" default="singleton"/>
+		<xsd:attribute name="optional" type="xsd:boolean" default="false">
+			<xsd:annotation><xsd:documentation>
+				Set to true if the request or response body is optional.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="PatchType">
 		<xsd:attribute name="type" type="xsd:string"/>
+		<xsd:attribute name="optional" type="xsd:boolean" default="false">
+			<xsd:annotation><xsd:documentation>
+				Set to true if the request or response body is optional.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:simpleType name="CollectionType">
@@ -578,4 +594,22 @@ documentation and client libraries, as well as for query dispatching.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
+
+	<!-- for documentation XSL -->
+	<xsd:element name="files">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="file">
+					<xsd:complexType>
+						<xsd:attribute name="name" type="xsd:string"/>
+						<xsd:attribute name="copy-from" type="xsd:string"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<!-- Use this in endpoint/extra to group endpoints in the index -->
+	<xsd:element name="group" type="xsd:string"/>
+
 </xsd:schema>

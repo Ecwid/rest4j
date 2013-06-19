@@ -18,13 +18,13 @@
 <api xmlns="http://rest4j.com/api-description">
 	<model name="PetCompany" class="com.rest4j.impl.petapi.PetCompany">
 		<fields>
-			<complex collection="array" name="petsSet" type="Pet"></complex>
+			<complex collection="array" name="petsSet" type="Pet" nullable="true"></complex>
 		</fields>
 	</model>
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">
 		<fields>
-			<simple name="id" type="number" access="readonly" optional="false"/>
-			<simple name="name" type="string" optional="false"/>
+			<simple name="id" type="number" access="readonly" nullable="false"/>
+			<simple name="name" type="string" nullable="false"/>
 		</fields>
 	</model>
 

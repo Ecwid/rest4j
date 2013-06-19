@@ -271,15 +271,6 @@ public class MarshallerTest {
 		};
 	}
 
-	@Test public void testMarshal_default_optional_field() throws Exception {
-		Pet pet = createMax();
-		JSONObject json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
-		assertEquals("cat", json.getString("type"));
-		pet.setType("dog");
-		json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
-		assertFalse(json.has("type"));
-	}
-
 	@Test public void testMarshal_polymorpic() throws Exception {
 		customMapping = new com.rest4j.impl.polymorphic.PetMapping();
 		createMarshaller("polymorphic-api.xml");
@@ -300,16 +291,6 @@ public class MarshallerTest {
 		assertEquals(555, cat.getId());
 		assertTrue(cat.isLongFur());
 
-	}
-	@Test public void testUnmarshal_polymorpic_absent_primitive_prop() throws Exception {
-		customMapping = new com.rest4j.impl.polymorphic.PetMapping();
-		createMarshaller("polymorphic-api.xml", new ObjectFactory());
-		try {
-			Bird bird = (Bird) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{id:555,longFur:true,type:'bird'}"));
-			fail();
-		} catch (ApiException ex) {
-			assertEquals("Field Pet.beakStrength value is absent", ex.getMessage());
-		}
 	}
 
 	@Test public void testUnmarshal_polymorpic_present_primitive_prop() throws Exception {
@@ -378,8 +359,6 @@ public class MarshallerTest {
 		pet.setMiddlename('\1');
 		JSONObject json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
 		assertEquals(123, json.getInt("id"));
-		assertFalse(json.has("middlename"));  // 1 is the default value
-		assertFalse(json.has("middlename-int"));
 
 		pet.setMiddlename('\0');
 		json = (JSONObject) marshaller.getObjectType("Pet").marshal(pet);
@@ -477,7 +456,7 @@ public class MarshallerTest {
 		pet.put("name", "Max");
 		pet.put("gender", "male");
 		pet.put("weight", 4.3);
-		pet.put("relations", new JSONArray("[{petId: 234}]"));
+		pet.put("relations", new JSONArray("[{petId: 234,type:'friend'}]"));
 		pet.put("writeonly", true);
 		return pet;
 	}

@@ -69,6 +69,10 @@ public class ConcreteClassMapping {
 		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic
 		for (FieldMapping field : getOrderedFieldsForUnmarshal()) {
 			Object fieldVal = object.opt(field.name);
+			if (fieldVal == null && field.isOptional()) {
+				// absent fields are initialized to default values or null
+				continue;
+			}
 			fieldVal = field.unmarshal(fieldVal);
 			field.set(inst, fieldVal);
 		}

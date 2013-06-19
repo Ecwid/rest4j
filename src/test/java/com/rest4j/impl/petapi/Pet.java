@@ -25,7 +25,7 @@ import java.util.List;
  */
 public class Pet {
 	int id;
-	String type;
+	String type = "dog";
 	String name;
 	Double petWeight;
 	Gender gender;
@@ -33,7 +33,7 @@ public class Pet {
 	List<Integer> mated = new ArrayList<Integer>();
 	List<Integer> ate = new ArrayList<Integer>();
 	boolean writeonly;
-	char middlename;
+	char middlename = 1;
 
 	public boolean isWriteonly() {
 		return writeonly;

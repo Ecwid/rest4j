@@ -55,11 +55,6 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	}
 
 	@Override
-	public Object defaultValue() {
-		return new ArrayList();
-	}
-
-	@Override
 	public Object cast(Object value, Type javaClass) {
 		if (value == null) return null;
 		ParameterizedType pType = (ParameterizedType) javaClass;

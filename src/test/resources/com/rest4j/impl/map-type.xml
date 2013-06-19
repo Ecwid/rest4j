@@ -18,15 +18,15 @@
 <api xmlns="http://rest4j.com/api-description">
 	<model name="PetCompany" class="com.rest4j.impl.petapi.PetCompany">
 		<fields>
-			<complex collection="map" name="petsMap" type="Pet"></complex>
-			<simple collection="map" name="petsHashMap" type="number"></simple>
-			<complex collection="map" name="enumMap" type="Pet"></complex>
+			<complex collection="map" name="petsMap" type="Pet" nullable="true"></complex>
+			<simple collection="map" name="petsHashMap" type="number" nullable="true"></simple>
+			<complex collection="map" name="enumMap" type="Pet" nullable="true"></complex>
 		</fields>
 	</model>
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">
 		<fields>
-			<simple name="id" type="number" access="readonly" optional="false"/>
-			<simple name="name" type="string" optional="false"/>
+			<simple name="id" type="number" access="readonly" nullable="false"/>
+			<simple name="name" type="string" nullable="false"/>
 		</fields>
 	</model>
 	

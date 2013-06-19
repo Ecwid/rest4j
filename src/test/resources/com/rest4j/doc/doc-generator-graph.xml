@@ -1,0 +1,120 @@
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<api xmlns="http://rest4j.com/api-description">
+
+	<model name="A" class="java.lang.Object">
+		<fields>
+			<complex name="b1" collection="singleton" type="B" access="readonly"></complex>
+			<complex name="b2" collection="map" type="B"></complex>
+			<complex name="bs" collection="array" type="B"></complex>
+		</fields>
+	</model>
+	<model name="B" class="java.lang.Object">
+		<fields>
+			<complex name="c" collection="singleton" type="C"></complex>
+		</fields>
+	</model>
+	<model name="C" class="java.lang.Object">
+		<fields>
+			<simple name="changeable" type="number" access="writeonly">
+				<description>Changes something.</description>
+			</simple>
+		</fields>
+	</model>
+
+	<endpoint http="PATCH" httpsonly="true">
+		<route>patch/<param>ID</param></route>
+		<description><title>Patch an A</title> And return <b>C</b>.</description>
+		<parameters>
+			<parameter name="ID" type="number">
+				<description>The unique ID</description>
+			</parameter>
+			<parameter name="access-token" optional="false">
+				<description>Access token</description>
+				<values>
+					<value description="Description of SOME">SOME</value>
+					<value>ANOTHER</value>
+				</values>
+			</parameter>
+			<parameter name="some" optional="false" type="date">
+			</parameter>
+		</parameters>
+		<body>
+			<patch type="A"/>
+		</body>
+		<response>
+			<json type="C"/>
+		</response>
+		<errors></errors>
+		<service name="patch" method="patch"/>
+		<extra><group>Patching</group></extra>
+	</endpoint>
+
+	<endpoint http="PATCH" httpsonly="true">
+		<route>patch/b/<param>ID</param></route>
+		<description><title>Patch a B</title> And return <b>C</b>.</description>
+		<parameters>
+			<parameter name="ID" type="number">
+				<description>The unique ID</description>
+			</parameter>
+			<parameter name="access-token" optional="false">
+				<description>Access token</description>
+				<values>
+					<value description="Description of SOME">SOME</value>
+					<value>ANOTHER</value>
+				</values>
+			</parameter>
+			<parameter name="some" optional="false" type="date">
+			</parameter>
+		</parameters>
+		<body>
+			<patch type="B"/>
+		</body>
+		<response>
+			<json type="C"/>
+		</response>
+		<errors></errors>
+		<service name="patch" method="patch_b"/>
+		<extra><group>Patching</group></extra>
+	</endpoint>
+
+	<endpoint http="GET">
+		<route>get</route>
+		<description><title>Get B</title>x</description>
+		<parameters></parameters>
+		<response>
+			<json type="B"></json>
+		</response>
+		<errors></errors>
+		<service name="get" method="get"/>
+		<extra><group>Getting</group></extra>
+	</endpoint>
+	
+	<endpoint http="GET">
+		<route>binary</route>
+		<description><title>Get binary</title>x</description>
+		<parameters></parameters>
+		<response>
+			<binary></binary>
+		</response>
+		<errors></errors>
+		<service name="binary" method="binary"/>
+		<extra><group>Getting</group></extra>
+	</endpoint>
+		
+</api>

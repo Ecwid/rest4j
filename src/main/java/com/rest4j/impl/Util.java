@@ -23,11 +23,14 @@ import com.sun.org.apache.bcel.internal.classfile.ClassParser;
 import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 import com.sun.org.apache.bcel.internal.classfile.LocalVariable;
 import com.sun.org.apache.bcel.internal.classfile.Method;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Iterator;
 
 
 /**
@@ -51,7 +54,7 @@ public class Util {
 		return apiex.replaceMessage(apiex.getMessage().replace("{value}", s));
 	}
 
-	static Object getEnumConstant(Class clz, Object value) {
+	public static Object getEnumConstant(Class clz, Object value) {
 		for (Object option: clz.getEnumConstants()) {
 			if (((Enum)option).name().equals(value)) {
 				return option;
@@ -60,7 +63,7 @@ public class Util {
 		throw new AssertionError();
 	}
 
-	static String[] getParameterNames(Class owner, String name) throws IOException {
+	public static String[] getParameterNames(Class owner, String name) throws IOException {
 		String className = owner.getName();
 		int idx = className.lastIndexOf('.');
 		if (idx >= 0) {
@@ -105,5 +108,38 @@ public class Util {
 //			throw new RuntimeException(e);
 //		}
 //	}
+
+	public static Node find(Node element, String name) {
+		for (Node child: it(element.getChildNodes())) {
+			if (name.equals(child.getNodeName())) {
+				return child;
+			}
+		}
+		return null;
+	}
+
+	public static Iterable<Node> it(final NodeList nodeList) {
+		return new Iterable<Node>() {
+			@Override
+			public Iterator<Node> iterator() {
+				return new Iterator<Node>() {
+					int i = 0;
+					@Override
+					public boolean hasNext() {
+						return i < nodeList.getLength();
+					}
+
+					@Override
+					public Node next() {
+						return nodeList.item(i++);
+					}
+
+					@Override
+					public void remove() {
+					}
+				};
+			}
+		};
+	}
 
 }

@@ -21,7 +21,7 @@ package com.rest4j.impl.petapi;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class PetRelation {
-	RelationType type;
+	RelationType type = RelationType.friend;
 	int petId;
 
 	public PetRelation(RelationType type, int petId) {

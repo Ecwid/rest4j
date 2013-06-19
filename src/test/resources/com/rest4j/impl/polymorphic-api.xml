@@ -19,15 +19,15 @@
 
 	<model name="Pet" class="com.rest4j.impl.polymorphic.AbstractPet" field-mapper="petMapping">
 		<fields>
-			<simple name="id" type="number" optional="false"/>
-			<simple name="type" type="string" mapping-method="getPetType">
+			<simple name="id" type="number" nullable="false"/>
+			<simple name="type" type="string" mapping-method="getPetType" nullable="true">
 				<values>
 					<value>bird</value>
 					<value>cat</value>
 				</values>
 			</simple>
-			<simple name="beakStrength" type="number"/> <!-- for birds -->
-			<simple name="longFur" type="boolean"/> <!-- for cats -->
+			<simple name="beakStrength" type="number" nullable="true"/> <!-- for birds -->
+			<simple name="longFur" type="boolean" nullable="true"/> <!-- for cats -->
 		</fields>
 	</model>
 </api>

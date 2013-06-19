@@ -21,10 +21,8 @@ import com.rest4j.API;
 import com.rest4j.*;
 import com.rest4j.ObjectFactory;
 import com.rest4j.impl.model.*;
-import com.rest4j.impl.model.ContentType;
 import com.rest4j.impl.model.Error;
 import com.rest4j.type.ApiType;
-import com.rest4j.type.ObjectApiType;
 import com.rest4j.type.SimpleApiType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -95,6 +93,11 @@ public class APIImpl implements API {
 		}
 
 		@Override
+		public Throwable getCause() {
+			return ex;
+		}
+
+		@Override
 		public int getHttpStatus() {
 			return ex.getHttpStatus();
 		}
@@ -161,16 +164,20 @@ public class APIImpl implements API {
 		Object getResult = null;
 		if (!request.method().equals("GET")) {
 			APIRequest get = changeMethod(request, "GET");
-			EndpointMapping getEndpoint = findEndpoint(get);
-			if (request.header("If-Match") != null || endpoint.isPatch()) {
-				// first perform GET, then decide if we should change the resource
-				getResult = getEndpoint.invokeRaw(request, null);
-			}
-			if (request.header("If-Match") != null) {
-				Resource getResource = resourceFactory.createResourceFrom(getResult, getEndpoint.getResponseContentType());
-				if (!parseList(request.header("If-Match")).contains(getResource.getETag())) {
-					throw new ApiException("Precondition failed").setHttpStatus(412);
+			try {
+				EndpointMapping getEndpoint = findEndpoint(get);
+				if (request.header("If-Match") != null || endpoint.isPatch()) {
+					// first perform GET, then decide if we should change the resource
+					getResult = getEndpoint.invokeRaw(request, null);
 				}
+				if (request.header("If-Match") != null) {
+					Resource getResource = resourceFactory.createResourceFrom(getResult, getEndpoint.getResponseContentType());
+					if (!parseList(request.header("If-Match")).contains(getResource.getETag())) {
+						throw new ApiException("Precondition failed").setHttpStatus(412);
+					}
+				}
+			} catch (ApiException ex) {
+				if (ex.getHttpStatus() != 405) throw ex;
 			}
 		}
 		Resource result = endpoint.invoke(request, getResult);
@@ -240,7 +247,7 @@ public class APIImpl implements API {
 				final String name = paramNames[i];
 				Parameter param = null;
 				for (Parameter x : ep.getParameters().getParameter()) {
-					if (!name.equals(x.getName())) continue;
+					if (!matchParam(name, x.getName())) continue;
 					param = x;
 					break;
 				}
@@ -292,19 +299,23 @@ public class APIImpl implements API {
 						}
 					}
 					final SimpleApiType paramApiType;
+					final Object defaultValue;
 					try {
-						Object defaultValue = param.getDefault() == null ? null : parseParam(param, StringEscapeUtils.unescapeJavaScript(param.getDefault()));
-						paramApiType = marshaller.createSimpleType(param.getType(), defaultValue, enumValues);
+						defaultValue = param.getDefault() == null ? null : parseParam(param, StringEscapeUtils.unescapeJavaScript(param.getDefault()));
+						paramApiType = marshaller.createSimpleType(param.getType(), enumValues);
 					} catch (ApiException e) {
 						throw new ConfigurationException("Cannot parse default param value "+param.getDefault()+": "+e.getMessage());
 					}
 					if (!paramApiType.check(paramType)) {
 						throw new ConfigurationException("Wrong argument '"+name+"' type: expected "+paramApiType.getJavaName());
 					}
+					final String paramName = param.getName();
 					args[i] = new ArgHandler() {
 						@Override
 						public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
-							return paramApiType.cast(params.get(name), paramType);
+							Object value = params.get(paramName);
+							if (value == null) value = defaultValue;
+							return paramApiType.cast(value, paramType);
 						}
 					};
 				}
@@ -334,7 +345,7 @@ public class APIImpl implements API {
 			return objectType;
 		}
 
-		private ArgHandler checkBodyType(ContentType contentType, Type type) throws ConfigurationException {
+		private ArgHandler checkBodyType(final ContentType contentType, Type type) throws ConfigurationException {
 			Class expect = null;
 			ArgHandler argHandler;
 			if (contentType.getBinary() != null) {
@@ -362,7 +373,17 @@ public class APIImpl implements API {
 					argHandler = new ArgHandler() {
 						@Override
 						public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
-							return marshaller.unmarshal(apiType, request.objectInput());
+							JSONObject object;
+							try {
+								object = request.objectInput();
+							} catch (ApiException ex) {
+								if (contentType.getJson().isOptional()) {
+									return null;
+								} else {
+									throw ex;
+								}
+							}
+							return marshaller.unmarshal(apiType, object);
 						}
 					};
 				} else if (contentType.getPatch() != null) {
@@ -376,7 +397,17 @@ public class APIImpl implements API {
 								return new ArgHandler() {
 									@Override
 									public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
-										return objectType.unmarshalPatch(getResponse, request.objectInput());
+										JSONObject object;
+										try {
+											object = request.objectInput();
+										} catch (ApiException ex) {
+											if (contentType.getPatch().isOptional()) {
+												return null;
+											} else {
+												throw ex;
+											}
+										}
+										return objectType.unmarshalPatch(getResponse, object);
 									}
 								};
 							}
@@ -386,7 +417,17 @@ public class APIImpl implements API {
 						return new ArgHandler() {
 							@Override
 							public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
-								Patch patch = objectType.unmarshalPatch(getResponse, request.objectInput());
+								JSONObject object;
+								try {
+									object = request.objectInput();
+								} catch (ApiException ex) {
+									if (contentType.getPatch().isOptional()) {
+										return null;
+									} else {
+										throw ex;
+									}
+								}
+								Patch patch = objectType.unmarshalPatch(getResponse, object);
 								return patch.getPatched();
 							}
 						};
@@ -598,6 +639,10 @@ public class APIImpl implements API {
 			if (v.getContent().equals(valueStr)) return true;
 		}
 		return false;
+	}
+
+	boolean matchParam(String argName, String paramName) {
+		return argName.equals(paramName.replace('-', '_').replace(' ', '_'));
 	}
 
 
