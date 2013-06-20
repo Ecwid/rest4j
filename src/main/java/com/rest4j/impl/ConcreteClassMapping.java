@@ -3,6 +3,7 @@ package com.rest4j.impl;
 import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
 import com.rest4j.DynamicMapper;
+import com.rest4j.ServiceProvider;
 import com.rest4j.impl.model.Field;
 import com.rest4j.impl.model.FieldAccessType;
 import com.rest4j.impl.model.Model;
@@ -25,7 +26,7 @@ public class ConcreteClassMapping {
 	List<Field> leftoverFields = new ArrayList<Field>();
 	Object customMapper;
 
-	public ConcreteClassMapping(MarshallerImpl marshaller, Class clz, Model model, Object customMapper) throws ConfigurationException {
+	public ConcreteClassMapping(MarshallerImpl marshaller, Class clz, Model model, Object customMapper, ServiceProvider serviceProvider) throws ConfigurationException {
 		this.marshaller = marshaller;
 		this.name = model.getName();
 		this.clz = clz;
@@ -56,6 +57,7 @@ public class ConcreteClassMapping {
 			} else {
 				fieldMapping = new CustomFieldMapping(marshaller, fld, customMapper, name /* owner name */);
 			}
+			fieldMapping.setServiceProvider(serviceProvider);
 			if (!fieldMapping.initAccessors(clz)) {
 				leftoverFields.add(fld);
 				continue;

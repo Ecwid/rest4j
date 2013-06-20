@@ -67,7 +67,7 @@ public class APIImpl implements API {
 				modelConfig.add(new MarshallerImpl.ModelConfig(model, customMapper));
 			}
 		}
-		marshaller = new MarshallerImpl(modelConfig, factories);
+		marshaller = new MarshallerImpl(modelConfig, factories, serviceProvider);
 
 		// create resourceFactory
 		resourceFactory = new ResourceFactory(marshaller);

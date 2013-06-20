@@ -17,9 +17,8 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.ApiException;
-import com.rest4j.ConfigurationException;
-import com.rest4j.ObjectFactoryChain;
+import com.rest4j.*;
+import com.rest4j.impl.converters.*;
 import com.rest4j.impl.model.API;
 import com.rest4j.impl.model.FieldType;
 import com.rest4j.impl.model.Model;
@@ -51,8 +50,27 @@ import static org.junit.Assert.*;
 public class MarshallerTest {
 
 	private Object customMapping = new PetMapping();
+	private Object someMapping = new SomeMapping();
 	List<MarshallerImpl.ModelConfig> modelConfig;
 	MarshallerImpl marshaller;
+	private ServiceProvider serviceProvider = new ServiceProvider() {
+		@Override
+		public Object lookupService(String name) {
+			return null;
+		}
+
+		@Override
+		public Object lookupFieldMapper(String model, String name) {
+			return null;
+		}
+
+		@Override
+		public Converter lookupConverter(String name) {
+			if (name.equals("valueConverter")) return new ValueConverter();
+			if (name.equals("someConverter")) return new SomeConverter();
+			return null;  //To change body of implemented methods use File | Settings | File Templates.
+		}
+	};
 
 	@Before
 	public void init() throws JAXBException, ConfigurationException {
@@ -72,11 +90,13 @@ public class MarshallerTest {
 				Object mapper = null;
 				if ("petMapping".equals(model.getFieldMapper())) {
 					mapper = customMapping;
+				} else if ("someMapping".equals(model.getFieldMapper())) {
+					mapper = someMapping;
 				}
 				modelConfig.add(new MarshallerImpl.ModelConfig(model, mapper));
 			}
 		}
-		marshaller = new MarshallerImpl(modelConfig, ofs);
+		marshaller = new MarshallerImpl(modelConfig, ofs, serviceProvider);
 	}
 
 	@Test public void testParse_number() throws Exception {
@@ -447,6 +467,54 @@ public class MarshallerTest {
 		assertEquals(1, company.getEnumMap().size());
 		Pet pet = company.getEnumMap().get(RelationType.ate);
 		assertEquals("Max", pet.getName());
+	}
+
+	@Test public void testInit_with_converters_success() throws Exception {
+		createMarshaller("converters.xml");
+	}
+
+	@Test public void testInit_with_converters_wrong_inner_type() throws Exception {
+		try {
+			createMarshaller("converters-wrong-inner-type.xml");
+			fail();
+		} catch (ConfigurationException ce) {
+			assertTrue(ce.getMessage(), ce.getMessage().startsWith("Wrong getter type: class java.util.Date"));
+		}
+	}
+
+	@Test public void testInit_with_converters_wrong_outer_type() throws Exception {
+		try {
+			createMarshaller("converters-wrong-outer-type.xml");
+			fail();
+		} catch (ConfigurationException ce) {
+			assertTrue(ce.getMessage(), ce.getMessage().startsWith("The property Some.simpleConvert type does not correspond to converter"));
+		}
+	}
+
+	@Test public void testInit_with_converters_wrong_mapper_type() throws Exception {
+		try {
+			createMarshaller("converters-wrong-mapper-type.xml");
+			fail();
+		} catch (ConfigurationException ce) {
+			assertTrue(ce.getMessage(), ce.getMessage().startsWith("Wrong getter type: class java.util.Date"));
+		}
+	}
+
+	@Test public void testMarshal_with_converters() throws Exception {
+		createMarshaller("converters.xml");
+		Some some = new Some();
+		Value value = new Value("xxx");
+		some.setSimpleConvert(value);
+		some.setComplexConvert("yyy");
+		JSONObject json = (JSONObject) marshaller.getObjectType("Some").marshal(some);
+		assertEquals("{\"mappedConvert\":\"xxx\",\"complexConvert\":{\"mappedConvert\":\"yyy\",\"complexConvert\":null,\"simpleConvert\":\"yyy\"},\"simpleConvert\":\"xxx\"}", json.toString());
+	}
+
+	@Test public void testUnmarshal_with_converters() throws Exception {
+		createMarshaller("converters.xml");
+		Some some = (Some)marshaller.getObjectType("Some").unmarshal(new JSONObject("{\"mappedConvert\":\"xxx\",\"complexConvert\":{\"mappedConvert\":\"yyy\",\"complexConvert\":null,\"simpleConvert\":\"yyy\"},\"simpleConvert\":\"xxx\"}"));
+		assertEquals("xxx", some.getSimpleConvert().getValue());
+		assertEquals("yyy", some.getComplexConvert());
 	}
 
 	static JSONObject createMaxJson() throws JSONException {

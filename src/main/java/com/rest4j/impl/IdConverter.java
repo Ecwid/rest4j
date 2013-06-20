@@ -17,48 +17,51 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.ApiException;
-import com.rest4j.ConfigurationException;
-import com.rest4j.DynamicMapper;
-import com.rest4j.impl.model.Field;
+import com.rest4j.Converter;
+import com.rest4j.type.ApiType;
+
+import java.lang.reflect.Type;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class DynamicFieldMapping extends FieldMapping {
-	private final DynamicMapper customMapper;
+public class IdConverter implements Converter<Object, Object> {
+	static final IdConverter instance = new IdConverter();
 
-	public DynamicFieldMapping(MarshallerImpl marshaller, Field fld, DynamicMapper customMapper, String parent) throws ConfigurationException {
-		super(marshaller, fld, parent);
-		this.customMapper = customMapper;
+	public static IdConverter getInstance() {
+		return instance;
+	}
+
+	private IdConverter(){}
+
+	@Override
+	public boolean checkInnerType(Type innerType, ApiType outerType) {
+		return outerType.check(innerType);
 	}
 
 	@Override
-	boolean initAccessors(Class clz) throws ConfigurationException {
+	public String getRequiredInnerType(ApiType outerType) {
+		return outerType.getJavaName();
+	}
+
+	@Override
+	public boolean checkOuterType(ApiType outerType) {
 		return true;
 	}
 
 	@Override
-	boolean isReadonly() {
-		return false;
+	public String getRequiredOuterType() {
+		return null;
 	}
 
 	@Override
-	public void set(Object inst, Object fieldVal) throws ApiException {
-		customMapper.set(inst, this, fieldVal);
+	public Object marshal(Object object, ApiType outerType) {
+		return object;
 	}
 
 	@Override
-	public Object get(Object inst) throws ApiException {
-		return customMapper.get(inst, this);
-	}
-
-	@Override
-	protected void checkType() throws ConfigurationException {
-	}
-
-	@Override
-	protected Object cast(Object fieldVal) throws ApiException {
-		return converter.unmarshal(fieldVal, null, type);
+	public Object unmarshal(Object object, Type innerType, ApiType outerType) {
+		if (innerType == null) return object;
+		return outerType.cast(object, innerType);
 	}
 }

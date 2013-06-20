@@ -149,11 +149,11 @@ public class CustomFieldMapping extends FieldMapping {
 
 	@Override
 	protected void checkType() throws ConfigurationException {
-		if (propGetter != null && !type.check(propGetter.getGenericReturnType())) {
-			throw new ConfigurationException("Wrong getter type: "+propGetter.getGenericReturnType()+" for " + parent+"."+name+"; expected "+type.getJavaName());
+		if (propGetter != null && !converter.checkInnerType(propGetter.getGenericReturnType(), type)) {
+			throw new ConfigurationException("Wrong getter type: "+propGetter.getGenericReturnType()+" for " + parent+"."+name+"; expected "+converter.getRequiredInnerType(type));
 		}
-		if (propSetter != null && !type.check(propSetter.getGenericParameterTypes()[1])) {
-			throw new ConfigurationException("Wrong getter type: "+propSetter.getGenericParameterTypes()[1]+" for " + parent+"."+name+"; expected "+type.getJavaName());
+		if (propSetter != null && !converter.checkInnerType(propSetter.getGenericParameterTypes()[1], type)) {
+			throw new ConfigurationException("Wrong getter type: "+propSetter.getGenericParameterTypes()[1]+" for " + parent+"."+name+"; expected "+converter.getRequiredInnerType(type));
 		}
 	}
 }

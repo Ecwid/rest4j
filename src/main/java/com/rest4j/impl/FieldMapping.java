@@ -17,9 +17,7 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.ApiException;
-import com.rest4j.ConfigurationException;
-import com.rest4j.Marshaller;
+import com.rest4j.*;
 import com.rest4j.impl.model.*;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.SimpleApiType;
@@ -43,6 +41,8 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 	Field field;
 	Type propType;
 	Marshaller marshaller;
+
+	Converter<Object, Object> converter = IdConverter.getInstance();
 
 	FieldMapping(MarshallerImpl marshaller, Field fld, String parent) throws ConfigurationException {
 		name = fld.getName();
@@ -98,6 +98,7 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 	public abstract void set(Object inst, Object fieldVal) throws ApiException;
 
 	public Object marshal(Object val) throws ApiException {
+		val = converter.marshal(val, type);
 		if (val == null) return JSONObject.NULL;
 		return marshaller.marshal(type, val);
 	}
@@ -137,6 +138,10 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 
 		type = marshaller.createType(field.getCollection(), elementType);
 
+		if (!converter.checkOuterType(type)) {
+			throw new ConfigurationException("The property "+parent+"."+name+" type does not correspond to converter "+converter+"; expected "+converter.getRequiredOuterType());
+		}
+
 		checkType();
 	}
 
@@ -149,7 +154,7 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 
 	protected Object cast(Object fieldVal) throws ApiException {
 		try {
-			fieldVal = type.cast(fieldVal, propType);
+			fieldVal = converter.unmarshal(fieldVal, propType, type);
 		} catch (NullPointerException npe) {
 			throw new ApiException("Field " + parent + "." + name + " value is absent");
 		} catch (IllegalArgumentException iae) {
@@ -183,5 +188,14 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 
 	public boolean isOptional() {
 		return nullable || hasDefault;
+	}
+
+	public void setServiceProvider(ServiceProvider serviceProvider) throws ConfigurationException {
+		if (field.getConverter() != null && serviceProvider != null) {
+			converter = serviceProvider.lookupConverter(field.getConverter());
+			if (converter == null) {
+				throw new ConfigurationException("Converter not found: "+field.getConverter()+" in "+parent+"."+name);
+			}
+		}
 	}
 }

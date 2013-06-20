@@ -17,10 +17,7 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.ApiException;
-import com.rest4j.ConfigurationException;
-import com.rest4j.ObjectFactoryChain;
-import com.rest4j.Patch;
+import com.rest4j.*;
 import com.rest4j.impl.model.Field;
 import com.rest4j.impl.model.Model;
 import com.rest4j.type.ObjectApiType;
@@ -47,15 +44,17 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 	final ArrayList<ConcreteClassMapping> mappings = new ArrayList<ConcreteClassMapping>();
 	final ObjectFactoryChain factory;
 	final Object fieldMapper;
+	final ServiceProvider serviceProvider;
 
-	ObjectApiTypeImpl(MarshallerImpl marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory) throws ConfigurationException {
+	ObjectApiTypeImpl(MarshallerImpl marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory, ServiceProvider serviceProvider) throws ConfigurationException {
 		super(marshaller);
+		this.serviceProvider = serviceProvider;
 		this.marshaller = marshaller;
 		this.name = name;
 		this.clz = clz;
 		this.model = model;
 		this.fieldMapper = fieldMapper;
-		mappings.add(new ConcreteClassMapping(marshaller, clz, model, fieldMapper));
+		mappings.add(new ConcreteClassMapping(marshaller, clz, model, fieldMapper, serviceProvider));
 		this.factory = factory;
 	}
 
@@ -140,7 +139,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 			}
 
 			try {
-				ConcreteClassMapping ccm = new ConcreteClassMapping(marshaller, clz, model, fieldMapper);
+				ConcreteClassMapping ccm = new ConcreteClassMapping(marshaller, clz, model, fieldMapper, serviceProvider);
 				ccm.link();
 				mappings.add(ccm);
 				return ccm;

@@ -54,6 +54,7 @@ public class MarshallerImpl implements Marshaller {
 		}
 
 	};
+	ServiceProvider serviceProvider;
 
 	public static class ModelConfig {
 		Model model;
@@ -73,7 +74,12 @@ public class MarshallerImpl implements Marshaller {
 		this(modelConfigs, new com.rest4j.ObjectFactory[]{factory});
 	}
 
-	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories) throws ConfigurationException {
+	public MarshallerImpl(List<ModelConfig> modelConfig, ObjectFactory[] factories) throws ConfigurationException {
+		this(modelConfig, factories, null);
+	}
+
+	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories, ServiceProvider serviceProvider) throws ConfigurationException {
+		this.serviceProvider = serviceProvider;
 		for (com.rest4j.ObjectFactory of: factories) {
 			addObjectFactory(of);
 		}
@@ -87,7 +93,7 @@ public class MarshallerImpl implements Marshaller {
 				throw new ConfigurationException("Cannot find class " + model.getClazz());
 			}
 
-			models.put(model.getName(), new ObjectApiTypeImpl(this, model.getName(), clz, model, customMapper, chain));
+			models.put(model.getName(), new ObjectApiTypeImpl(this, model.getName(), clz, model, customMapper, chain, serviceProvider));
 		}
 
 		// fill model interconnections and type-check

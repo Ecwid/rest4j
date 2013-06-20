@@ -15,21 +15,39 @@
  * limitations under the License.
  */
 
-package com.rest4j;
+package com.rest4j.impl.converters;
 
-import com.rest4j.type.ApiType;
-
-import javax.annotation.Nullable;
-import java.lang.reflect.Type;
+import java.util.Date;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public interface Converter<F,T> {
-	boolean checkInnerType(Type innerType, ApiType outerType);
-	String getRequiredInnerType(ApiType outerType);
-	boolean checkOuterType(ApiType outerType);
-	String getRequiredOuterType();
-	T marshal(F object, ApiType outerType);
-	F unmarshal(T object, @Nullable Type innerType, ApiType outerType);
+public class Some {
+	Value simpleConvert;
+	String complexConvert;
+	Date date;
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
+	}
+
+	public Value getSimpleConvert() {
+		return simpleConvert;
+	}
+
+	public void setSimpleConvert(Value simpleConvert) {
+		this.simpleConvert = simpleConvert;
+	}
+
+	public String getComplexConvert() {
+		return complexConvert;
+	}
+
+	public void setComplexConvert(String complexConvert) {
+		this.complexConvert = complexConvert;
+	}
 }
