@@ -36,7 +36,7 @@ import java.util.Map;
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType {
+public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType, PatchableType {
 	ApiType elementType;
 	final StringApiType stringApiType;
 
@@ -91,14 +91,16 @@ public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType {
 	public Object unmarshal(Object val) throws ApiException {
 		if (val instanceof JSONObject) {
 			JSONObject object = (JSONObject) val;
-			Map map = new LinkedHashMap(object.length());
+			Map map = (Map)createInstance(object);
 
 			Iterator<String> keys = object.keys();
 			while (keys.hasNext()) {
 				String key = keys.next();
 				Object element = object.opt(key);
 				if (JSONObject.NULL.equals(element)) {
-					throw new ApiException("{value}[\""+ StringEscapeUtils.escapeJavaScript(key)+"\"] should not be null");
+					map.put(key, null);
+					continue;
+//					throw new ApiException("{value}[\""+ StringEscapeUtils.escapeJavaScript(key)+"\"] should not be null");
 				}
 				try {
 					map.put(key, marshaller.unmarshal(elementType, element));
@@ -129,4 +131,50 @@ public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType {
 		return object;
 	}
 
+	@Override
+	public Object unmarshalPatch(Object original, JSONObject object) throws ApiException {
+		if (original == null) return null;
+
+		Object patched = Util.deepClone(original);
+
+		Map map = (Map)patched;
+
+		Iterator<String> keys = object.keys();
+		Map<String, Object> result = new HashMap<String, Object>(object.length());
+		while (keys.hasNext()) {
+			String key = keys.next();
+			Object element = object.opt(key);
+			if (JSONObject.NULL.equals(element)) {
+				map.remove(key);
+			} else {
+				if (elementType instanceof PatchableType) {
+					if (!(element instanceof JSONObject)) {
+						throw new ApiException("Expected JSON object in key '"+key+"'");
+					}
+					PatchableType ptype = (PatchableType)elementType;
+					Object originalVal = map.get(key);
+					if (originalVal == null) {
+						originalVal = ptype.createInstance(null);
+					}
+					try {
+						map.put(key, marshaller.unmarshalPatch(ptype, originalVal, (JSONObject)element));
+					} catch (ApiException apiex) {
+						throw Util.replaceValue(apiex, "{value}[\"" + StringEscapeUtils.escapeJavaScript(key) + "\"]");
+					}
+				} else {
+					try {
+						map.put(key, marshaller.unmarshal(elementType, element));
+					} catch (ApiException apiex) {
+						throw Util.replaceValue(apiex, "{value}[\"" + StringEscapeUtils.escapeJavaScript(key) + "\"]");
+					}
+				}
+			}
+		}
+		return patched;
+	}
+
+	@Override
+	public Object createInstance(JSONObject object) throws ApiException {
+		return new LinkedHashMap(object.length());
+	}
 }

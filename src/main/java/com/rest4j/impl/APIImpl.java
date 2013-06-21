@@ -407,7 +407,7 @@ public class APIImpl implements API {
 												throw ex;
 											}
 										}
-										return objectType.unmarshalPatch(getResponse, object);
+										return new Patch(getResponse, objectType.unmarshalPatch(getResponse, object), object);
 									}
 								};
 							}
@@ -427,8 +427,7 @@ public class APIImpl implements API {
 										throw ex;
 									}
 								}
-								Patch patch = objectType.unmarshalPatch(getResponse, object);
-								return patch.getPatched();
+								return objectType.unmarshalPatch(getResponse, object);
 							}
 						};
 					}

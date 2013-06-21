@@ -17,6 +17,7 @@
 
 package com.rest4j;
 
+import com.rest4j.impl.PatchableType;
 import com.rest4j.type.*;
 import org.json.JSONObject;
 
@@ -28,7 +29,7 @@ public interface Marshaller {
 
 	Object unmarshal(ApiType elementType, Object value) throws ApiException;
 
-	Patch unmarshalPatch(ObjectApiType type, Object original, JSONObject object) throws ApiException;
+	Object unmarshalPatch(PatchableType type, Object original, JSONObject object) throws ApiException;
 
 	ObjectApiType getObjectType(String model);
 

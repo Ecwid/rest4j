@@ -150,8 +150,8 @@ public class MarshallerImpl implements Marshaller {
 	}
 
 	@Override
-	public Patch unmarshalPatch(ObjectApiType type, Object original, JSONObject object) throws ApiException {
-		return ((ObjectApiTypeImpl)type).unmarshalPatch(original, object);
+	public Object unmarshalPatch(PatchableType type, Object original, JSONObject object) throws ApiException {
+		return ((PatchableType)type).unmarshalPatch(original, object);
 	}
 
 	SimpleApiType createSimpleType(FieldType type, String[] enumValues) {

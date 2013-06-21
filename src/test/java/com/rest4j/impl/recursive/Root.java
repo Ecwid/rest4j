@@ -15,33 +15,58 @@
  * limitations under the License.
  */
 
-package com.rest4j;
+package com.rest4j.impl.recursive;
 
-import org.json.JSONObject;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class Patch<T> {
-	final private T original;
-	final private T patched;
-	final private JSONObject changedProperties;
+public class Root {
+	int number;
+	Map<String, Integer> map;
+	Map<String, Leaf> objectMap;
+	Leaf object;
+	List<Leaf> array;
 
-	public Patch(T original, T patched, JSONObject patch) {
-		this.original = original;
-		this.patched = patched;
-		this.changedProperties = patch;
+	public int getNumber() {
+		return number;
 	}
 
-	public T getOriginal() {
-		return original;
+	public void setNumber(int number) {
+		this.number = number;
 	}
 
-	public T getPatched() {
-		return patched;
+	public Map<String, Integer> getMap() {
+		return map;
 	}
 
-	public JSONObject getChangedProperties() {
-		return changedProperties;
+	public void setMap(Map<String, Integer> map) {
+		this.map = map;
+	}
+
+	public Leaf getObject() {
+		return object;
+	}
+
+	public void setObject(Leaf object) {
+		this.object = object;
+	}
+
+	public List<Leaf> getArray() {
+		return array;
+	}
+
+	public void setArray(List<Leaf> array) {
+		this.array = array;
+	}
+
+	public Map<String, Leaf> getObjectMap() {
+		return objectMap;
+	}
+
+	public void setObjectMap(Map<String, Leaf> objectMap) {
+		this.objectMap = objectMap;
 	}
 }

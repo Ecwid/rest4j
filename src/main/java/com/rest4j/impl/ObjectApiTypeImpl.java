@@ -26,7 +26,6 @@ import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +33,7 @@ import java.util.logging.Logger;
 /**
 * @author Joseph Kapizza <joseph@rest4j.com>
 */
-public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
+public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, PatchableType {
 	static final Logger log = Logger.getLogger(ObjectApiType.class.getName());
 	final Model model;
 	final MarshallerImpl marshaller;
@@ -82,17 +81,23 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 		}
 		JSONObject object = (JSONObject) val;
 
+		Object inst = createInstance(object);
+
+		if (inst == null) return null;
+
+		getMapping(inst.getClass()).unmarshal(object, inst);
+
+		return inst;
+	}
+
+	@Override
+	public Object createInstance(JSONObject object) throws ApiException {
 		Object inst = null;
 		try {
 			inst = factory.createInstance(name, clz, object);
 		} catch (JSONException e) {
 			throw new ApiException("Cannot create instance of "+name+": "+e.getMessage()).setHttpStatus(500);
 		}
-
-		if (inst == null) return null;
-
-		getMapping(inst.getClass()).unmarshal(object, inst);
-
 		return inst;
 	}
 
@@ -108,14 +113,15 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType {
 		return json;
 	}
 
-	Patch unmarshalPatch(Object original, JSONObject object) throws ApiException {
-		if (original == null) return new Patch(null, null, new HashMap<String, Object>());
+	@Override
+	public Object unmarshalPatch(Object original, JSONObject object) throws ApiException {
+		if (original == null) return null;
 
 		Object patched = Util.deepClone(original);
 
-		HashMap<String, Object> result = getMapping(original.getClass()).unmarshalPatch(object, patched);
+		getMapping(original.getClass()).unmarshalPatch(object, patched);
 
-		return new Patch(original, patched, result);
+		return patched;
 	}
 
 	@Override

@@ -15,33 +15,17 @@
  * limitations under the License.
  */
 
-package com.rest4j;
+package com.rest4j.impl;
 
+import com.rest4j.ApiException;
+import com.rest4j.type.ApiType;
 import org.json.JSONObject;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class Patch<T> {
-	final private T original;
-	final private T patched;
-	final private JSONObject changedProperties;
+public interface PatchableType extends ApiType {
+	Object unmarshalPatch(Object original, JSONObject object) throws ApiException;
 
-	public Patch(T original, T patched, JSONObject patch) {
-		this.original = original;
-		this.patched = patched;
-		this.changedProperties = patch;
-	}
-
-	public T getOriginal() {
-		return original;
-	}
-
-	public T getPatched() {
-		return patched;
-	}
-
-	public JSONObject getChangedProperties() {
-		return changedProperties;
-	}
+	Object createInstance(JSONObject object) throws ApiException;
 }

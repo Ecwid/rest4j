@@ -15,33 +15,28 @@
  * limitations under the License.
  */
 
-package com.rest4j;
-
-import org.json.JSONObject;
+package com.rest4j.impl.recursive;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class Patch<T> {
-	final private T original;
-	final private T patched;
-	final private JSONObject changedProperties;
+public class Leaf {
+	String string;
+	int number;
 
-	public Patch(T original, T patched, JSONObject patch) {
-		this.original = original;
-		this.patched = patched;
-		this.changedProperties = patch;
+	public String getString() {
+		return string;
 	}
 
-	public T getOriginal() {
-		return original;
+	public void setString(String string) {
+		this.string = string;
 	}
 
-	public T getPatched() {
-		return patched;
+	public int getNumber() {
+		return number;
 	}
 
-	public JSONObject getChangedProperties() {
-		return changedProperties;
+	public void setNumber(int number) {
+		this.number = number;
 	}
 }

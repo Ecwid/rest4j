@@ -35,4 +35,7 @@ public abstract class ApiTypeImpl implements ApiType {
 	abstract Object unmarshal(Object val) throws ApiException;
 
 	abstract Object marshal(Object val) throws ApiException;
+
 }
+
+

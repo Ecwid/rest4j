@@ -26,6 +26,8 @@ import com.rest4j.impl.petapi.*;
 import com.rest4j.impl.polymorphic.Bird;
 import com.rest4j.impl.polymorphic.Cat;
 import com.rest4j.impl.polymorphic.ObjectFactory;
+import com.rest4j.impl.recursive.Leaf;
+import com.rest4j.impl.recursive.Root;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,10 +39,7 @@ import javax.annotation.Nullable;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -515,6 +514,56 @@ public class MarshallerTest {
 		Some some = (Some)marshaller.getObjectType("Some").unmarshal(new JSONObject("{\"mappedConvert\":\"xxx\",\"complexConvert\":{\"mappedConvert\":\"yyy\",\"complexConvert\":null,\"simpleConvert\":\"yyy\"},\"simpleConvert\":\"xxx\"}"));
 		assertEquals("xxx", some.getSimpleConvert().getValue());
 		assertEquals("yyy", some.getComplexConvert());
+	}
+
+	@Test public void testUnmarshalPatch_array_nopatch() throws Exception {
+		createMarshaller("recursive-patch.xml");
+		Root root = new Root();
+		try {
+			marshaller.getObjectType("Root").unmarshalPatch(root, new JSONObject("{map:{\"one\":1},object:{string:\"test\"},array:[{string:\"test\"}]}"));
+			fail();
+		} catch (ApiException ex) {
+			assertEquals("Field Leaf.number is absent", ex.getMessage());
+		}
+	}
+
+	@Test public void testUnmarshalPatch_recursive_new_object() throws Exception {
+		createMarshaller("recursive-patch.xml");
+		Root root = new Root();
+		Root patched = (Root) marshaller.getObjectType("Root").unmarshalPatch(root, new JSONObject("{map:{\"one\":1},objectMap:{\"key\":{string:\"test\"}},object:{string:\"test\"},array:[{string:\"test\",number:1}]}"));
+		HashMap<String, Integer> map = new HashMap<String, Integer>();
+		map.put("one", 1);
+		assertEquals(map, patched.getMap());
+		assertEquals("test", patched.getObjectMap().get("key").getString());
+		assertEquals(1, patched.getArray().size());
+		assertEquals("test", patched.getObject().getString());
+	}
+
+	@Test public void testUnmarshalPatch_recursive_change() throws Exception {
+		createMarshaller("recursive-patch.xml");
+		Root root = new Root();
+		Leaf leaf = new Leaf();
+		leaf.setNumber(5);
+		Map<String, Integer> map = new HashMap<String, Integer>();
+		map.put("two", 2);
+		root.setMap(map);
+		root.setObject(leaf);
+		Map<String, Leaf> omap = new HashMap<String, Leaf>();
+		omap.put("key", leaf);
+		root.setObjectMap(omap);
+		List<Leaf> array = new ArrayList<Leaf>();
+		array.add(leaf);
+		root.setArray(array);
+		Root patched = (Root) marshaller.getObjectType("Root").unmarshalPatch(root, new JSONObject("{map:{\"one\":1},objectMap:{\"key\":{string:\"test\"}},object:{string:\"test\"},array:[{string:\"test\",number:1}]}"));
+		map = new HashMap<String, Integer>();
+		map.put("one", 1);
+		map.put("two", 2);
+		assertEquals(map, patched.getMap());
+		assertEquals("test", patched.getObjectMap().get("key").getString());
+		assertEquals(5, patched.getObjectMap().get("key").getNumber());
+		assertEquals(1, patched.getArray().size());
+		assertEquals("test", patched.getObject().getString());
+		assertEquals(5, patched.getObject().getNumber());
 	}
 
 	static JSONObject createMaxJson() throws JSONException {

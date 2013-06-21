@@ -11,7 +11,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -95,18 +94,15 @@ public class ConcreteClassMapping {
 		}
 	}
 
-	HashMap<String, Object> unmarshalPatch(JSONObject object, Object patched) throws ApiException {
-		HashMap<String, Object> result = new HashMap<String, Object>();
+	void unmarshalPatch(JSONObject object, Object patched) throws ApiException {
 
 		for (FieldMapping field : getOrderedFieldsForUnmarshal()) {
 			if (object.has(field.name)) {
 				Object fieldVal = object.opt(field.name);
-				fieldVal = field.unmarshal(fieldVal);
+				fieldVal = field.unmarshalPatch(fieldVal, patched);
 				field.set(patched, fieldVal);
-				result.put(field.name, fieldVal);
 			}
 		}
-		return result;
 	}
 
 	private ArrayList<FieldMapping> getOrderedFieldsForUnmarshal() {

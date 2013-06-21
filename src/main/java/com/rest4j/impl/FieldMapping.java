@@ -76,6 +76,10 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 
 	abstract boolean isReadonly();
 
+	boolean isWriteOnly() {
+		return field.getAccess() == FieldAccessType.WRITEONLY;
+	}
+
 	public Object unmarshal(Object val) throws ApiException {
 		if (JSONObject.NULL == val) {
 			if (nullable) return null;
@@ -92,6 +96,26 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 			return result;
 		} catch (ApiException apiex) {
 			throw Util.replaceValue(apiex, "Field " + parent + "." + name);
+		}
+	}
+
+	public Object unmarshalPatch(Object val, Object patched) throws ApiException {
+		if (type instanceof PatchableType) {
+			if (JSONObject.NULL == val) {
+				if (nullable) return null;
+				throw new ApiException("Field " + parent + "." + name + " cannot be null");
+			}
+			if (!(val instanceof JSONObject)) {
+				throw new ApiException("JSON object expected for " + parent + "." + name);
+			}
+			PatchableType ptype = (PatchableType)type;
+			Object originalVal = isWriteOnly() ? null : get(patched);
+			if (originalVal == null) {
+				originalVal = ptype.createInstance((JSONObject)val);
+			}
+			return ptype.unmarshalPatch(originalVal, (JSONObject)val);
+		} else {
+			return unmarshal(val);
 		}
 	}
 
@@ -198,4 +222,5 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 			}
 		}
 	}
+
 }
