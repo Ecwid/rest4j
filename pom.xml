@@ -19,7 +19,7 @@
 
     <groupId>com.rest4j</groupId>
     <artifactId>rest4j-core</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>1.0</version>
 
 	<properties>
 		<spring.version>3.0.7.RELEASE</spring.version>
