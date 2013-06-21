@@ -28,6 +28,8 @@ import org.w3c.dom.NodeList;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Iterator;
@@ -39,6 +41,10 @@ import java.util.Iterator;
 public class Util {
 
 	public static Class getClass(Type javaClass) {
+		if (javaClass instanceof GenericArrayType) {
+			Class elementClass = getClass(((GenericArrayType) javaClass).getGenericComponentType());
+			return Array.newInstance(elementClass,0).getClass();
+		}
 		if (javaClass instanceof Class) {
 			return (Class) javaClass;
 		} else if (javaClass instanceof ParameterizedType) {

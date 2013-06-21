@@ -25,8 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.*;
 
 /**
@@ -42,13 +41,18 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 
 	@Override
 	public boolean check(Type javaClass) {
+		if (javaClass instanceof GenericArrayType) {
+			return elementType.check(((GenericArrayType)javaClass).getGenericComponentType());
+		}
 		Class clz = Util.getClass(javaClass);
 		if (clz == null) return false;
-		if (clz != List.class && clz != Set.class) return false;
+		if (clz != List.class && clz != Set.class && !clz.isArray()) return false;
 		if (javaClass instanceof ParameterizedType) {
 			ParameterizedType pType = (ParameterizedType) javaClass;
 			// a parameter is the element type
-			return  elementType.check(pType.getActualTypeArguments()[0]);
+			return elementType.check(pType.getActualTypeArguments()[0]);
+		} else if (clz.isArray()) {
+			return elementType.check(clz.getComponentType());
 		} else {
 			return false;
 		}
@@ -57,26 +61,72 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	@Override
 	public Object cast(Object value, Type javaClass) {
 		if (value == null) return null;
-		ParameterizedType pType = (ParameterizedType) javaClass;
-		Type elementJavaType = pType.getActualTypeArguments()[0];
-		Collection input = (Collection)value;
-		Collection newCollection;
-		if (Util.getClass(javaClass) == List.class) {
-			newCollection = new ArrayList(input.size());
-		} else if (Util.getClass(javaClass) == Set.class) {
-			newCollection = new LinkedHashSet(input.size());
+		Class clz = Util.getClass(javaClass);
+		if (clz != null && clz.isArray() || javaClass instanceof GenericArrayType) {
+			Type componentType;
+			if (clz != null && clz.isArray()) componentType = clz.getComponentType();
+			else componentType = ((GenericArrayType)javaClass).getGenericComponentType();
+			Class componentClass = Util.getClass(componentType);
+			Object array = Array.newInstance(componentClass, size(value));
+			int i=0;
+			for (Object element: iterable(value)) {
+				Array.set(array, i++, elementType.cast(element, componentType));
+			}
+			return array;
 		} else {
-			throw new AssertionError("Unexpected array type "+value.getClass());
+			ParameterizedType pType = (ParameterizedType) javaClass;
+			Type elementJavaType = pType.getActualTypeArguments()[0];
+			Collection newCollection;
+			if (Util.getClass(javaClass) == List.class) {
+				newCollection = new ArrayList(size(value));
+			} else if (Util.getClass(javaClass) == Set.class) {
+				newCollection = new LinkedHashSet(size(value));
+			} else {
+				throw new AssertionError("Unexpected array type "+value.getClass());
+			}
+			for (Object element: iterable(value)) {
+				newCollection.add(elementType.cast(element, elementJavaType));
+			}
+			return newCollection;
 		}
-		for (Object element: input) {
-			newCollection.add(elementType.cast(element, elementJavaType));
-		}
-		return newCollection;
+	}
+
+	static int size(final Object value) {
+		if (value instanceof Collection) return ((Collection)value).size();
+		return Array.getLength(value);
+	}
+
+	static Iterable iterable(final Object value) {
+		if (value instanceof Iterable) return (Iterable) value;
+		if (!value.getClass().isArray()) throw new AssertionError("Expected array or Iterable");
+		final int length = Array.getLength(value);
+		return new Iterable() {
+			@Override
+			public Iterator iterator() {
+				return new Iterator() {
+					int i=0;
+
+					@Override
+					public boolean hasNext() {
+						return i < length;
+					}
+
+					@Override
+					public Object next() {
+						return Array.get(value, i++);
+					}
+
+					@Override
+					public void remove() {
+					}
+				};
+			}
+		};
 	}
 
 	@Override
 	public String getJavaName() {
-		return "List<"+elementType.getJavaName()+"> or Set<"+elementType.getJavaName()+">";
+		return "List, Set or an array of <"+elementType.getJavaName()+">";
 	}
 
 	@Override
@@ -107,11 +157,8 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	Object marshal(Object val) throws ApiException {
 		if (val == null) return JSONObject.NULL;
 		JSONArray array = new JSONArray();
-		if (!(val instanceof Collection)) {
-			throw new ApiException("Expected "+getJavaName()+", "+val.getClass()+" given").setHttpStatus(500);
-		}
 		int i=0;
-		for (Object element: (Collection)val) {
+		for (Object element: iterable(val)) {
 			try {
 				array.put(i++, marshaller.marshal(elementType, element));
 			} catch (JSONException e) {

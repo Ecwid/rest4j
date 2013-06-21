@@ -18,6 +18,8 @@
 package com.rest4j.impl;
 
 import com.rest4j.*;
+import com.rest4j.impl.array.Array;
+import com.rest4j.impl.array.Element;
 import com.rest4j.impl.converters.*;
 import com.rest4j.impl.model.API;
 import com.rest4j.impl.model.FieldType;
@@ -564,6 +566,15 @@ public class MarshallerTest {
 		assertEquals(1, patched.getArray().size());
 		assertEquals("test", patched.getObject().getString());
 		assertEquals(5, patched.getObject().getNumber());
+	}
+
+	@Test public void testMarshal_java_arrays() throws Exception {
+		createMarshaller("arrays.xml");
+		Array array = new Array();
+		array.setNumbers(new int[]{1,2,3,4,5});
+		array.setObjects(new Element[]{new Element(),new Element()});
+		JSONObject json = (JSONObject)marshaller.getObjectType("Array").marshal(array);
+		assertEquals("{\"numbers\":[1,2,3,4,5],\"objects\":[{},{}]}", json.toString());
 	}
 
 	static JSONObject createMaxJson() throws JSONException {
