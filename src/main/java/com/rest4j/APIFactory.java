@@ -102,13 +102,14 @@ public class APIFactory {
 
 			SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 			Source apiXsdSource = new StreamSource(getClass().getResourceAsStream("api.xsd"));
+			List<Source> xsds = new ArrayList<Source>();
+			xsds.add(apiXsdSource);
 			Schema schema;
-			if (StringUtils.isEmpty(extSchema)) {
-				schema = schemaFactory.newSchema(apiXsdSource);
-			} else {
-				Source extSchemaSource = new StreamSource(getClass().getClassLoader().getResourceAsStream(extSchema));
-				schema = schemaFactory.newSchema(new Source[]{apiXsdSource, extSchemaSource});
+			if (!StringUtils.isEmpty(extSchema)) {
+				xsds.add(new StreamSource(getClass().getClassLoader().getResourceAsStream(extSchema)));
 			}
+			xsds.add(new StreamSource(getClass().getResourceAsStream("html.xsd")));
+			schema = schemaFactory.newSchema(xsds.toArray(new Source[xsds.size()]));
 
 			Unmarshaller unmarshaller = context.createUnmarshaller();
 			unmarshaller.setSchema(schema);
@@ -120,7 +121,8 @@ public class APIFactory {
 			return api;
 		} catch (javax.xml.bind.UnmarshalException e) {
 			if (e.getLinkedException() instanceof SAXParseException) {
-				throw new ConfigurationException("Cannot parse "+apiDescriptionXml+": "+e.getLinkedException().getMessage());
+				SAXParseException spe = (SAXParseException)e.getLinkedException();
+				throw new ConfigurationException("Cannot parse "+apiDescriptionXml, spe);
 			}
 			throw new AssertionError(e);
 		} catch (ConfigurationException e) {

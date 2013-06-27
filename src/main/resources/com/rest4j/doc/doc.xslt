@@ -50,7 +50,7 @@
 
 	<xsl:template match="endpoint" xml:space="preserve">
 		<xsl:call-template name="page">
-			<xsl:with-param name="title" select="description/title"/>
+			<xsl:with-param name="title" select="description/html:title"/>
 			<xsl:with-param name="navigation">
 				<xsl:call-template name="navigation">
 					<xsl:with-param name="current-file"><xsl:apply-templates select="." mode="filename"/></xsl:with-param>
@@ -58,7 +58,7 @@
 			</xsl:with-param>
 			<xsl:with-param name="content">
 				<div class="endpoint-description">
-				<xsl:copy-of select="description/(*|text())[fn:name()!='title']"/>
+				<xsl:copy-of select="description/(*|text())[fn:name()!='html:title']"/>
 				</div>
 				<xsl:apply-templates select="." mode="request"/>
 
@@ -351,7 +351,7 @@
 		<xsl:param name="endpoint"/>
 		<xsl:call-template name="nav-link">
 			<xsl:with-param name="current-file" select="$current-file"/>
-			<xsl:with-param name="title" select="$endpoint/description/title"/>
+			<xsl:with-param name="title" select="$endpoint/description/html:title"/>
 			<xsl:with-param name="filename"><xsl:apply-templates select="$endpoint" mode="filename"/></xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>

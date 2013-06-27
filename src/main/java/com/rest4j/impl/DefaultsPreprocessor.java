@@ -43,6 +43,7 @@ public class DefaultsPreprocessor implements Preprocessor {
 
 	@Override
 	public void process(Document xml) throws ConfigurationException {
+		cleanup(xml.getDocumentElement());
 		for (Node element : it(xml.getDocumentElement().getChildNodes())) {
 			if ("model".equals(element.getNodeName())) {
 				Node fields = find(element, "fields");
@@ -53,6 +54,20 @@ public class DefaultsPreprocessor implements Preprocessor {
 				}
 			} else if ("endpoint".equals(element.getNodeName())) {
 				processEndpoint(xml, element);
+			}
+		}
+	}
+
+	// for some reason, some parsers insert xml:base attribute into an external-entity xml elements, which
+	// will fail during JAXB validation
+	private void cleanup(Element element) {
+		NamedNodeMap attributes = element.getAttributes();
+		if (attributes.getNamedItemNS("http://www.w3.org/XML/1998/namespace", "base") != null) {
+			attributes.removeNamedItemNS("http://www.w3.org/XML/1998/namespace", "base");
+		}
+		for (Node child: it(element.getChildNodes())) {
+			if (child instanceof Element) {
+				cleanup((Element)child);
 			}
 		}
 	}
@@ -142,7 +157,7 @@ public class DefaultsPreprocessor implements Preprocessor {
 					Object returned = docMethod.invoke(value);
 					String doc = null;
 					if (returned != null) doc = returned.toString();
-					Element valueElement = xml.createElement("value");
+					Element valueElement = xml.createElementNS("http://rest4j.com/api-description", "value");
 					valueElement.appendChild(xml.createTextNode(name));
 					if (doc != null && !doc.equals(name)) {
 						valueElement.setAttribute("description", doc);

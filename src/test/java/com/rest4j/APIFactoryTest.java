@@ -26,7 +26,6 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -98,7 +97,11 @@ public class APIFactoryTest {
 			new APIFactory(getClass().getResource(xmlFile), "", provider).createAPI();
 			fail();
 		} catch (ConfigurationException ex) {
-			assertTrue(ex.getMessage(), ex.getMessage().contains(exceptionMessageSubstring));
+			String message = ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage();
+			if (!message.contains(exceptionMessageSubstring)) {
+				ex.printStackTrace();
+				fail(ex.getMessage());
+			}
 		}
 	}
 

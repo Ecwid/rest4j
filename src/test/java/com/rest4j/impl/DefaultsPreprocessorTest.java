@@ -31,6 +31,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
@@ -39,7 +41,7 @@ import static org.junit.Assert.fail;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class DefaultsPreprocessorTest {
+public class DefaultsPreprocessorTest implements NamespaceContext {
 
 	DefaultsPreprocessor preprocessor = new DefaultsPreprocessor();
 
@@ -69,13 +71,14 @@ public class DefaultsPreprocessorTest {
 
 		XPathFactory xPathfactory = new XPathFactoryImpl();
 		XPath xpath = xPathfactory.newXPath();
-		NodeList nodes = (NodeList) xpath.compile("//model[@name='Test1']/fields/simple/values/value/text()").evaluate(xml, XPathConstants.NODESET);
+		xpath.setNamespaceContext(this);
+		NodeList nodes = (NodeList) xpath.compile("//model[@name='Test1']/fields/simple/values/api:value/text()").evaluate(xml, XPathConstants.NODESET);
 		assertEquals("TEST,TEST1,S", join(nodes));
-		nodes = (NodeList) xpath.compile("//model[@name='Test2']/fields/simple/values/value/text()").evaluate(xml, XPathConstants.NODESET);
+		nodes = (NodeList) xpath.compile("//model[@name='Test2']/fields/simple/values/api:value/text()").evaluate(xml, XPathConstants.NODESET);
 		assertEquals("TEST,TEST1,S", join(nodes));
-		nodes = (NodeList) xpath.compile("//model[@name='Test1']/fields/simple/values/value/@description").evaluate(xml, XPathConstants.NODESET);
+		nodes = (NodeList) xpath.compile("//model[@name='Test1']/fields/simple/values/api:value/@description").evaluate(xml, XPathConstants.NODESET);
 		assertEquals("Just TEST", join(nodes));
-		nodes = (NodeList) xpath.compile("//model[@name='Test2']/fields/simple/values/value/@description").evaluate(xml, XPathConstants.NODESET);
+		nodes = (NodeList) xpath.compile("//model[@name='Test2']/fields/simple/values/api:value/@description").evaluate(xml, XPathConstants.NODESET);
 		assertEquals("TEST doc,TEST1 doc,S doc", join(nodes));
 	}
 
@@ -90,6 +93,21 @@ public class DefaultsPreprocessorTest {
 
 	private Document parse(String name) throws SAXException, IOException, ParserConfigurationException {
 		return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(getClass().getResourceAsStream(name));
+	}
+
+	@Override
+	public String getNamespaceURI(String prefix) {
+		return "api".equals(prefix) ? "http://rest4j.com/api-description" : null;
+	}
+
+	@Override
+	public String getPrefix(String namespaceURI) {
+		return "http://rest4j.com/api-description".equals(namespaceURI) ? "api" : null;
+	}
+
+	@Override
+	public Iterator getPrefixes(String namespaceURI) {
+		return "http://rest4j.com/api-description".equals(namespaceURI) ? Collections.singletonList("api").iterator() : new ArrayList<String>().iterator();
 	}
 
 	private class MyNamespaceContext implements NamespaceContext {

@@ -35,7 +35,6 @@ import java.util.List;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware {
-	// parameters
 	String apiDescriptionXml;
 	String pathPrefix;
 	ServiceProvider serviceProvider;
@@ -43,8 +42,9 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 	String serviceSuffix;
 	String mapperSuffix;
 	String converterSuffix;
+	String extSchema;
+	String extObjectFactory;
 
-	// state
 	API api;
 	private ApplicationContext context;
 
@@ -89,9 +89,10 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 	}
 
 	@Override
-	public synchronized API getObject() throws ConfigurationException {
+	public synchronized API getObject() throws ConfigurationException, ClassNotFoundException {
 		if (api == null) {
-			URL url = Thread.currentThread().getContextClassLoader().getResource(apiDescriptionXml);
+			ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+			URL url = classLoader.getResource(apiDescriptionXml);
 			if (url == null) {
 				url = getClass().getClassLoader().getResource(apiDescriptionXml);
 				if (url == null) {
@@ -99,6 +100,13 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 				}
 			}
 			APIFactory fac = new APIFactory(url, getPathPrefix(), getServiceProvider());
+			Class extObjectFactoryClass = null;
+			if (extObjectFactory != null) {
+				extObjectFactoryClass = classLoader.loadClass(extObjectFactory);
+			}
+			if (extSchema != null) {
+				fac.setExtSchema(extSchema, extObjectFactoryClass);
+			}
 			for (ObjectFactory of: getObjectFactories()) {
 				fac.addObjectFactory(of);
 			}
@@ -146,4 +154,19 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 		this.converterSuffix = converterSuffix;
 	}
 
+	public String getExtSchema() {
+		return extSchema;
+	}
+
+	public void setExtSchema(String extSchema) {
+		this.extSchema = extSchema;
+	}
+
+	public String getExtObjectFactory() {
+		return extObjectFactory;
+	}
+
+	public void setExtObjectFactory(String extObjectFactory) {
+		this.extObjectFactory = extObjectFactory;
+	}
 }

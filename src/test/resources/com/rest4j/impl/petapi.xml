@@ -15,12 +15,13 @@
   ~ limitations under the License.
   -->
 
-<api xmlns="http://rest4j.com/api-description">
+<api xmlns="http://rest4j.com/api-description" xmlns:html="http://www.w3.org/1999/xhtml">
 
 	<model name="Pet" class="com.rest4j.impl.petapi.Pet" field-mapper="petMapping">
 		<fields>
 			<simple name="id" type="number" access="readonly" nullable="false"/>
 			<simple name="type" type="string" default="dog" nullable="true">
+				<description><html:title>xxx</html:title><html:a href="test">test</html:a></description>
 				<values>
 					<value>dog</value>
 					<value>cat</value>
