@@ -20,7 +20,7 @@ package com.rest4j;
 import org.w3c.dom.Document;
 
 /**
- * Pre-processes API xml definition. Register pre-processors with APIFactory#addPreprocessor.
+ * Pre-processes API xml definition. Register pre-processors with ApiFactory#addPreprocessor.
  *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */

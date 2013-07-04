@@ -74,7 +74,7 @@ public class APIFactoryTest {
 	}
 
 	@Test public void testCreateApi_with_extensions() throws Exception {
-		APIFactory fac = new APIFactory(getClass().getResource("impl/extendable-api.xml"), "", provider);
+		ApiFactory fac = new ApiFactory(getClass().getResource("impl/extendable-api.xml"), "", provider);
 		fac.setExtSchema("com/rest4j/impl/api-ext.xsd", com.rest4j.impl.ext.ObjectFactory.class);
 		dao = new Object() {
 			public com.rest4j.impl.petapi.Pet get() {
@@ -93,7 +93,7 @@ public class APIFactoryTest {
 
 	private void validate(String exceptionMessageSubstring, String xmlFile) {
 		try {
-			new APIFactory(getClass().getResource(xmlFile), "", provider).createAPI();
+			new ApiFactory(getClass().getResource(xmlFile), "", provider).createAPI();
 			fail();
 		} catch (ConfigurationException ex) {
 			String message = ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage();

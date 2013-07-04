@@ -23,7 +23,7 @@ import java.io.IOException;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public interface APIResponse {
+public interface ApiResponse {
 
 	int getStatus();
 

@@ -131,7 +131,7 @@ public class APIImplTest {
 	}
 
 	@Test public void testFindEndpoint_not_found() throws IOException, ApiException {
-		APIRequest request = mock(APIRequest.class);
+		ApiRequest request = mock(ApiRequest.class);
 		when(request.method()).thenReturn("GET");
 		when(request.path()).thenReturn("/api/v2/pets/xxx/zzz");
 		try {
@@ -143,7 +143,7 @@ public class APIImplTest {
 	}
 
 	@Test public void testFindEndpoint_wrong_method() throws IOException, ApiException {
-		APIRequest request = mock(APIRequest.class);
+		ApiRequest request = mock(ApiRequest.class);
 		when(request.method()).thenReturn("SNAP");
 		when(request.path()).thenReturn("/api/v2/pets/xxx");
 		try {
@@ -155,7 +155,7 @@ public class APIImplTest {
 	}
 
 	@Test public void testFindEndpoint_success() throws IOException, ApiException {
-		APIRequest request = mock(APIRequest.class);
+		ApiRequest request = mock(ApiRequest.class);
 		when(request.method()).thenReturn("GET");
 		when(request.path()).thenReturn("/api/v2/pets/555");
 		APIImpl.EndpointMapping endpoint = api.findEndpoint(request);
@@ -163,7 +163,7 @@ public class APIImplTest {
 	}
 
 	@Test public void testGetAllowedMethods() throws IOException, ApiException {
-		APIRequest request = mock(APIRequest.class);
+		ApiRequest request = mock(ApiRequest.class);
 		when(request.method()).thenReturn("GET");
 		when(request.path()).thenReturn("/api/v2/pets/555");
 		List<String> allowedMethods = api.getAllowedMethods(request);
@@ -251,13 +251,13 @@ public class APIImplTest {
 	}
 
 	@Test(expected=ApiException.class) public void testServe_wrong_prefix() throws IOException, ApiException {
-		APIRequest request = mockRequest("GET", "/xxx");
+		ApiRequest request = mockRequest("GET", "/xxx");
 		api.serve(request);
 	}
 
 	@Test public void testServe_options() throws IOException, ApiException {
-		APIRequest request = mockRequest("OPTIONS", "/api/v2/pets/555");
-		APIResponse response = api.serve(request);
+		ApiRequest request = mockRequest("OPTIONS", "/api/v2/pets/555");
+		ApiResponse response = api.serve(request);
 		assertEquals("*", getHeader(response, "Access-Control-Allow-Origin"));
 		assertEquals("DELETE, GET, PUT, PATCH, OPTIONS", getHeader(response, "Access-Control-Allow-Methods"));
 
@@ -271,16 +271,16 @@ public class APIImplTest {
 	}
 
 	@Test public void testServe_invoke() throws IOException, ApiException {
-		APIRequest request = mockRequest("DELETE", "/api/v2/pets/555");
+		ApiRequest request = mockRequest("DELETE", "/api/v2/pets/555");
 		when(request.param("access_token")).thenReturn("123123123");
-		APIResponse response = api.serve(request);
+		ApiResponse response = api.serve(request);
 		assertEquals(555, deleted);
 		assertEquals("123123123", access_token);
 	}
 
 	@Test public void testServe_get_json_object() throws IOException, ApiException, JSONException {
-		APIRequest request = mockRequest("GET", "/api/v2/pets/555");
-		APIResponse response = api.serve(request);
+		ApiRequest request = mockRequest("GET", "/api/v2/pets/555");
+		ApiResponse response = api.serve(request);
 		assertEquals(0, deleted);
 		assertNull(access_token);
 		assertEquals(200, response.getStatus());
@@ -297,7 +297,7 @@ public class APIImplTest {
 	}
 
 	@Test public void testServe_etag() throws IOException, ApiException, JSONException {
-		APIRequest request = mockRequest("GET", "/api/v2/pets/555");
+		ApiRequest request = mockRequest("GET", "/api/v2/pets/555");
 		when(request.header("If-None-Match")).thenReturn("\"xxx\"");
 		ApiResponseImpl response = (ApiResponseImpl) api.serve(request);
 
@@ -315,7 +315,7 @@ public class APIImplTest {
 	}
 
 	@Test public void testServe_mandatory_param() throws IOException, ApiException, JSONException {
-		APIRequest request = mockRequest("PUT", "/api/v2/pets/555");
+		ApiRequest request = mockRequest("PUT", "/api/v2/pets/555");
 		try {
 			api.serve(request);
 			fail();
@@ -326,7 +326,7 @@ public class APIImplTest {
 	}
 
 	@Test public void testServe_post() throws Exception {
-		APIRequest request = mockRequest("POST", "/api/v2/pets");
+		ApiRequest request = mockRequest("POST", "/api/v2/pets");
 		when(request.param("access_token")).thenReturn("xxx");
 		JSONObject json = MarshallerImplTest.createMaxJson();
 		when(request.objectInput()).thenReturn(json);
@@ -340,7 +340,7 @@ public class APIImplTest {
 	}
 
 	@Test public void testServe_put_as_patch() throws Exception {
-		APIRequest request = mockRequest("PUT", "/api/v2/pets/555");
+		ApiRequest request = mockRequest("PUT", "/api/v2/pets/555");
 		when(request.param("access_token")).thenReturn("xxx");
 		JSONObject json = new JSONObject("{id:5,weight:5.67}");
 		when(request.objectInput()).thenReturn(json);
@@ -354,7 +354,7 @@ public class APIImplTest {
 	}
 
 	@Test public void testServe_patch() throws Exception {
-		APIRequest request = mockRequest("PATCH", "/api/v2/pets/555");
+		ApiRequest request = mockRequest("PATCH", "/api/v2/pets/555");
 		JSONObject json = new JSONObject("{id:5,weight:5.67}");
 		when(request.objectInput()).thenReturn(json);
 		api.serve(request);
@@ -380,7 +380,7 @@ public class APIImplTest {
 		};
 		api = new APIImpl(root, "/api/v2", serviceProvider);
 
-		APIRequest request = mockRequest("PUT", "/api/v2/pets/555");
+		ApiRequest request = mockRequest("PUT", "/api/v2/pets/555");
 		when(request.param("access_token")).thenReturn("xxx");
 		JSONObject json = new JSONObject();
 		json.put("id", 5);
@@ -400,7 +400,7 @@ public class APIImplTest {
 	}
 
 	@Test public void testServe_if_match() throws Exception {
-		APIRequest request = mockRequest("GET", "/api/v2/pets/555");
+		ApiRequest request = mockRequest("GET", "/api/v2/pets/555");
 
 		ApiResponseImpl response = (ApiResponseImpl) api.serve(request);
 		String etag = response.response.getETag();
@@ -429,9 +429,9 @@ public class APIImplTest {
 				APIImplTest.this.testProp = testProp;
 			}
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("petapi1.xml"), "/api/v2", serviceProvider).createAPI();
+		api = (APIImpl) new ApiFactory(getClass().getResource("petapi1.xml"), "/api/v2", serviceProvider).createAPI();
 
-		APIRequest request = mockRequest("PUT", "/api/v2/pets/555");
+		ApiRequest request = mockRequest("PUT", "/api/v2/pets/555");
 		JSONObject json = new JSONObject();
 		json.put("testProp", "TEST");
 		when(request.objectInput()).thenReturn(json);
@@ -446,9 +446,9 @@ public class APIImplTest {
 			public Pet get(int id, String access_token) { return new Pet(); }
 			public void put(int id, Pet patched) { }
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("securepetapi.xml"), "/api/v2", serviceProvider).createAPI();
-		APIRequest request = mockRequest("GET", "/api/v2/pets/555");
-		APIResponse response = api.serve(request);
+		api = (APIImpl) new ApiFactory(getClass().getResource("securepetapi.xml"), "/api/v2", serviceProvider).createAPI();
+		ApiRequest request = mockRequest("GET", "/api/v2/pets/555");
+		ApiResponse response = api.serve(request);
 
 		try {
 			when(request.param("access_token")).thenReturn("TOKEN");
@@ -468,9 +468,9 @@ public class APIImplTest {
 			public Pet get(int id, String access_token) { return null; }
 			public void put(int id, Pet patched) { }
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("securepetapi.xml"), "/api/v2", serviceProvider).createAPI();
+		api = (APIImpl) new ApiFactory(getClass().getResource("securepetapi.xml"), "/api/v2", serviceProvider).createAPI();
 
-		APIRequest request = mockRequest("PUT", "/api/v2/pets/555");
+		ApiRequest request = mockRequest("PUT", "/api/v2/pets/555");
 		when(request.objectInput()).thenReturn(new JSONObject());
 
 		try {
@@ -491,8 +491,8 @@ public class APIImplTest {
 				throw new PetIndisposedException("Max");
 			}
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("petapi-exceptions.xml"), "/api/v2", serviceProvider).createAPI();
-		APIRequest request = mockRequest("GET", "/api/v2/pets/555");
+		api = (APIImpl) new ApiFactory(getClass().getResource("petapi-exceptions.xml"), "/api/v2", serviceProvider).createAPI();
+		ApiRequest request = mockRequest("GET", "/api/v2/pets/555");
 
 		try {
 			api.serve(request);
@@ -504,12 +504,12 @@ public class APIImplTest {
 	}
 
 	@Test public void testServe_enum_in_params() throws Exception {
-		APIRequest request = mockRequest("GET", "/api/v2/pets");
+		ApiRequest request = mockRequest("GET", "/api/v2/pets");
 		when(request.param("type")).thenReturn("cat");
 		listedPets = Collections.singletonList(pet);
 
 		// 1. successful attempt
-		APIResponse response = api.serve(request);
+		ApiResponse response = api.serve(request);
 		assertEquals("cat", type);
 		JSONArray array = (JSONArray) ((JSONResource)response.getResource()).getJSONObject();
 		assertEquals(1, array.length());
@@ -538,7 +538,7 @@ public class APIImplTest {
 			public void patch(int id, Patch<Pet> patch) {}
 		};
 		api = new APIImpl(root, "/api/v2", serviceProvider);
-		APIRequest request = mockRequest("POST", "/api/v2/pets");
+		ApiRequest request = mockRequest("POST", "/api/v2/pets");
 		when(request.param("access_token")).thenReturn("TOKEN");
 		when(request.objectInput()).thenReturn(new JSONObject("{id:123,name:'max',gender:'male',writeonly:true}"));
 
@@ -553,36 +553,36 @@ public class APIImplTest {
 
 	@Test public void testServe_jsonp_json() throws Exception {
 		iniJsonpApi();
-		APIRequest request = mockRequest("GET", "/api/v2/pet");
+		ApiRequest request = mockRequest("GET", "/api/v2/pet");
 		when(request.param("callback")).thenReturn("callback_func");
 
-		APIResponse response = api.serve(request);
+		ApiResponse response = api.serve(request);
 		assertEquals("callback_func({\"id\":0})", getBody(response));
 	}
 
 	@Test public void testServe_jsonp_no_callback_parameter() throws Exception {
 		iniJsonpApi();
-		APIRequest request = mockRequest("GET", "/api/v2/pet");
+		ApiRequest request = mockRequest("GET", "/api/v2/pet");
 
-		APIResponse response = api.serve(request);
+		ApiResponse response = api.serve(request);
 		assertEquals("{\"id\":0}", getBody(response));
 	}
 
 	@Test public void testServe_jsonp_plain_text() throws Exception {
 		iniJsonpApi();
-		APIRequest request = mockRequest("GET", "/api/v2/pet/text");
+		ApiRequest request = mockRequest("GET", "/api/v2/pet/text");
 		when(request.param("callback")).thenReturn("callback_func");
 
-		APIResponse response = api.serve(request);
+		ApiResponse response = api.serve(request);
 		assertEquals("callback_func(\"Just a pet\\n\")", getBody(response));
 	}
 
 	@Test public void testServe_jsonp_binary() throws Exception {
 		iniJsonpApi();
-		APIRequest request = mockRequest("GET", "/api/v2/pet/binary");
+		ApiRequest request = mockRequest("GET", "/api/v2/pet/binary");
 		when(request.param("callback")).thenReturn("callback_func");
 
-		APIResponse response = api.serve(request);
+		ApiResponse response = api.serve(request);
 		assertEquals("\001\002\003\004\005", getBody(response)); // no jsonp support for binaries
 	}
 
@@ -594,9 +594,9 @@ public class APIImplTest {
 				return pets;
 			}
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("map-type.xml"), "/api/v2", serviceProvider).createAPI();
-		APIRequest request = mockRequest("GET", "/api/v2/test");
-		APIResponse response = api.serve(request);
+		api = (APIImpl) new ApiFactory(getClass().getResource("map-type.xml"), "/api/v2", serviceProvider).createAPI();
+		ApiRequest request = mockRequest("GET", "/api/v2/test");
+		ApiResponse response = api.serve(request);
 		assertEquals("{\"Max\":{\"id\":123,\"name\":\"Max\"}}", getBody(response));
 	}
 
@@ -608,9 +608,9 @@ public class APIImplTest {
 				return pets;
 			}
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("set-type.xml"), "/api/v2", serviceProvider).createAPI();
-		APIRequest request = mockRequest("GET", "/api/v2/test");
-		APIResponse response = api.serve(request);
+		api = (APIImpl) new ApiFactory(getClass().getResource("set-type.xml"), "/api/v2", serviceProvider).createAPI();
+		ApiRequest request = mockRequest("GET", "/api/v2/test");
+		ApiResponse response = api.serve(request);
 		assertEquals("[{\"id\":123,\"name\":\"Max\"}]", getBody(response));
 	}
 
@@ -624,10 +624,10 @@ public class APIImplTest {
 				return pet;
 			}
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("optional-body.xml"), "/api/v2", serviceProvider).createAPI();
-		APIRequest request = mockRequest("POST", "/api/v2/test");
+		api = (APIImpl) new ApiFactory(getClass().getResource("optional-body.xml"), "/api/v2", serviceProvider).createAPI();
+		ApiRequest request = mockRequest("POST", "/api/v2/test");
 		when(request.objectInput()).thenThrow(new ApiException("Missing body"));
-		APIResponse response = api.serve(request);
+		ApiResponse response = api.serve(request);
 		assertTrue(called);
 		assertEquals("{\"id\":123,\"name\":null}", getBody(response));
 	}
@@ -639,9 +639,9 @@ public class APIImplTest {
 				return null;
 			}
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("optional-body.xml"), "/api/v2", serviceProvider).createAPI();
-		APIRequest request = mockRequest("POST", "/api/v2/test");
-		APIResponse response = api.serve(request);
+		api = (APIImpl) new ApiFactory(getClass().getResource("optional-body.xml"), "/api/v2", serviceProvider).createAPI();
+		ApiRequest request = mockRequest("POST", "/api/v2/test");
+		ApiResponse response = api.serve(request);
 		assertTrue(called);
 		assertEquals("", getBody(response));
 	}
@@ -652,23 +652,23 @@ public class APIImplTest {
 			public Reader getText() { return new StringReader("Just a pet\n"); }
 			public InputStream getBinary() { return new ByteArrayInputStream(new byte[]{1,2,3,4,5}); }
 		};
-		api = (APIImpl) new APIFactory(getClass().getResource("jsonp-api.xml"), "/api/v2", serviceProvider).createAPI();
+		api = (APIImpl) new ApiFactory(getClass().getResource("jsonp-api.xml"), "/api/v2", serviceProvider).createAPI();
 	}
 
-	String getBody(APIResponse response) throws IOException {
+	String getBody(ApiResponse response) throws IOException {
 		MockHttpServletResponse mockResponse = new MockHttpServletResponse();
 		response.outputBody(mockResponse);
 	    return mockResponse.getContentAsString();
 	}
 
-	APIRequest mockRequest(String method, String path) {
-		APIRequest request = mock(APIRequest.class);
+	ApiRequest mockRequest(String method, String path) {
+		ApiRequest request = mock(ApiRequest.class);
 		when(request.method()).thenReturn(method);
 		when(request.path()).thenReturn(path);
 		return request;
 	}
 
-	private String getHeader(APIResponse response, String name) {
+	private String getHeader(ApiResponse response, String name) {
 		for (Headers.Header header: ((ApiResponseImpl)response).headers.headers) {
 			if (header.name.equalsIgnoreCase(name)) return header.value;
 		}

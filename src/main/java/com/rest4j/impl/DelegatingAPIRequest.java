@@ -18,7 +18,7 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
-import com.rest4j.APIRequest;
+import com.rest4j.ApiRequest;
 import com.rest4j.json.JSONArray;
 import com.rest4j.json.JSONObject;
 
@@ -29,10 +29,10 @@ import java.io.Reader;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class DelegatingAPIRequest extends APIRequest {
-	APIRequest peer;
+public class DelegatingApiRequest extends ApiRequest {
+	ApiRequest peer;
 
-	public DelegatingAPIRequest(APIRequest peer) {
+	public DelegatingApiRequest(ApiRequest peer) {
 		this.peer = peer;
 	}
 

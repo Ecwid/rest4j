@@ -62,7 +62,7 @@ public class ApiException extends Exception {
 		return this;
 	}
 
-	public APIResponse createResponse() {
+	public ApiResponse createResponse() {
 		throw new IllegalArgumentException("This exception was not thrown from API.serve(); cannot createResponse()");
 	}
 

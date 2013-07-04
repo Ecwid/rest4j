@@ -34,9 +34,9 @@ public class Controller implements org.springframework.web.servlet.mvc.Controlle
 
 	@Override
 	public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
-		APIResponse response;
+		ApiResponse response;
 		try {
-			response = api.serve(APIRequest.from(httpServletRequest));
+			response = api.serve(ApiRequest.from(httpServletRequest));
 		} catch (ApiException e) {
 			response = e.createResponse();
 		}

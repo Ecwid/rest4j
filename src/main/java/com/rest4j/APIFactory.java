@@ -46,7 +46,7 @@ import java.util.List;
  *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class APIFactory {
+public class ApiFactory {
 	URL apiDescriptionXml;
 	String pathPrefix;
 	ServiceProvider serviceProvider;
@@ -68,7 +68,7 @@ public class APIFactory {
 	 * @param serviceProvider Used to lookup services and custom field mappers during initialization step.
 	 *                        Services are looked up once during the call to createAPI().
 	 */
-	public APIFactory(URL apiDescriptionXml, String pathPrefix, ServiceProvider serviceProvider) {
+	public ApiFactory(URL apiDescriptionXml, String pathPrefix, ServiceProvider serviceProvider) {
 		this.apiDescriptionXml = apiDescriptionXml;
 		this.pathPrefix = pathPrefix;
 		this.serviceProvider = serviceProvider;

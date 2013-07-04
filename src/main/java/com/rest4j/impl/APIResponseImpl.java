@@ -17,8 +17,8 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.APIRequest;
-import com.rest4j.APIResponse;
+import com.rest4j.ApiRequest;
+import com.rest4j.ApiResponse;
 import com.rest4j.Resource;
 import org.apache.commons.lang.StringUtils;
 
@@ -30,7 +30,7 @@ import java.util.zip.GZIPOutputStream;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class ApiResponseImpl implements APIResponse {
+public class ApiResponseImpl implements ApiResponse {
 	String callbackFunctionName = null;
 	int status = 200;
 	String statusMessage;
@@ -39,7 +39,7 @@ public class ApiResponseImpl implements APIResponse {
 	boolean compress;
 	boolean addEtag;
 
-	public ApiResponseImpl(APIImpl api, APIRequest request, Resource response) {
+	public ApiResponseImpl(APIImpl api, ApiRequest request, Resource response) {
 		this.response = response;
 		if (api.getParams().getJsonpParamName() != null) {
 			this.callbackFunctionName = request.param(api.getParams().getJsonpParamName());

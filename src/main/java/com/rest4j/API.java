@@ -25,16 +25,16 @@ import java.util.List;
  */
 public interface API {
 	/**
-	 * Performs RESTful request on a given APIRequest.
+	 * Performs RESTful request on a given ApiRequest.
 	 *
 	 * @param request
 	 * @return Either JSONArray or JSONObject. Null when the request should not have a body.
 	 * @throws IOException On error reading the request
 	 * @throws ApiException Any business-related error (including those propagated from Service)
 	 */
-	APIResponse serve(APIRequest request) throws IOException, ApiException;
+	ApiResponse serve(ApiRequest request) throws IOException, ApiException;
 
-	List<String> getAllowedMethods(APIRequest request) throws IOException, ApiException;
+	List<String> getAllowedMethods(ApiRequest request) throws IOException, ApiException;
 
 	Marshaller getMarshaller();
 

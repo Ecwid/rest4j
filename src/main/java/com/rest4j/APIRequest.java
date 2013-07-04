@@ -29,7 +29,7 @@ import java.io.Reader;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public abstract class APIRequest {
+public abstract class ApiRequest {
 	public abstract String method();
 	public abstract String path();
 	public abstract String param(String name);
@@ -40,7 +40,7 @@ public abstract class APIRequest {
 	public abstract Reader textInput() throws IOException, ApiException;
 	public abstract boolean https();
 
-	public static APIRequest from(HttpServletRequest request) {
+	public static ApiRequest from(HttpServletRequest request) {
 		return new ApiRequestServletImpl(request);
 	}
 

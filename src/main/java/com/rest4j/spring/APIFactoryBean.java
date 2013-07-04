@@ -108,7 +108,7 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 					throw new ConfigurationException("Cannot find "+apiDescriptionXml+" in the classpath");
 				}
 			}
-			APIFactory fac = new APIFactory(url, getPathPrefix(), getServiceProvider());
+			ApiFactory fac = new ApiFactory(url, getPathPrefix(), getServiceProvider());
 			Class extObjectFactoryClass = null;
 			if (extObjectFactory != null) {
 				extObjectFactoryClass = classLoader.loadClass(extObjectFactory);

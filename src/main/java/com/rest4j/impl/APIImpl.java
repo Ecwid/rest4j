@@ -93,10 +93,10 @@ public class APIImpl implements API {
 	}
 
 	class APIExceptionWrapper extends ApiException {
-		APIRequest request;
+		ApiRequest request;
 		ApiException ex;
 
-		APIExceptionWrapper(APIRequest request, ApiException ex) {
+		APIExceptionWrapper(ApiRequest request, ApiException ex) {
 			super(ex.getMessage());
 			setHttpStatus(ex.getHttpStatus());
 			this.request = request;
@@ -124,7 +124,7 @@ public class APIImpl implements API {
 		}
 
 		@Override
-		public APIResponse createResponse() {
+		public ApiResponse createResponse() {
 			return new ApiResponseImpl(APIImpl.this, request, getJSONResponse() )
 					.setStatus(getHttpStatus(), getMessage())
 					.addHeader("Cache-control", "must-revalidate,no-cache,no-store");
@@ -138,7 +138,7 @@ public class APIImpl implements API {
 
 
 	@Override
-	public APIResponse serve(APIRequest request) throws IOException, ApiException {
+	public ApiResponse serve(ApiRequest request) throws IOException, ApiException {
 		try {
 			return serveInt(request);
 		} catch (ApiException ex) {
@@ -147,7 +147,7 @@ public class APIImpl implements API {
 		}
 	}
 
-	APIResponse serveInt(APIRequest request) throws IOException, ApiException {
+	ApiResponse serveInt(ApiRequest request) throws IOException, ApiException {
 
 		if (!request.path().startsWith(pathPrefix)) {
 			throw new ApiException("Wrong path: " + request.path() + ", does not match the path prefix '" + pathPrefix + "'").setHttpStatus(404);
@@ -173,7 +173,7 @@ public class APIImpl implements API {
 		}
 		Object getResult = null;
 		if (!request.method().equals("GET")) {
-			APIRequest get = changeMethod(request, "GET");
+			ApiRequest get = changeMethod(request, "GET");
 			try {
 				EndpointMapping getEndpoint = findEndpoint(get);
 				if (request.header("If-Match") != null || endpoint.isPatch()) {
@@ -205,7 +205,7 @@ public class APIImpl implements API {
 	}
 
 	interface ArgHandler {
-		Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException;
+		Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException;
 	}
 
 	class EndpointMapping {
@@ -272,14 +272,14 @@ public class APIImpl implements API {
 						paramsParamFound = true;
 						args[i] = new ArgHandler() {
 							@Override
-							public Object get(APIRequest request, Object getResponse, Params params) {
+							public Object get(ApiRequest request, Object getResponse, Params params) {
 								return params;
 							}
 						};
 					} else if ((fieldMapping = checkFieldAsArgument(name, paramType)) != null) {
 						args[i] = new ArgHandler() {
 							@Override
-							public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
+							public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
 								Object val = request.objectInput().opt(name);
 								val = fieldMapping.unmarshal(val);
 								try {
@@ -322,7 +322,7 @@ public class APIImpl implements API {
 					final String paramName = param.getName();
 					args[i] = new ArgHandler() {
 						@Override
-						public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
+						public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
 							Object value = params.get(paramName);
 							if (value == null) value = defaultValue;
 							return paramApiType.cast(value, paramType);
@@ -362,7 +362,7 @@ public class APIImpl implements API {
 				expect = InputStream.class;
 				argHandler = new ArgHandler() {
 					@Override
-					public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
+					public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
 						return request.binaryInput();
 					}
 				};
@@ -370,7 +370,7 @@ public class APIImpl implements API {
 				expect = Reader.class;
 				argHandler = new ArgHandler() {
 					@Override
-					public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
+					public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
 						return request.textInput();
 					}
 				};
@@ -382,7 +382,7 @@ public class APIImpl implements API {
 					}
 					argHandler = new ArgHandler() {
 						@Override
-						public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
+						public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
 							JSONObject object;
 							try {
 								object = request.objectInput();
@@ -406,7 +406,7 @@ public class APIImpl implements API {
 								final ObjectApiTypeImpl objectType = marshaller.getObjectType(patchType.getType());
 								return new ArgHandler() {
 									@Override
-									public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
+									public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
 										JSONObject object;
 										try {
 											object = request.objectInput();
@@ -426,7 +426,7 @@ public class APIImpl implements API {
 						final ObjectApiTypeImpl objectType = marshaller.getObjectType(patchType.getType());
 						return new ArgHandler() {
 							@Override
-							public Object get(APIRequest request, Object getResponse, Params params) throws IOException, ApiException {
+							public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
 								JSONObject object;
 								try {
 									object = request.objectInput();
@@ -452,11 +452,11 @@ public class APIImpl implements API {
 			return argHandler;
 		}
 
-		Resource invoke(APIRequest request, Object getResult) throws IOException, ApiException {
+		Resource invoke(ApiRequest request, Object getResult) throws IOException, ApiException {
 			return resourceFactory.createResourceFrom(invokeRaw(request, getResult), endpoint.getResponse());
 		}
 
-		Object invokeRaw(APIRequest request, Object getResult) throws IOException, ApiException {
+		Object invokeRaw(ApiRequest request, Object getResult) throws IOException, ApiException {
 			Map<String, String> pathParams = match(getPath(request));
 			ParamsImpl params = new ParamsImpl();
 			for (Parameter param: endpoint.getParameters().getParameter()) {
@@ -535,8 +535,8 @@ public class APIImpl implements API {
 		return parsed;
 	}
 
-	private DelegatingAPIRequest changeMethod(final APIRequest request, final String newMethod) {
-		return new DelegatingAPIRequest(request) {
+	private DelegatingApiRequest changeMethod(final ApiRequest request, final String newMethod) {
+		return new DelegatingApiRequest(request) {
 			@Override
 			public String method() {
 				return newMethod;
@@ -544,7 +544,7 @@ public class APIImpl implements API {
 		};
 	}
 
-	EndpointMapping findEndpoint(APIRequest request) throws IOException, ApiException {
+	EndpointMapping findEndpoint(ApiRequest request) throws IOException, ApiException {
 		boolean pathFound = false;
 		for (EndpointMapping endpoint: endpoints) {
 			Map<String, String> pathParams = endpoint.match(getPath(request));
@@ -565,18 +565,18 @@ public class APIImpl implements API {
 		throw new ApiException("File not found").setHttpStatus(404);
 	}
 
-	private String getPath(APIRequest request) {
+	private String getPath(ApiRequest request) {
 		return request.path().substring(pathPrefix.length());
 	}
 
-	private String getAllowedMethodsString(APIRequest request) throws IOException, ApiException {
+	private String getAllowedMethodsString(ApiRequest request) throws IOException, ApiException {
 		List<String> methods = getAllowedMethods(request);
 		methods.add("OPTIONS");
 		return StringUtils.join(methods, ", ");
 	}
 
 	@Override
-	public List<String> getAllowedMethods(APIRequest request) throws IOException, ApiException {
+	public List<String> getAllowedMethods(ApiRequest request) throws IOException, ApiException {
 		List<String> methods = new ArrayList<String>();
 		for (EndpointMapping endpoint: endpoints) {
 			if (endpoint.matches(getPath(request))) {

@@ -17,7 +17,7 @@
 
 package com.rest4j.doc;
 
-import com.rest4j.APIFactory;
+import com.rest4j.ApiFactory;
 import com.rest4j.Preprocessor;
 import com.sun.org.apache.xml.internal.resolver.helpers.FileURL;
 import org.apache.commons.io.IOUtils;
@@ -134,7 +134,7 @@ public class DocGenerator implements URIResolver {
 	}
 
 	public void generate() throws Exception {
-		APIFactory fac = new APIFactory(apiXml, null, null);
+		ApiFactory fac = new ApiFactory(apiXml, null, null);
 		for (String className: preprocessors) {
 			Preprocessor p = (Preprocessor) Class.forName(className).newInstance();
 			fac.addPreprocessor(p);

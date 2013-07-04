@@ -45,7 +45,7 @@ public class APIServlet extends HttpServlet {
 			}
 			ServiceProvider serviceProvider = (ServiceProvider) serviceProviderClass.newInstance();
 
-			APIFactory apiFactory = new APIFactory(xmlResource, pathPrefix, serviceProvider);
+			ApiFactory apiFactory = new ApiFactory(xmlResource, pathPrefix, serviceProvider);
 			String facs = config.getInitParameter("objectFactories");
 			if (facs != null) {
 				for (String className: facs.split(",")) {
@@ -90,9 +90,9 @@ public class APIServlet extends HttpServlet {
 
 	@Override
 	protected void service(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ServletException, IOException {
-		APIResponse response;
+		ApiResponse response;
 		try {
-			response = api.serve(APIRequest.from(httpServletRequest));
+			response = api.serve(ApiRequest.from(httpServletRequest));
 		} catch (ApiException e) {
 			response = e.createResponse();
 		}

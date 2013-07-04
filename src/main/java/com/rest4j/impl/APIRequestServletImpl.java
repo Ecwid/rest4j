@@ -18,11 +18,11 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
-import com.rest4j.APIRequest;
-import org.apache.commons.io.IOUtils;
+import com.rest4j.ApiRequest;
 import com.rest4j.json.JSONArray;
 import com.rest4j.json.JSONException;
 import com.rest4j.json.JSONObject;
+import org.apache.commons.io.IOUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -32,7 +32,7 @@ import java.io.Reader;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class ApiRequestServletImpl extends APIRequest {
+public class ApiRequestServletImpl extends ApiRequest {
 	private final HttpServletRequest request;
 
 	public ApiRequestServletImpl(HttpServletRequest request) {
