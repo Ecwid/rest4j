@@ -21,9 +21,9 @@ import com.rest4j.*;
 import com.rest4j.impl.model.API;
 import com.rest4j.impl.model.*;
 import com.rest4j.impl.petapi.*;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.json.JSONArray;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -94,7 +94,7 @@ public class APIImplTest {
 
 		context = JAXBContext.newInstance("com.rest4j.impl.model");
 
-		JAXBElement<API> element = (JAXBElement<API>) context.createUnmarshaller().unmarshal(MarshallerTest.class.getResourceAsStream("petapi.xml"));
+		JAXBElement<API> element = (JAXBElement<API>) context.createUnmarshaller().unmarshal(MarshallerImplTest.class.getResourceAsStream("petapi.xml"));
 		root = element.getValue();
 
 		serviceProvider = new ServiceProvider() {
@@ -284,7 +284,7 @@ public class APIImplTest {
 		assertEquals(0, deleted);
 		assertNull(access_token);
 		assertEquals(200, response.getStatus());
-		JSONObject json = (JSONObject) response.getJSONResponse();
+		JSONObject json = (JSONObject) ((JSONResource)response.getResource()).getJSONObject();
 		assertEquals(555, json.getInt("id"));
 		assertEquals("Max", json.getString("name"));
 		assertEquals("male", json.getString("gender"));
@@ -328,12 +328,12 @@ public class APIImplTest {
 	@Test public void testServe_post() throws Exception {
 		APIRequest request = mockRequest("POST", "/api/v2/pets");
 		when(request.param("access_token")).thenReturn("xxx");
-		JSONObject json = MarshallerTest.createMaxJson();
+		JSONObject json = MarshallerImplTest.createMaxJson();
 		when(request.objectInput()).thenReturn(json);
 		ApiResponseImpl response = (ApiResponseImpl) api.serve(request);
 
 		assertEquals(200, response.getStatus());
-		assertNotNull(response.getJSONResponse());
+		assertTrue(response.getResource() instanceof JSONResource);
 		assertEquals(0, created.getId());
 		assertEquals(Collections.singletonList(234), created.getFriends());
 		assertEquals(4.3, created.getPetWeight(), 1e-5);
@@ -499,7 +499,7 @@ public class APIImplTest {
 			fail();
 		} catch (ApiException ex) {
 			assertEquals(400, ex.getHttpStatus());
-			assertEquals("INDISPOSED", ex.getJSONResponse().getString("code"));
+			assertEquals("INDISPOSED", ((JSONObject)ex.getJSONResponse().getJSONObject()).getString("code"));
 		}
 	}
 
@@ -511,7 +511,7 @@ public class APIImplTest {
 		// 1. successful attempt
 		APIResponse response = api.serve(request);
 		assertEquals("cat", type);
-		JSONArray array = (JSONArray) response.getJSONResponse();
+		JSONArray array = (JSONArray) ((JSONResource)response.getResource()).getJSONObject();
 		assertEquals(1, array.length());
 		assertEquals("Max", array.getJSONObject(0).getString("name"));
 
@@ -590,7 +590,7 @@ public class APIImplTest {
 		pets = new Object() {
 			public Map<String,Pet> get() {
 				Map<String,Pet> pets = new HashMap<String,Pet>();
-				pets.put("Max", MarshallerTest.createMax());
+				pets.put("Max", MarshallerImplTest.createMax());
 				return pets;
 			}
 		};
@@ -604,7 +604,7 @@ public class APIImplTest {
 		pets = new Object() {
 			public Set<Pet> get() {
 				Set<Pet> pets = new LinkedHashSet<Pet>();
-				pets.add(MarshallerTest.createMax());
+				pets.add(MarshallerImplTest.createMax());
 				return pets;
 			}
 		};

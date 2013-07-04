@@ -15,21 +15,15 @@
  * limitations under the License.
  */
 
-package com.rest4j.type;
+package com.rest4j;
 
-import com.rest4j.ApiException;
-import org.w3c.dom.Element;
-
-import java.util.List;
+import com.rest4j.type.Field;
+import com.rest4j.type.ObjectApiType;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public interface ObjectApiType extends ApiType {
-	String getName();
-	List<Field> getFields() throws ApiException;
-	List<Element> getExtra();
-	Class getJavaClass();
-
-	ObjectApiType getSubtype(Class subclass) throws ApiException;
+public interface FieldFilterChain {
+	Object marshal(Object json, Object parentObject, ObjectApiType parentType, Field field);
+	Object unmarshal(Object json, Object parentObject, ObjectApiType parentType, Field field);
 }

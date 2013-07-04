@@ -31,5 +31,5 @@ public interface Converter<F,T> {
 	boolean checkOuterType(ApiType outerType);
 	String getRequiredOuterType();
 	T marshal(F object, ApiType outerType);
-	F unmarshal(T object, @Nullable Type innerType, ApiType outerType);
+	F unmarshal(T object, @Nullable Type innerType, ApiType outerType) throws ApiException;
 }

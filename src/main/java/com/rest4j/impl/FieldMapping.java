@@ -21,7 +21,7 @@ import com.rest4j.*;
 import com.rest4j.impl.model.*;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.SimpleApiType;
-import org.json.JSONObject;
+import com.rest4j.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.List;

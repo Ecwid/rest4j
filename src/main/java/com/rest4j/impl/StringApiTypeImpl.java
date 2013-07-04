@@ -21,7 +21,7 @@ import com.rest4j.ApiException;
 import com.rest4j.ConfigurationException;
 import com.rest4j.Marshaller;
 import com.rest4j.type.StringApiType;
-import org.json.JSONObject;
+import com.rest4j.json.JSONObject;
 
 import java.lang.reflect.Type;
 

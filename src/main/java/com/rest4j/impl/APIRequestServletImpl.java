@@ -20,9 +20,9 @@ package com.rest4j.impl;
 import com.rest4j.ApiException;
 import com.rest4j.APIRequest;
 import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.json.JSONArray;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;

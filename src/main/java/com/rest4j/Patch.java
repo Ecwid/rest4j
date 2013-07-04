@@ -17,7 +17,7 @@
 
 package com.rest4j;
 
-import org.json.JSONObject;
+import com.rest4j.json.JSONObject;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>

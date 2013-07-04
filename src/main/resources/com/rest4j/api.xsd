@@ -197,8 +197,20 @@ documentation and client libraries, as well as for query dispatching.
 		</xsd:attribute>
 		<xsd:attribute name="class" type="xsd:string" use="required">
 			<xsd:annotation><xsd:documentation>
-				A fully qualified Java class name that represents this model on a service level. Services
+				A fully qualified Java class or interface name that represents this model on a service level. Services
 				receive and return objects of this class. An exception can also be mapped to a JSON model.
+				For inner classes, separate their names from
+				the containing outer class with $ sign, like this: com.acme.apple.Outer$Inner.
+
+				This class gets instantiated on input, unless there is an @instantiate attribute or an ObjectFactory.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="instantiate" type="xsd:string" use="optional">
+			<xsd:annotation><xsd:documentation>
+				An optional fully qualified Java class name that is an implementation class for this model.
+				Must be a subclass of @class. Unlike @class, which is used to declare properties,
+				@instantiate is used to instantiate objects. An alternative approach is using ObjectFactory.
+
 				For inner classes, separate their names from
 				the containing outer class with $ sign, like this: com.acme.apple.Outer$Inner.
 			</xsd:documentation></xsd:annotation>

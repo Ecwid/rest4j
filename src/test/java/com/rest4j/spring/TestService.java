@@ -18,11 +18,12 @@
 package com.rest4j.spring;
 
 import com.rest4j.ApiException;
+import com.rest4j.JSONResource;
 import com.rest4j.Patch;
 import com.rest4j.impl.petapi.Pet;
 import com.rest4j.impl.petapi.UpdateResult;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +34,7 @@ import java.util.List;
 public class TestService {
 	public List<Pet> list(String type) throws JSONException, ApiException {
 		if (type == null) {
-			throw new ApiException("No type parameter", new JSONObject("{field:'type'}"));
+			throw new ApiException("No type parameter", new JSONResource(new JSONObject("{field:'type'}"), null));
 		}
 		Pet pet = new Pet();
 		pet.setType(type);

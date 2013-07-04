@@ -1,22 +1,23 @@
 package com.rest4j.impl;
 
-import com.rest4j.ApiException;
-import com.rest4j.ConfigurationException;
-import com.rest4j.DynamicMapper;
-import com.rest4j.ServiceProvider;
+import com.rest4j.*;
 import com.rest4j.impl.model.Field;
 import com.rest4j.impl.model.FieldAccessType;
 import com.rest4j.impl.model.Model;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.type.ObjectApiType;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
+import org.w3c.dom.Element;
 
+import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class ConcreteClassMapping {
+public class ConcreteClassMapping implements ObjectApiType {
 	private final Model model;
 	private final MarshallerImpl marshaller;
 	String name;
@@ -24,13 +25,15 @@ public class ConcreteClassMapping {
 	FieldMapping[] fields;
 	List<Field> leftoverFields = new ArrayList<Field>();
 	Object customMapper;
+	ObjectApiTypeImpl objectApiType;
 
-	public ConcreteClassMapping(MarshallerImpl marshaller, Class clz, Model model, Object customMapper, ServiceProvider serviceProvider) throws ConfigurationException {
+	public ConcreteClassMapping(MarshallerImpl marshaller, Class clz, Model model, Object customMapper, ServiceProvider serviceProvider, ObjectApiTypeImpl objectApiType) throws ConfigurationException {
 		this.marshaller = marshaller;
 		this.name = model.getName();
 		this.clz = clz;
 		this.customMapper = customMapper;
 		this.model = model;
+		this.objectApiType = objectApiType;
 
 		if (model.getFields() == null) {
 			this.fields = new FieldMapping[0];
@@ -70,6 +73,7 @@ public class ConcreteClassMapping {
 		// first unmarshal non-custom-mapping properties, so that we could use them in a custom mapping logic
 		for (FieldMapping field : getOrderedFieldsForUnmarshal()) {
 			Object fieldVal = object.opt(field.name);
+			fieldVal = objectApiType.fieldFilter.unmarshal(fieldVal, inst, objectApiType, field);
 			if (fieldVal == null && field.isOptional()) {
 				// absent fields are initialized to default values or null
 				continue;
@@ -84,6 +88,7 @@ public class ConcreteClassMapping {
 			if (field.access == FieldAccessType.WRITEONLY) continue;
 			Object fieldValue = field.value == null ? field.get(val) : field.value;
 			fieldValue = field.marshal(fieldValue);
+			fieldValue = objectApiType.fieldFilter.marshal(fieldValue, val, objectApiType, field);
 			if (fieldValue != null) {
 				try {
 					json.put(field.name, fieldValue);
@@ -99,6 +104,7 @@ public class ConcreteClassMapping {
 		for (FieldMapping field : getOrderedFieldsForUnmarshal()) {
 			if (object.has(field.name)) {
 				Object fieldVal = object.opt(field.name);
+				fieldVal = objectApiType.fieldFilter.unmarshal(fieldVal, patched, objectApiType, field);
 				fieldVal = field.unmarshalPatch(fieldVal, patched);
 				field.set(patched, fieldVal);
 			}
@@ -127,11 +133,48 @@ public class ConcreteClassMapping {
 
 	}
 
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
 	public List<com.rest4j.type.Field> getFields() {
 		ArrayList<com.rest4j.type.Field> list = new ArrayList<com.rest4j.type.Field>();
 		for (FieldMapping mapping: fields) {
 			list.add(mapping);
 		}
 		return list;
+	}
+
+	@Override
+	public List<Element> getExtra() {
+		return objectApiType.getExtra();
+	}
+
+	@Override
+	public Class getJavaClass() {
+		return clz;
+	}
+
+	@Override
+	public ObjectApiType getSubtype(Class subclass) throws ApiException {
+		return objectApiType.getSubtype(subclass);
+	}
+
+	@Override
+	public boolean check(Type javaClass) {
+		javaClass = Util.getClass(javaClass);
+		return javaClass == clz;
+	}
+
+	@Override
+	public Object cast(@Nullable Object value, Type javaClass) throws NullPointerException {
+		return value;
+	}
+
+	@Override
+	public String getJavaName() {
+		return clz.getName();
 	}
 }

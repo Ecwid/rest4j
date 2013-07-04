@@ -20,8 +20,8 @@ package com.rest4j.spring;
 import com.rest4j.ApiException;
 import com.rest4j.ObjectFactory;
 import com.rest4j.ObjectFactoryChain;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

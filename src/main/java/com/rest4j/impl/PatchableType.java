@@ -19,7 +19,7 @@ package com.rest4j.impl;
 
 import com.rest4j.ApiException;
 import com.rest4j.type.ApiType;
-import org.json.JSONObject;
+import com.rest4j.json.JSONObject;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>

@@ -18,15 +18,16 @@
 package com.rest4j.impl;
 
 import com.rest4j.API;
+import com.rest4j.impl.model.*;
+import com.rest4j.impl.model.Endpoint;
 import com.rest4j.*;
 import com.rest4j.ObjectFactory;
-import com.rest4j.impl.model.*;
 import com.rest4j.impl.model.Error;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.SimpleApiType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONObject;
+import com.rest4j.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +54,10 @@ public class APIImpl implements API {
 	}
 
 	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories) throws ConfigurationException {
+		this(root, pathPrefix, serviceProvider, factories, new FieldFilter[0]);
+	}
+
+	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories, FieldFilter[] fieldFilters) throws ConfigurationException {
 		this.pathPrefix = pathPrefix;
 		this.root = root;
 		if (root.getParams() == null) this.params = new APIParams();
@@ -63,11 +68,17 @@ public class APIImpl implements API {
 		for (Object child: root.getEndpointAndModel()) {
 			if (child instanceof Model) {
 				Model model = (Model) child;
-				Object customMapper = serviceProvider.lookupFieldMapper(model.getName(), model.getFieldMapper());
+				Object customMapper = null;
+				if (model.getFieldMapper() != null) {
+					customMapper = serviceProvider.lookupFieldMapper(model.getName(), model.getFieldMapper());
+					if (customMapper == null) {
+						throw new ConfigurationException("No mapper found with name "+model.getFieldMapper());
+					}
+				}
 				modelConfig.add(new MarshallerImpl.ModelConfig(model, customMapper));
 			}
 		}
-		marshaller = new MarshallerImpl(modelConfig, factories, serviceProvider);
+		marshaller = new MarshallerImpl(modelConfig, factories, fieldFilters, serviceProvider);
 
 		// create resourceFactory
 		resourceFactory = new ResourceFactory(marshaller);
@@ -103,7 +114,7 @@ public class APIImpl implements API {
 		}
 
 		@Override
-		public JSONObject getJSONResponse() {
+		public JSONResource getJSONResponse() {
 			return ex.getJSONResponse();
 		}
 
@@ -114,8 +125,7 @@ public class APIImpl implements API {
 
 		@Override
 		public APIResponse createResponse() {
-			JSONObject jsonResponse = getJSONResponse();
-			return new ApiResponseImpl(APIImpl.this, request, jsonResponse == null ? null : new JSONResource(jsonResponse))
+			return new ApiResponseImpl(APIImpl.this, request, getJSONResponse() )
 					.setStatus(getHttpStatus(), getMessage())
 					.addHeader("Cache-control", "must-revalidate,no-cache,no-store");
 		}
@@ -216,7 +226,7 @@ public class APIImpl implements API {
 			httpsonly = ep.isHttpsonly();
 			patch = ep.getBody() != null && ep.getBody().getPatch() != null;
 			if (service == null) {
-				throw new ConfigurationException("No service with name "+ep.getService().getName());
+				throw new ConfigurationException("No service found with name "+ep.getService().getName());
 			}
 			String method = ep.getService().getMethod();
 			if (method == null) {
@@ -474,8 +484,9 @@ public class APIImpl implements API {
 				}
 				Error error = findError(cause);
 				if (error != null) {
-					JSONObject errJSON = (JSONObject) marshaller.getObjectType(error.getType()).marshal(cause);
-					throw new ApiException(cause.getMessage(), errJSON).setHttpStatus(error.getStatus());
+					ObjectApiTypeImpl objectType = marshaller.getObjectType(error.getType());
+					JSONObject errJSON = (JSONObject) objectType.marshal(cause);
+					throw new ApiException(cause.getMessage(), new JSONResource(errJSON, objectType.getSubtype(cause.getClass()))).setHttpStatus(error.getStatus());
 				}
 				if (ite.getCause() instanceof RuntimeException) {
 					throw (RuntimeException)ite.getCause();
@@ -578,6 +589,10 @@ public class APIImpl implements API {
 	@Override
 	public MarshallerImpl getMarshaller() {
 		return marshaller;
+	}
+
+	public String getPathPrefix() {
+		return pathPrefix;
 	}
 
 	static private final Pattern ISDOUBLE = Pattern.compile("[\\.eE]");

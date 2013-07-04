@@ -20,6 +20,7 @@ package com.rest4j.impl;
 import com.rest4j.*;
 import com.rest4j.impl.model.ContentType;
 import com.rest4j.type.ApiType;
+import com.rest4j.type.ObjectApiType;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -92,7 +93,12 @@ public class ResourceFactory {
 				if (contentType.getJson().isOptional()) return null;
 				throw new ApiException("no response").setHttpStatus(500);
 			}
-			return new JSONResource(marshaller.marshal(getApiType(contentType), content));
+			ApiType apiType = getApiType(contentType);
+			ApiType concreteType = apiType;
+			if (apiType instanceof ObjectApiType) {
+				concreteType = ((ObjectApiType)apiType).getSubtype(content.getClass());
+			}
+			return new JSONResource(marshaller.marshal(apiType, content), concreteType);
 		} else if (contentType.getBinary() != null) {
 			if (content instanceof InputStream) {
 				return new BinaryResource("application/octet-stream", null, (InputStream)content);

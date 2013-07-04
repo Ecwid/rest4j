@@ -23,7 +23,7 @@ public class APIServlet extends HttpServlet {
 		super.init(config);
 		String pathPrefix = config.getInitParameter("pathPrefix");
 		if (pathPrefix == null) pathPrefix = "";
-		String xml = getMandatoryParam(config, "apiDescriptionXml");
+		String xml = getMandatoryParam(config, "apiDescriptionXml").trim();
 		try {
 			if (!xml.startsWith("/")) xml = "/"+xml;
 			URL xmlResource = config.getServletContext().getResource(xml);
@@ -36,15 +36,46 @@ public class APIServlet extends HttpServlet {
 			String serviceProviderClassName = getMandatoryParam(config, "serviceProviderClass");
 			Class serviceProviderClass;
 			try {
-				serviceProviderClass = Class.forName(serviceProviderClassName);
+				serviceProviderClass = Class.forName(serviceProviderClassName.trim());
 			} catch (ClassNotFoundException e) {
-				throw new ServletException("Cannot find class "+serviceProviderClassName);
+				throw new ServletException("Cannot find service provider class "+serviceProviderClassName);
 			}
 			if (!ServiceProvider.class.isAssignableFrom(serviceProviderClass)) {
-				throw new ServletException("Class "+serviceProviderClassName+" does not inherit "+ServiceProvider.class.getName());
+				throw new ServletException("Service provider class "+serviceProviderClassName+" does not inherit "+ServiceProvider.class.getName());
 			}
 			ServiceProvider serviceProvider = (ServiceProvider) serviceProviderClass.newInstance();
-			api = new APIFactory(xmlResource, pathPrefix, serviceProvider).createAPI();
+
+			APIFactory apiFactory = new APIFactory(xmlResource, pathPrefix, serviceProvider);
+			String facs = config.getInitParameter("objectFactories");
+			if (facs != null) {
+				for (String className: facs.split(",")) {
+					try {
+						Class facClass = Class.forName(className.trim());
+						if (!ObjectFactory.class.isAssignableFrom(facClass)) {
+							throw new ServletException("Object factory class "+className+" does not inherit "+ObjectFactory.class.getName());
+						}
+						apiFactory.addObjectFactory((ObjectFactory) facClass.newInstance());
+					} catch (ClassNotFoundException e) {
+						throw new ServletException("Cannot find factory class "+className);
+					}
+				}
+			}
+			String filters = config.getInitParameter("fieldFilters");
+			if (filters != null) {
+				for (String className: filters.split(",")) {
+					try {
+						Class ffClass = Class.forName(className.trim());
+						if (!FieldFilter.class.isAssignableFrom(ffClass)) {
+							throw new ServletException("Field filter class "+className+" does not inherit "+FieldFilter.class.getName());
+						}
+						apiFactory.addFieldFilter((FieldFilter) ffClass.newInstance());
+					} catch (ClassNotFoundException e) {
+						throw new ServletException("Cannot find filter class "+className);
+					}
+				}
+			}
+			api = apiFactory.createAPI();
+
 		} catch (MalformedURLException e) {
 			throw new ServletException(e);
 		} catch (InstantiationException e) {

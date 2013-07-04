@@ -19,7 +19,6 @@ package com.rest4j.impl;
 
 import com.rest4j.APIRequest;
 import com.rest4j.APIResponse;
-import com.rest4j.JSONResource;
 import com.rest4j.Resource;
 import org.apache.commons.lang.StringUtils;
 
@@ -72,10 +71,8 @@ public class ApiResponseImpl implements APIResponse {
 	}
 
 	@Override
-	public Object getJSONResponse() {
-		if (response instanceof JSONResource)
-			return ((JSONResource) response).getJSONObject();
-		return null;
+	public Resource getResource() {
+		return response;
 	}
 
 	@Override

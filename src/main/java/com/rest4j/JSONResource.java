@@ -17,23 +17,29 @@
 
 package com.rest4j;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.json.JSONArray;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
+import com.rest4j.type.ApiType;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Iterator;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class JSONResource implements Resource {
 	Object object;
+	ApiType apiType;
 
-	public JSONResource(Object object) {
+	public JSONResource(Object object, ApiType apiType) {
 		this.object = object;
+		this.apiType = apiType;
+	}
+
+	public ApiType getApiType() {
+		return apiType;
 	}
 
 	@Override
@@ -76,23 +82,6 @@ public class JSONResource implements Resource {
 
 	private static int hashCode(Object obj) {
 		if (obj == null) return 0;
-		if (obj instanceof JSONObject) {
-			JSONObject jsonObject = (JSONObject) obj;
-			Iterator<String> keys = jsonObject.sortedKeys();
-			int sum = 1;
-			while (keys.hasNext()) {
-				String key = keys.next();
-				sum = sum*31 + key.hashCode()*17 + hashCode(jsonObject.opt(key));
-			}
-			return sum;
-		} else if (obj instanceof JSONArray) {
-			JSONArray array = (JSONArray)obj;
-			int sum = 2;
-			for (int i=0; i<array.length(); i++) {
-				sum = sum*31+hashCode(array.opt(i));
-			}
-			return sum;
-		}
 		return obj.hashCode();
 	}
 

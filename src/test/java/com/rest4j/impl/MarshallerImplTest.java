@@ -30,9 +30,11 @@ import com.rest4j.impl.polymorphic.Cat;
 import com.rest4j.impl.polymorphic.ObjectFactory;
 import com.rest4j.impl.recursive.Leaf;
 import com.rest4j.impl.recursive.Root;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.type.Field;
+import com.rest4j.type.ObjectApiType;
+import com.rest4j.json.JSONArray;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,7 +50,7 @@ import static org.junit.Assert.*;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class MarshallerTest {
+public class MarshallerImplTest {
 
 	private Object customMapping = new PetMapping();
 	private Object someMapping = new SomeMapping();
@@ -72,17 +74,17 @@ public class MarshallerTest {
 			return null;  //To change body of implemented methods use File | Settings | File Templates.
 		}
 	};
+	private FieldFilter filter;
 
 	@Before
 	public void init() throws JAXBException, ConfigurationException {
-		String xml = "petapi.xml";
-		createMarshaller(xml);
+		createMarshaller("petapi.xml");
 	}
 
 	private void createMarshaller(String xml, ObjectFactory... ofs) throws JAXBException, ConfigurationException {
 		JAXBContext context = JAXBContext.newInstance("com.rest4j.impl.model");
 
-		JAXBElement<API> element = (JAXBElement<API>) context.createUnmarshaller().unmarshal(MarshallerTest.class.getResourceAsStream(xml));
+		JAXBElement<API> element = (JAXBElement<API>) context.createUnmarshaller().unmarshal(MarshallerImplTest.class.getResourceAsStream(xml));
 		API root = element.getValue();
 		modelConfig = new ArrayList<MarshallerImpl.ModelConfig>();
 		for (Object entry: root.getEndpointAndModel()) {
@@ -97,7 +99,7 @@ public class MarshallerTest {
 				modelConfig.add(new MarshallerImpl.ModelConfig(model, mapper));
 			}
 		}
-		marshaller = new MarshallerImpl(modelConfig, ofs, serviceProvider);
+		marshaller = new MarshallerImpl(modelConfig, ofs, filter == null ? new FieldFilter[0] : new FieldFilter[]{filter}, serviceProvider);
 	}
 
 	@Test public void testParse_number() throws Exception {
@@ -249,8 +251,9 @@ public class MarshallerTest {
 	@Test public void testMarshal_pet() throws Exception {
 		JSONObject pet = (JSONObject) marshaller.getObjectType("Pet").marshal(createMax());
 		assertFalse(pet.has("writeonly"));
-		pet.put("writeonly", true);
-		assertEquals(createMaxJson().toString(), pet.toString());
+		JSONObject maxJson = createMaxJson();
+		maxJson.remove("writeonly");
+		assertEquals(maxJson.toString(), pet.toString());
 	}
 
 	@Test public void testMarshal_custom_mapping_exception() throws Exception {
@@ -508,12 +511,12 @@ public class MarshallerTest {
 		some.setSimpleConvert(value);
 		some.setComplexConvert("yyy");
 		JSONObject json = (JSONObject) marshaller.getObjectType("Some").marshal(some);
-		assertEquals("{\"mappedConvert\":\"xxx\",\"complexConvert\":{\"mappedConvert\":\"yyy\",\"complexConvert\":null,\"simpleConvert\":\"yyy\"},\"simpleConvert\":\"xxx\"}", json.toString());
+		assertEquals("{\"simpleConvert\":\"xxx\",\"mappedConvert\":\"xxx\",\"complexConvert\":{\"simpleConvert\":\"yyy\",\"mappedConvert\":\"yyy\",\"complexConvert\":null}}", json.toString());
 	}
 
 	@Test public void testUnmarshal_with_converters() throws Exception {
 		createMarshaller("converters.xml");
-		Some some = (Some)marshaller.getObjectType("Some").unmarshal(new JSONObject("{\"mappedConvert\":\"xxx\",\"complexConvert\":{\"mappedConvert\":\"yyy\",\"complexConvert\":null,\"simpleConvert\":\"yyy\"},\"simpleConvert\":\"xxx\"}"));
+		Some some = (Some)marshaller.getObjectType("Some").unmarshal(new JSONObject("{\"simpleConvert\":\"xxx\",\"mappedConvert\":\"xxx\",\"complexConvert\":{\"simpleConvert\":\"yyy\",\"mappedConvert\":\"yyy\",\"complexConvert\":null}}"));
 		assertEquals("xxx", some.getSimpleConvert().getValue());
 		assertEquals("yyy", some.getComplexConvert());
 	}
@@ -577,15 +580,75 @@ public class MarshallerTest {
 		assertEquals("{\"numbers\":[1,2,3,4,5],\"objects\":[{},{}]}", json.toString());
 	}
 
+	@Test public void testUnmarshal_with_instantiate_attribute() throws Exception {
+		createMarshaller("instantiate.xml");
+		Pet pet = (Pet) marshaller.getObjectType("Pet").unmarshal(new JSONObject("{friends:{}}"));
+		assertEquals(LinkedList.class, pet.getFriends().getClass());
+	}
+
+	@Test public void testMarshal_with_field_filter() throws Exception {
+		filter = new FieldFilter() {
+			@Override
+			public Object marshal(Object json, Object parentJavaObject, ObjectApiType parentType, Field field, FieldFilterChain next) {
+				if (!parentType.getName().equals("Pet")) {
+					return next.marshal(json, parentJavaObject, parentType, field);
+				}
+				assertEquals(Pet.class, parentJavaObject.getClass());
+				if (field.getName().equals("weight")) {
+					json = next.marshal(json, parentJavaObject, parentType, field);
+					return ((Number)json).doubleValue()*2;
+				} else if (field.getName().equals("relations")) return null;
+				return next.marshal(json, parentJavaObject, parentType, field);
+			}
+
+			@Override
+			public Object unmarshal(Object json, Object parentJavaObject, ObjectApiType parentType, Field field, FieldFilterChain next) {
+				throw new AssertionError();
+			}
+		};
+		createMarshaller("petapi.xml");
+		Object json = marshaller.getObjectType("Pet").marshal(createMax());
+		assertEquals("{\"id\":123,\"type\":\"cat\",\"name\":\"Max\",\"weight\":8.6,\"gender\":\"male\"}", json.toString());
+	}
+
+	@Test public void testUnmarshal_with_field_filter() throws Exception {
+		filter = new FieldFilter() {
+			@Override
+			public Object marshal(Object json, Object parentJavaObject, ObjectApiType parentType, Field field, FieldFilterChain next) {
+				throw new AssertionError();
+			}
+
+			@Override
+			public Object unmarshal(Object json, Object parentJavaObject, ObjectApiType parentType, Field field, FieldFilterChain next) {
+				if (!parentType.getName().equals("Pet")) {
+					return next.unmarshal(json, parentJavaObject, parentType, field);
+				}
+				assertEquals(Pet.class, parentJavaObject.getClass());
+				if (field.getName().equals("weight")) {
+					json = next.unmarshal(json, parentJavaObject, parentType, field);
+					return ((Number)json).doubleValue()/2;
+				} else if (field.getName().equals("relations")) return new JSONArray();
+				return next.unmarshal(json, parentJavaObject, parentType, field);
+			}
+		};
+		createMarshaller("petapi.xml");
+		Pet pet = (Pet) marshaller.getObjectType("Pet").unmarshal(createMaxJson());
+		assertEquals("cat", pet.getType());
+		assertEquals(2.15, pet.getPetWeight().doubleValue(), 1e-5);
+		assertEquals(0, pet.getFriends().size());
+		assertEquals(0, pet.getAte().size());
+		assertEquals(0, pet.getMated().size());
+	}
+
 	static JSONObject createMaxJson() throws JSONException {
 		JSONObject pet = new JSONObject();
 		pet.put("id", 123);
 		pet.put("type", "cat");
 		pet.put("name", "Max");
-		pet.put("gender", "male");
 		pet.put("weight", 4.3);
-		pet.put("relations", new JSONArray("[{petId: 234,type:'friend'}]"));
+		pet.put("gender", "male");
 		pet.put("writeonly", true);
+		pet.put("relations", new JSONArray("[{type:'friend',petId: 234}]"));
 		return pet;
 	}
 

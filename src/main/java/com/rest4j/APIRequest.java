@@ -18,8 +18,8 @@
 package com.rest4j;
 
 import com.rest4j.impl.ApiRequestServletImpl;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.rest4j.json.JSONArray;
+import com.rest4j.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;

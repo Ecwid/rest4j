@@ -51,6 +51,7 @@ public class APIFactory {
 	String pathPrefix;
 	ServiceProvider serviceProvider;
 	List<ObjectFactory> factories = new ArrayList<ObjectFactory>();
+	List<FieldFilter> fieldFilters = new ArrayList<FieldFilter>();
 	List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
 	String extSchema;
 	Class extObjectFactory;
@@ -76,6 +77,10 @@ public class APIFactory {
 
 	public void addObjectFactory(ObjectFactory of) {
 		factories.add(of);
+	}
+
+	public void addFieldFilter(FieldFilter ff) {
+		fieldFilters.add(ff);
 	}
 
 	public void addPreprocessor(Preprocessor proc) {
@@ -117,7 +122,9 @@ public class APIFactory {
 			com.rest4j.impl.model.API root = element.getValue();
 			APIImpl api;
 			api = new APIImpl(root, pathPrefix, serviceProvider,
-					factories.toArray(new ObjectFactory[factories.size()]));
+					factories.toArray(new ObjectFactory[factories.size()]),
+					fieldFilters.toArray(new FieldFilter[fieldFilters.size()])
+					);
 			return api;
 		} catch (javax.xml.bind.UnmarshalException e) {
 			if (e.getLinkedException() instanceof SAXParseException) {

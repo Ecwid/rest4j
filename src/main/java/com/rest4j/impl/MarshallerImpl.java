@@ -22,8 +22,8 @@ import com.rest4j.impl.model.CollectionType;
 import com.rest4j.impl.model.FieldType;
 import com.rest4j.impl.model.Model;
 import com.rest4j.type.*;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,11 +37,15 @@ import java.util.regex.Pattern;
  */
 public class MarshallerImpl implements Marshaller {
 	Map<String, ObjectApiTypeImpl> models = new HashMap<String, ObjectApiTypeImpl>();
-	ObjectFactoryChain chain = new ObjectFactoryChain() {
+	ObjectFactoryChain objectFactoryChain = new ObjectFactoryChain() {
 		@Nullable
 		@Override
 		public Object createInstance(@Nonnull String modelName, @Nonnull Class clz, @Nonnull JSONObject object) {
 			Object inst;
+			Class instantiate = getObjectType(modelName).getInstantiate();
+			if (instantiate != null) {
+				clz = instantiate;
+			}
 			try {
 				inst = clz.newInstance();
 			} catch (RuntimeException e) {
@@ -55,6 +59,17 @@ public class MarshallerImpl implements Marshaller {
 
 	};
 	ServiceProvider serviceProvider;
+	FieldFilterChain fieldFilterChain = new FieldFilterChain() {
+		@Override
+		public Object marshal(Object json, Object parentObject, ObjectApiType parentType, com.rest4j.type.Field field) {
+			return json;
+		}
+
+		@Override
+		public Object unmarshal(Object json, Object parentObject, ObjectApiType parentType, com.rest4j.type.Field field) {
+			return json;
+		}
+	};
 
 	public static class ModelConfig {
 		Model model;
@@ -79,9 +94,16 @@ public class MarshallerImpl implements Marshaller {
 	}
 
 	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories, ServiceProvider serviceProvider) throws ConfigurationException {
+		this(modelConfigs, factories, new FieldFilter[0], serviceProvider);
+	}
+
+	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories, FieldFilter[] fieldFilters, ServiceProvider serviceProvider) throws ConfigurationException {
 		this.serviceProvider = serviceProvider;
 		for (com.rest4j.ObjectFactory of: factories) {
 			addObjectFactory(of);
+		}
+		for (FieldFilter ff: fieldFilters) {
+			addFieldFilter(ff);
 		}
 		for (ModelConfig modelConfig : modelConfigs) {
 			Model model = modelConfig.model;
@@ -93,7 +115,28 @@ public class MarshallerImpl implements Marshaller {
 				throw new ConfigurationException("Cannot find class " + model.getClazz());
 			}
 
-			models.put(model.getName(), new ObjectApiTypeImpl(this, model.getName(), clz, model, customMapper, chain, serviceProvider));
+			ObjectApiTypeImpl objectType = new ObjectApiTypeImpl(this, model.getName(), clz, model, customMapper, objectFactoryChain, fieldFilterChain, serviceProvider);
+			if (model.getInstantiate() != null) {
+				Class instantiate;
+				try {
+					instantiate = Class.forName(model.getInstantiate());
+				} catch (ClassNotFoundException e) {
+					throw new ConfigurationException("Cannot find class " + model.getInstantiate());
+				}
+				if (!clz.isAssignableFrom(instantiate)) {
+					throw new ConfigurationException(clz+" should be assignable from "+model.getInstantiate());
+				}
+				try {
+					// check that it can be instantiated
+					instantiate.newInstance();
+				} catch (InstantiationException e) {
+					throw new ConfigurationException("Cannot instantiate " + model.getInstantiate()+": "+e.getMessage());
+				} catch (IllegalAccessException e) {
+					throw new ConfigurationException("Cannot instantiate " + model.getInstantiate()+": "+e.getMessage());
+				}
+				objectType.setInstantiate(instantiate);
+			}
+			models.put(model.getName(), objectType);
 		}
 
 		// fill model interconnections and type-check
@@ -141,17 +184,20 @@ public class MarshallerImpl implements Marshaller {
 
 	@Override
 	public Object marshal(ApiType apiType, Object value) throws ApiException {
+		if (apiType instanceof ConcreteClassMapping) apiType = ((ConcreteClassMapping)apiType).objectApiType;
 		return ((ApiTypeImpl)apiType).marshal(value);
 	}
 
 	@Override
-	public Object unmarshal(ApiType elementType, Object value) throws ApiException {
-		return ((ApiTypeImpl)elementType).unmarshal(value);
+	public Object unmarshal(ApiType apiType, Object value) throws ApiException {
+		if (apiType instanceof ConcreteClassMapping) apiType = ((ConcreteClassMapping)apiType).objectApiType;
+		return ((ApiTypeImpl)apiType).unmarshal(value);
 	}
 
 	@Override
-	public Object unmarshalPatch(PatchableType type, Object original, JSONObject object) throws ApiException {
-		return ((PatchableType)type).unmarshalPatch(original, object);
+	public Object unmarshalPatch(PatchableType apiType, Object original, JSONObject object) throws ApiException {
+		if (apiType instanceof ConcreteClassMapping) apiType = ((ConcreteClassMapping)apiType).objectApiType;
+		return apiType.unmarshalPatch(original, object);
 	}
 
 	SimpleApiType createSimpleType(FieldType type, String[] enumValues) {
@@ -224,8 +270,8 @@ public class MarshallerImpl implements Marshaller {
 	}
 
 	private void addObjectFactory(final com.rest4j.ObjectFactory factory) {
-		final ObjectFactoryChain nextChain = chain;
-		chain = new ObjectFactoryChain() {
+		final ObjectFactoryChain nextChain = objectFactoryChain;
+		objectFactoryChain = new ObjectFactoryChain() {
 
 			@Nullable
 			@Override
@@ -233,6 +279,21 @@ public class MarshallerImpl implements Marshaller {
 				return factory.createInstance(modelName, clz, object, nextChain);
 			}
 
+		};
+	}
+
+	private void addFieldFilter(final FieldFilter ff) {
+		final FieldFilterChain nextChain = fieldFilterChain;
+		fieldFilterChain = new FieldFilterChain() {
+			@Override
+			public Object marshal(Object json, Object parentObject, ObjectApiType parentType, Field field) {
+				return ff.marshal(json, parentObject, parentType, field, nextChain);
+			}
+
+			@Override
+			public Object unmarshal(Object json, Object parentObject, ObjectApiType parentType, Field field) {
+				return ff.unmarshal(json, parentObject, parentType, field, nextChain);
+			}
 		};
 	}
 

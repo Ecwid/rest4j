@@ -8,29 +8,32 @@
 
 package com.rest4j.impl.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
+import java.util.Map;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlAnyAttribute;
+import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
 
 
 /**
- * <p>Java class for StringWithParams complex type.
+ * <p>Java class for complex complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="StringWithParams">
+ * &lt;complexType name="complex">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="param" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;any namespace='http://www.w3.org/1999/xhtml' maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
+ *       &lt;anyAttribute processContents='skip'/>
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -39,14 +42,16 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "StringWithParams", propOrder = {
+@XmlType(name = "complex", namespace = "http://www.w3.org/1999/xhtml", propOrder = {
     "content"
 })
-public class StringWithParams {
+public class Complex {
 
-    @XmlElementRef(name = "param", namespace = "http://rest4j.com/api-description", type = JAXBElement.class)
     @XmlMixed
-    protected List<Serializable> content;
+    @XmlAnyElement(lax = true)
+    protected List<Object> content;
+    @XmlAnyAttribute
+    private Map<QName, String> otherAttributes = new HashMap<QName, String>();
 
     /**
      * Gets the value of the content property.
@@ -67,15 +72,33 @@ public class StringWithParams {
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * {@link JAXBElement }{@code <}{@link String }{@code >}
+     * {@link Object }
      * 
      * 
      */
-    public List<Serializable> getContent() {
+    public List<Object> getContent() {
         if (content == null) {
-            content = new ArrayList<Serializable>();
+            content = new ArrayList<Object>();
         }
         return this.content;
+    }
+
+    /**
+     * Gets a map that contains attributes that aren't bound to any typed property on this class.
+     * 
+     * <p>
+     * the map is keyed by the name of the attribute and 
+     * the value is the string value of the attribute.
+     * 
+     * the map returned by this method is live, and you can add new attribute
+     * by updating the map directly. Because of this design, there's no setter.
+     * 
+     * 
+     * @return
+     *     always non-null
+     */
+    public Map<QName, String> getOtherAttributes() {
+        return otherAttributes;
     }
 
 }

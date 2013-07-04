@@ -19,7 +19,6 @@ package com.rest4j;
 
 import com.rest4j.impl.ext.FieldExt;
 import com.rest4j.impl.petapi.DynamicPetMapper;
-import com.rest4j.impl.petapi.Pet;
 import com.rest4j.type.Field;
 import org.junit.Test;
 
@@ -83,7 +82,7 @@ public class APIFactoryTest {
 			}
 		};
 		API api = fac.createAPI();
-		List<Field> fields = api.getMarshaller().getObjectType("Pet").getFields(Pet.class);
+		List<Field> fields = api.getMarshaller().getObjectType("Pet").getFields();
 		Field idField = fields.get(0);
 		FieldExt ext = (FieldExt) idField.getExtra().get(0);
 		assertEquals("ID", ext.getAttr());

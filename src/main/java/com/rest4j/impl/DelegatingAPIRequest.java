@@ -19,8 +19,8 @@ package com.rest4j.impl;
 
 import com.rest4j.ApiException;
 import com.rest4j.APIRequest;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.rest4j.json.JSONArray;
+import com.rest4j.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;

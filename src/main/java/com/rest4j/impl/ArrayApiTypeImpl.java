@@ -21,9 +21,9 @@ import com.rest4j.ApiException;
 import com.rest4j.Marshaller;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.ArrayApiType;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.json.JSONArray;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
 
 import java.lang.reflect.*;
 import java.util.*;

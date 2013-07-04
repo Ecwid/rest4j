@@ -17,8 +17,8 @@
 
 package com.rest4j;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

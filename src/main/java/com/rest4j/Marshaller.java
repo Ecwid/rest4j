@@ -19,7 +19,7 @@ package com.rest4j;
 
 import com.rest4j.impl.PatchableType;
 import com.rest4j.type.*;
-import org.json.JSONObject;
+import com.rest4j.json.JSONObject;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>

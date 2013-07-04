@@ -27,7 +27,7 @@ public interface APIResponse {
 
 	int getStatus();
 
-	Object getJSONResponse();
+	Resource getResource();
 
 	void outputBody(HttpServletResponse response) throws IOException;
 }

@@ -21,8 +21,8 @@ import com.rest4j.*;
 import com.rest4j.impl.model.Field;
 import com.rest4j.impl.model.Model;
 import com.rest4j.type.ObjectApiType;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -44,8 +44,10 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 	final ObjectFactoryChain factory;
 	final Object fieldMapper;
 	final ServiceProvider serviceProvider;
+	private Class instantiate;
+	final FieldFilterChain fieldFilter;
 
-	ObjectApiTypeImpl(MarshallerImpl marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory, ServiceProvider serviceProvider) throws ConfigurationException {
+	ObjectApiTypeImpl(MarshallerImpl marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory, FieldFilterChain fieldFilter, ServiceProvider serviceProvider) throws ConfigurationException {
 		super(marshaller);
 		this.serviceProvider = serviceProvider;
 		this.marshaller = marshaller;
@@ -53,12 +55,14 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 		this.clz = clz;
 		this.model = model;
 		this.fieldMapper = fieldMapper;
-		mappings.add(new ConcreteClassMapping(marshaller, clz, model, fieldMapper, serviceProvider));
+		mappings.add(new ConcreteClassMapping(marshaller, clz, model, fieldMapper, serviceProvider, this));
 		this.factory = factory;
+		this.fieldFilter = fieldFilter;
 	}
 
 	@Override
 	public boolean check(Type javaClass) {
+		javaClass = Util.getClass(javaClass);
 		return javaClass == clz;
 	}
 
@@ -125,14 +129,24 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 	}
 
 	@Override
-	public List<com.rest4j.type.Field> getFields(Class clz) throws ApiException {
+	public List<com.rest4j.type.Field> getFields() throws ApiException {
 		ConcreteClassMapping mapping = getMapping(clz);
 		return mapping.getFields();
 	}
 
 	@Override
+	public ObjectApiType getSubtype(Class subclass) throws ApiException {
+		return getMapping(subclass);
+	}
+
+	@Override
 	public List getExtra() {
 		return model.getExtra().getAny();
+	}
+
+	@Override
+	public Class getJavaClass() {
+		return clz;
 	}
 
 	ConcreteClassMapping getMapping(Class clz) throws ApiException {
@@ -145,7 +159,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 			}
 
 			try {
-				ConcreteClassMapping ccm = new ConcreteClassMapping(marshaller, clz, model, fieldMapper, serviceProvider);
+				ConcreteClassMapping ccm = new ConcreteClassMapping(marshaller, clz, model, fieldMapper, serviceProvider, this);
 				ccm.link();
 				mappings.add(ccm);
 				return ccm;
@@ -177,5 +191,13 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	public void setInstantiate(Class instantiate) {
+		this.instantiate = instantiate;
+	}
+
+	public Class getInstantiate() {
+		return instantiate;
 	}
 }

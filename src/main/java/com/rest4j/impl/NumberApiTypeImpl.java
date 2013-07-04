@@ -20,7 +20,7 @@ package com.rest4j.impl;
 import com.rest4j.ApiException;
 import com.rest4j.Marshaller;
 import com.rest4j.type.NumberApiType;
-import org.json.JSONObject;
+import com.rest4j.json.JSONObject;
 
 import java.lang.reflect.Type;
 

@@ -17,8 +17,8 @@
 
 package com.rest4j.spring;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.rest4j.json.JSONArray;
+import com.rest4j.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;

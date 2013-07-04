@@ -39,6 +39,7 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 	String pathPrefix;
 	ServiceProvider serviceProvider;
 	List<ObjectFactory> objectFactories = new ArrayList<ObjectFactory>();
+	List<FieldFilter> fieldFilters = new ArrayList<FieldFilter>();
 	String serviceSuffix;
 	String mapperSuffix;
 	String converterSuffix;
@@ -88,6 +89,14 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 		this.objectFactories = objectFactories;
 	}
 
+	public List<FieldFilter> getFieldFilters() {
+		return fieldFilters;
+	}
+
+	public void setFieldFilters(List<FieldFilter> fieldFilters) {
+		this.fieldFilters = fieldFilters;
+	}
+
 	@Override
 	public synchronized API getObject() throws ConfigurationException, ClassNotFoundException {
 		if (api == null) {
@@ -109,6 +118,9 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 			}
 			for (ObjectFactory of: getObjectFactories()) {
 				fac.addObjectFactory(of);
+			}
+			for (FieldFilter ff: getFieldFilters()) {
+				fac.addFieldFilter(ff);
 			}
 			api = fac.createAPI();
 		}

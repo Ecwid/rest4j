@@ -23,8 +23,8 @@ import com.rest4j.type.ApiType;
 import com.rest4j.type.MapApiType;
 import com.rest4j.type.StringApiType;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.rest4j.json.JSONException;
+import com.rest4j.json.JSONObject;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

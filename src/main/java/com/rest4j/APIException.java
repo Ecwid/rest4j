@@ -18,7 +18,6 @@
 package com.rest4j;
 
 import com.rest4j.impl.Headers;
-import org.json.JSONObject;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -26,19 +25,19 @@ import org.json.JSONObject;
 public class ApiException extends Exception {
 	int status = 400;
 	Headers headers = new Headers();
-	JSONObject jsonResponse;
+	JSONResource jsonResponse;
 
 	public ApiException(String message) {
 		super(message);
 		this.status = status;
 	}
 
-	public ApiException(String message, JSONObject jsonResponse) {
+	public ApiException(String message, JSONResource jsonResponse) {
 		this(message);
 		this.jsonResponse = jsonResponse;
 	}
 
-	public JSONObject getJSONResponse() {
+	public JSONResource getJSONResponse() {
 		return jsonResponse;
 	}
 
