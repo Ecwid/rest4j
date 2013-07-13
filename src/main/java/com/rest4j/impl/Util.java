@@ -70,6 +70,9 @@ public class Util {
 	}
 
 	public static String[] getParameterNames(Class owner, String name) throws IOException {
+		while (owner.getName().contains("$$")) {
+			owner = owner.getSuperclass();
+		}
 		String className = owner.getName();
 		int idx = className.lastIndexOf('.');
 		if (idx >= 0) {

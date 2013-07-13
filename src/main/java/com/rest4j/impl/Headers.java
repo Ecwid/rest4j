@@ -47,8 +47,22 @@ public class Headers {
 		return null;
 	}
 
-	static class Header {
+	public Iterable<com.rest4j.Header> headers() {
+		return (Iterable)headers;
+	}
+
+	static class Header implements com.rest4j.Header {
 		String name;
 		String value;
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public String getValue() {
+			return value;
+		}
 	}
 }

@@ -32,4 +32,6 @@ public interface Resource {
 	void write(OutputStream os) throws IOException;
 
 	void writeJSONP(OutputStream os, String callbackFunctionName) throws IOException;
+
+	Iterable<Header> headers();
 }

@@ -17,6 +17,7 @@
 
 package com.rest4j;
 
+import com.rest4j.impl.ResourceBase;
 import com.rest4j.json.JSONArray;
 import com.rest4j.json.JSONException;
 import com.rest4j.json.JSONObject;
@@ -29,22 +30,18 @@ import java.io.OutputStreamWriter;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class JSONResource implements Resource {
+public class JSONResource extends ResourceBase {
 	Object object;
 	ApiType apiType;
 
 	public JSONResource(Object object, ApiType apiType) {
+		super("application/json; charset=utf-8");
 		this.object = object;
 		this.apiType = apiType;
 	}
 
 	public ApiType getApiType() {
 		return apiType;
-	}
-
-	@Override
-	public String getContentType() {
-		return "application/json; charset=utf-8";
 	}
 
 	@Override

@@ -252,6 +252,7 @@ public class APIImpl implements API {
 			Type[] paramTypes = this.method.getGenericParameterTypes();
 			boolean bodyParamFound = false;
 			boolean paramsParamFound = false;
+			boolean requestParamFound = false;
 			args = new ArgHandler[argCount];
 			for (int i=0; i<argCount; i++) {
 				final String name = paramNames[i];
@@ -274,6 +275,17 @@ public class APIImpl implements API {
 							@Override
 							public Object get(ApiRequest request, Object getResponse, Params params) {
 								return params;
+							}
+						};
+					} else if (paramType == ApiRequest.class) {
+						if (requestParamFound) {
+							throw new ConfigurationException("Cannot be two ApiRequest arguments in method "+this.method);
+						}
+						requestParamFound = true;
+						args[i] = new ArgHandler() {
+							@Override
+							public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
+								return request;
 							}
 						};
 					} else if ((fieldMapping = checkFieldAsArgument(name, paramType)) != null) {

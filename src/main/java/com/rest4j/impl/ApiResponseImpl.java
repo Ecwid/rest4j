@@ -19,6 +19,7 @@ package com.rest4j.impl;
 
 import com.rest4j.ApiRequest;
 import com.rest4j.ApiResponse;
+import com.rest4j.Header;
 import com.rest4j.Resource;
 import org.apache.commons.lang.StringUtils;
 
@@ -43,6 +44,10 @@ public class ApiResponseImpl implements ApiResponse {
 		this.response = response;
 		if (api.getParams().getJsonpParamName() != null) {
 			this.callbackFunctionName = request.param(api.getParams().getJsonpParamName());
+		}
+		if (response != null && response.headers() != null) {
+			for (Header header: response.headers())
+				headers.addHeader(header.getName(), header.getValue());
 		}
 		compress = StringUtils.containsIgnoreCase(request.header("Accept-Encoding"), "gzip");
 		addEtag = request.method().equals("GET");

@@ -17,45 +17,10 @@
 
 package com.rest4j;
 
-import com.rest4j.impl.ResourceBase;
-import org.apache.commons.io.IOUtils;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class BinaryResource extends ResourceBase {
-
-	private String etag;
-	private InputStream is;
-
-	public BinaryResource(String contentType, String etag, InputStream is) {
-		super(contentType);
-		this.etag = etag;
-		this.is = is;
-	}
-
-	public BinaryResource(byte[] content) {
-		super("application/octet-stream");
-		this.is = new ByteArrayInputStream(content);
-	}
-
-	@Override
-	public String getETag() {
-		return etag;
-	}
-
-	@Override
-	public void write(OutputStream os) throws IOException {
-		IOUtils.copy(is, os);
-	}
-
-	@Override
-	public void writeJSONP(OutputStream os, String callbackFunctionName) throws IOException {
-		write(os);
-	}
+public interface Header {
+	String getName();
+	String getValue();
 }

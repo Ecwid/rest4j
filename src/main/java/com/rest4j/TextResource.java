@@ -18,6 +18,7 @@
 package com.rest4j;
 
 import com.rest4j.impl.JSONEscapingFilter;
+import com.rest4j.impl.ResourceBase;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -28,23 +29,20 @@ import java.io.StringReader;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class TextResource implements Resource {
+public class TextResource extends ResourceBase {
 	String etag;
 	Reader reader;
 
 	public TextResource(String etag, Reader reader) {
+		super("text/plain; charset=utf-8");
 		this.etag = etag;
 		this.reader = reader;
 	}
 
 	public TextResource(String text) {
+		super("text/plain; charset=utf-8");
 		this.etag = "\""+text.hashCode()+"\"";
 		this.reader = new StringReader(text);
-	}
-
-	@Override
-	public String getContentType() {
-		return "text/plain; charset=utf-8";
 	}
 
 	@Override
