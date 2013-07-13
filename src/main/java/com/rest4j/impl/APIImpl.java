@@ -232,20 +232,21 @@ public class APIImpl implements API {
 			if (method == null) {
 				method = httpMethod.toLowerCase();
 			}
-			for (Method m: service.getClass().getMethods()) {
+			Class nonSyntheticClass = Util.getNonSyntheticClass(service.getClass());
+			for (Method m: nonSyntheticClass.getMethods()) {
 				if ((m.getModifiers()& Modifier.STATIC) != 0 || !m.getName().equals(method)) continue;
 				this.method = m;
 			}
 			if (this.method == null) {
-				throw new ConfigurationException("Cannot find non-static method with name "+method+" in "+ service.getClass());
+				throw new ConfigurationException("Cannot find non-static method with name "+method+" in "+ nonSyntheticClass);
 			}
 
 			int argCount = this.method.getParameterTypes().length;
 			String[] paramNames;
 			try {
-				paramNames = Util.getParameterNames(service.getClass(), method);
+				paramNames = Util.getParameterNames(nonSyntheticClass, method);
 			} catch (IOException e) {
-				throw new ConfigurationException("Cannot parse class "+ service.getClass()+": "+e.getMessage());
+				throw new ConfigurationException("Cannot parse class "+ nonSyntheticClass+": "+e.getMessage());
 			}
 			assert paramNames.length == argCount;
 

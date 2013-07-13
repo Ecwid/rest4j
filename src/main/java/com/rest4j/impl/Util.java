@@ -70,9 +70,7 @@ public class Util {
 	}
 
 	public static String[] getParameterNames(Class owner, String name) throws IOException {
-		while (owner.getName().contains("$$")) {
-			owner = owner.getSuperclass();
-		}
+		owner = getNonSyntheticClass(owner);
 		String className = owner.getName();
 		int idx = className.lastIndexOf('.');
 		if (idx >= 0) {
@@ -94,6 +92,13 @@ public class Util {
 			return names;
 		}
 		throw new IllegalArgumentException("No such method "+name);
+	}
+
+	public static Class getNonSyntheticClass(Class owner) {
+		while (owner.getName().contains("$$")) {
+			owner = owner.getSuperclass();
+		}
+		return owner;
 	}
 
 	static Kryo kryo = new Kryo();

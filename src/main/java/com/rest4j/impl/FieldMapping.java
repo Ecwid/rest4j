@@ -207,6 +207,7 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 		} else {
 			throw new AssertionError();
 		}
+		if (extra == null) return null;
 		return extra.getAny();
 	}
 
