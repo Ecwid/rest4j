@@ -35,6 +35,8 @@ import java.util.regex.*;
  */
 public class ApiRequestServletImpl extends ApiRequest {
 	private final HttpServletRequest request;
+	JSONObject objectInput;
+	JSONArray arrayInput;
 
 	public ApiRequestServletImpl(HttpServletRequest request) {
 		this.request = request;
@@ -62,10 +64,11 @@ public class ApiRequestServletImpl extends ApiRequest {
 
 	@Override
 	public JSONObject objectInput() throws IOException, ApiException {
+		if (objectInput != null) return objectInput;
 		checkJSON();
 		String json = IOUtils.toString(request.getReader());
 		try {
-			return new JSONObject(json);
+			return objectInput = new JSONObject(json);
 		} catch (JSONException e) {
 			throw new ApiException("Wrong JSON format: "+e.getMessage());
 		}
@@ -73,10 +76,11 @@ public class ApiRequestServletImpl extends ApiRequest {
 
 	@Override
 	public JSONArray arrayInput() throws IOException, ApiException {
+		if (arrayInput != null) return arrayInput;
 		checkJSON();
 		String json = IOUtils.toString(request.getReader());
 		try {
-			return new JSONArray(json);
+			return arrayInput = new JSONArray(json);
 		} catch (JSONException e) {
 			throw new ApiException("Wrong JSON format: "+e.getMessage());
 		}
