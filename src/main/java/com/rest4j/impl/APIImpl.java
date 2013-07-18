@@ -294,9 +294,9 @@ public class APIImpl implements API {
 							@Override
 							public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
 								Object val = request.objectInput().opt(name);
-								val = fieldMapping.unmarshal(val);
+								val = val == null ? null : marshaller.unmarshal(fieldMapping.getType(), val);
 								try {
-									return fieldMapping.type.cast(val, paramType);
+									return fieldMapping.getType().cast(val, paramType);
 								} catch (NullPointerException npe) {
 									throw new ApiException("Field "+fieldMapping.parent+"."+name+" value is absent");
 								} catch (IllegalArgumentException iae) {

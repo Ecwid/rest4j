@@ -547,7 +547,7 @@ public class APIImplTest {
 			fail();
 		} catch (ApiException ex) {
 			assertEquals(400, ex.getHttpStatus());
-			assertEquals("Field Pet.weight is absent", ex.getMessage());
+			assertEquals("Field Pet.weight value is absent", ex.getMessage());
 		}
 	}
 
