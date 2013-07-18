@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.regex.*;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -61,11 +62,7 @@ public class ApiRequestServletImpl extends ApiRequest {
 
 	@Override
 	public JSONObject objectInput() throws IOException, ApiException {
-		if (request.getContentType() != null &&
-				!"application/json".equals(request.getContentType()) &&
-				!"text/json".equals(request.getContentType())) {
-			throw new ApiException("Unsupported content-type: expected either application/json or text/json").setHttpStatus(415);
-		}
+		checkJSON();
 		String json = IOUtils.toString(request.getReader());
 		try {
 			return new JSONObject(json);
@@ -76,11 +73,7 @@ public class ApiRequestServletImpl extends ApiRequest {
 
 	@Override
 	public JSONArray arrayInput() throws IOException, ApiException {
-		if (request.getContentType() != null &&
-				!"application/json".equals(request.getContentType()) &&
-				!"text/json".equals(request.getContentType())) {
-			throw new ApiException("Unsupported content-type: expected either application/json or text/json").setHttpStatus(415);
-		}
+		checkJSON();
 		String json = IOUtils.toString(request.getReader());
 		try {
 			return new JSONArray(json);
@@ -103,4 +96,14 @@ public class ApiRequestServletImpl extends ApiRequest {
 	public boolean https() {
 		return request.isSecure();
 	}
+
+	static final Pattern JSON_CONTENT_TYPE =  Pattern.compile("(application/json|text/json)( *;.*)?");
+
+	void checkJSON() throws ApiException {
+		String contentType = request.getContentType();
+		if (contentType != null && !JSON_CONTENT_TYPE.matcher(contentType).matches()) {
+			throw new ApiException("Unsupported content-type: expected either application/json or text/json").setHttpStatus(415);
+		}
+	}
+
 }
