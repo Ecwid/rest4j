@@ -1536,6 +1536,19 @@ public class JSONObject {
         return this.write(writer, 0, 0);
     }
 
+	/**
+	 * Write the contents of the JSONObject as JSON text to a writer. For
+	 * compactness, no whitespace is added.
+	 * <p>
+	 * Warning: This method assumes that the data structure is acyclical.
+	 *
+	 * @return The writer.
+	 * @throws JSONException
+	 */
+	public Writer write(Writer writer, int identSize) throws JSONException {
+		return this.write(writer, identSize, 0);
+	}
+
     static final Writer writeValue(Writer writer, Object value,
             int indentFactor, int indent) throws JSONException, IOException {
         if (value == null || value.equals(null)) {

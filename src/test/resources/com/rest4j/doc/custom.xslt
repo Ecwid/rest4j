@@ -22,7 +22,7 @@
 				xmlns:fn="http://www.w3.org/2005/xpath-functions"
 				xmlns:exslt="http://exslt.org/common"
 				xmlns="http://www.w3.org/1999/xhtml"
-				exclude-result-prefixes="api"
+				exclude-result-prefixes="#all"
 				xpath-default-namespace="http://www.w3.org/1999/xhtml"
 		>
 	<xsl:import href="doc.xslt"/>

@@ -83,6 +83,11 @@ public class NestedFieldMapping extends FieldMapping {
 	@Override
 	public void set(Object inst, Object fieldVal) throws ApiException {
 		try {
+			Method setter = propSetters[propSetters.length - 1];
+			if (setter == null) {
+				// TODO: this should better be done at configuration time
+				throw new ApiException("No setter for "+name+" found").setHttpStatus(500);
+			}
 			for (int i = 0; i<propGetters.length-1; i++) {
 				Object newInst;
 				try {
@@ -115,7 +120,6 @@ public class NestedFieldMapping extends FieldMapping {
 				inst = newInst;
 			}
 			// set field value
-			Method setter = propSetters[propSetters.length - 1];
 			try {
 				fieldVal = cast(fieldVal);
 				setter.invoke(inst, fieldVal);

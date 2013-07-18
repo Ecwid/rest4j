@@ -21,10 +21,7 @@ import com.rest4j.ApiFactory;
 import com.rest4j.Preprocessor;
 import com.sun.org.apache.xml.internal.resolver.helpers.FileURL;
 import org.apache.commons.io.IOUtils;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 
 import javax.xml.namespace.NamespaceContext;
@@ -151,6 +148,7 @@ public class DocGenerator implements URIResolver {
 		}
 
 		Document doc = transform(xml, url);
+		cleanup(doc.getDocumentElement());
 
 		if (customXSLT != null) {
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -232,6 +230,17 @@ public class DocGenerator implements URIResolver {
 		}
 	}
 
+	private void cleanup(Element element) {
+		if ("http://www.w3.org/1999/xhtml".equals(element.getNamespaceURI())) {
+			element.getOwnerDocument().renameNode(element, null, element.getLocalName());
+		}
+		for (Node child: it(element.getChildNodes())) {
+			if (child instanceof Element) {
+				cleanup((Element)child);
+			}
+		}
+	}
+
 	private Document transform(Document xml, URL url) throws IOException, ParserConfigurationException, TransformerException {
 		Templates templates = tFactory.newTemplates(new StreamSource(url.openStream(), url.toString()));
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -261,7 +270,8 @@ public class DocGenerator implements URIResolver {
 				DOMSource source = new DOMSource(child);
 				StreamResult result = new StreamResult(fos);
 				Transformer trans = tFactory.newTransformer();
-				trans.setOutputProperty("indent", "no");
+				trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+				trans.setOutputProperty(OutputKeys.INDENT, "no");
 				trans.transform(source, result);
 			}
 		} finally {

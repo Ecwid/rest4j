@@ -33,6 +33,7 @@ import java.io.OutputStreamWriter;
 public class JSONResource extends ResourceBase {
 	Object object;
 	ApiType apiType;
+	private boolean prettify;
 
 	public JSONResource(Object object, ApiType apiType) {
 		super("application/json; charset=utf-8");
@@ -54,9 +55,9 @@ public class JSONResource extends ResourceBase {
 		OutputStreamWriter writer = new OutputStreamWriter(outputStream);
 		try {
 			if (object instanceof JSONObject) {
-				((JSONObject) object).write(writer);
+				((JSONObject) object).write(writer, isPrettify() ? 2 : 0);
 			} else {
-				((JSONArray) object).write(writer);
+				((JSONArray) object).write(writer, isPrettify() ? 2 : 0);
 			}
 			writer.flush();
 		} catch (JSONException ex) {
@@ -83,4 +84,11 @@ public class JSONResource extends ResourceBase {
 	}
 
 
+	public void setPrettify(boolean prettify) {
+		this.prettify = prettify;
+	}
+
+	public boolean isPrettify() {
+		return prettify;
+	}
 }

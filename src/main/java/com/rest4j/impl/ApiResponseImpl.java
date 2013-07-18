@@ -17,10 +17,7 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.ApiRequest;
-import com.rest4j.ApiResponse;
-import com.rest4j.Header;
-import com.rest4j.Resource;
+import com.rest4j.*;
 import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.http.HttpServletResponse;
@@ -32,6 +29,7 @@ import java.util.zip.GZIPOutputStream;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class ApiResponseImpl implements ApiResponse {
+	boolean prettify;
 	String callbackFunctionName = null;
 	int status = 200;
 	String statusMessage;
@@ -41,6 +39,20 @@ public class ApiResponseImpl implements ApiResponse {
 	boolean addEtag;
 
 	public ApiResponseImpl(APIImpl api, ApiRequest request, Resource response) {
+		this.prettify = api.getParams().isPrettifyByDefault() == null ? false : api.getParams().isPrettifyByDefault();
+		String param = api.getParams().getPrettifyParam();
+		if (param != null) {
+			int pos = param.indexOf('=');
+			if (pos == -1 && request.param(param) != null) {
+				prettify = !prettify;
+			} else {
+				String prettifyParamName = param.substring(0, pos);
+				String val = request.param(prettifyParamName);
+				if (val != null && val.matches(param.substring(pos+1))) {
+					prettify = !prettify;
+				}
+			}
+		}
 		this.response = response;
 		if (api.getParams().getJsonpParamName() != null) {
 			this.callbackFunctionName = request.param(api.getParams().getJsonpParamName());
@@ -100,6 +112,9 @@ public class ApiResponseImpl implements ApiResponse {
 			outputStream = response.getOutputStream();
 		}
 
+		if (this.response instanceof JSONResource) {
+			((JSONResource)this.response).setPrettify(prettify);
+		}
 		if (callbackFunctionName == null) {
 			this.response.write(outputStream);
 		} else {

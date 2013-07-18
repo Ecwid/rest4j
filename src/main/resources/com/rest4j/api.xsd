@@ -41,6 +41,11 @@ documentation and client libraries, as well as for query dispatching.
 			<xsd:selector xpath="api:endpoint/api:body|api:endpoint/api:response|api:endpoint/api:errors/api:error"/>
 			<xsd:field xpath=".//@type"/>
 		</xsd:keyref>
+		<xsd:keyref name="error-type" refer="model-pk">
+			<!-- a reference from a error/@type to a model -->
+			<xsd:selector xpath="api:endpoint/api:errors/api:error"/>
+			<xsd:field xpath="@type"/>
+		</xsd:keyref>
 	</xsd:element>
 
 	<xsd:complexType name="API">
@@ -78,6 +83,17 @@ documentation and client libraries, as well as for query dispatching.
 				<xsd:annotation><xsd:documentation>
 					A name of the parameter in the query string that specifies the JavaScript function to call on
 					success. If absent, JSONP is disabled.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="prettify-by-default" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					If true, the output JSON should be prettified by default.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
+			<xsd:element name="prettify-param" type="xsd:string" minOccurs="0" maxOccurs="1">
+				<xsd:annotation><xsd:documentation>
+					A name and value regex of the parameter in the query string that specifies that the output JSON should be prettified.
+					Example: "format=pretty", "prettify=(yes|true|on)"
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>

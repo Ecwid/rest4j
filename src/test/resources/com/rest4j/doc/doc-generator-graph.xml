@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<api xmlns="http://rest4j.com/api-description">
+<api xmlns="http://rest4j.com/api-description" xmlns:html="http://www.w3.org/1999/xhtml">
 
 	<model name="A" class="java.lang.Object">
 		<fields>
@@ -32,14 +32,14 @@
 	<model name="C" class="java.lang.Object">
 		<fields>
 			<simple name="changeable" type="number" access="writeonly">
-				<description>Changes something.</description>
+				<description>Changes something.<html:p/></description>
 			</simple>
 		</fields>
 	</model>
 
 	<endpoint http="PATCH" httpsonly="true">
 		<route>patch/<param>ID</param></route>
-		<description><title>Patch an A</title> And return <b>C</b>.</description>
+		<description><html:title>Patch an A</html:title> And return <html:b>C</html:b>.</description>
 		<parameters>
 			<parameter name="ID" type="number">
 				<description>The unique ID</description>

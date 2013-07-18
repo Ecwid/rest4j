@@ -514,6 +514,7 @@ public class APIImpl implements API {
 		// find exception by its type
 		private Error findError(Throwable cause) {
 			for (Error err: endpoint.getErrors().getError()) {
+				if (err.getType() == null) return null;
 				ObjectApiTypeImpl type = marshaller.getObjectType(err.getType());
 				if (type.clz.isAssignableFrom(cause.getClass())) {
 					return err;

@@ -23,7 +23,7 @@
 				xmlns:exslt="http://exslt.org/common"
 				xmlns="http://www.w3.org/1999/xhtml"
 				xmlns:html="http://www.w3.org/1999/xhtml"
-				exclude-result-prefixes="api"
+				exclude-result-prefixes="#all"
 				xpath-default-namespace="http://rest4j.com/api-description"
 				>
 

@@ -36,6 +36,7 @@ public class BinaryResource extends ResourceBase {
 	public BinaryResource(String contentType, String etag, InputStream is) {
 		super(contentType);
 		this.etag = etag;
+		if (is == null) throw new NullPointerException();
 		this.is = is;
 	}
 
@@ -52,6 +53,7 @@ public class BinaryResource extends ResourceBase {
 	@Override
 	public void write(OutputStream os) throws IOException {
 		IOUtils.copy(is, os);
+		is.close();
 	}
 
 	@Override
