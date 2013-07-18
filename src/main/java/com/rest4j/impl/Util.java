@@ -23,6 +23,7 @@ import com.sun.org.apache.bcel.internal.classfile.ClassParser;
 import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 import com.sun.org.apache.bcel.internal.classfile.LocalVariable;
 import com.sun.org.apache.bcel.internal.classfile.Method;
+import org.objenesis.instantiator.ObjectInstantiator;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -32,7 +33,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Iterator;
+import java.util.*;
 
 
 /**
@@ -101,7 +102,68 @@ public class Util {
 		return owner;
 	}
 
-	static Kryo kryo = new Kryo();
+	public static Kryo kryo = new Kryo();
+
+	static {
+		ObjectInstantiator listInstantiator = new ObjectInstantiator() {
+			@Override
+			public Object newInstance() {
+				return new ArrayList();
+			}
+		};
+
+		// replace hibernate persistent collections with plain collections
+		try {
+			Class clz = Class.forName("org.hibernate.collection.PersistentBag");
+			kryo.register(clz).setInstantiator(listInstantiator);
+		} catch (ClassNotFoundException e) {
+		}
+		try {
+			Class clz = Class.forName("org.hibernate.collection.PersistentList");
+			kryo.register(clz).setInstantiator(listInstantiator);
+		} catch (ClassNotFoundException e) {
+		}
+		try {
+			Class clz = Class.forName("org.hibernate.collection.PersistentMap");
+			kryo.register(clz).setInstantiator(new ObjectInstantiator() {
+				@Override
+				public Object newInstance() {
+					return new HashMap();
+				}
+			});
+		} catch (ClassNotFoundException e) {
+		}
+		try {
+			Class clz = Class.forName("org.hibernate.collection.PersistentSortedMap");
+			kryo.register(clz).setInstantiator(new ObjectInstantiator() {
+				@Override
+				public Object newInstance() {
+					return new TreeMap();
+				}
+			});
+		} catch (ClassNotFoundException e) {
+		}
+		try {
+			Class clz = Class.forName("org.hibernate.collection.PersistentSet");
+			kryo.register(clz).setInstantiator(new ObjectInstantiator() {
+				@Override
+				public Object newInstance() {
+					return new HashSet();
+				}
+			});
+		} catch (ClassNotFoundException e) {
+		}
+		try {
+			Class clz = Class.forName("org.hibernate.collection.PersistentSortedSet");
+			kryo.register(clz).setInstantiator(new ObjectInstantiator() {
+				@Override
+				public Object newInstance() {
+					return new TreeSet();
+				}
+			});
+		} catch (ClassNotFoundException e) {
+		}
+	}
 
 	static <T> T deepClone(T object) {
 		return kryo.copy(object);
