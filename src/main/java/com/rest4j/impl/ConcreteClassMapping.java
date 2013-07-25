@@ -1,18 +1,22 @@
 package com.rest4j.impl;
 
-import com.rest4j.*;
+import com.rest4j.ApiException;
+import com.rest4j.ConfigurationException;
+import com.rest4j.DynamicMapper;
+import com.rest4j.ServiceProvider;
 import com.rest4j.impl.model.Field;
 import com.rest4j.impl.model.FieldAccessType;
 import com.rest4j.impl.model.Model;
-import com.rest4j.type.ObjectApiType;
 import com.rest4j.json.JSONException;
 import com.rest4j.json.JSONObject;
+import com.rest4j.type.ObjectApiType;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -26,6 +30,7 @@ public class ConcreteClassMapping implements ObjectApiType {
 	List<Field> leftoverFields = new ArrayList<Field>();
 	Object customMapper;
 	ObjectApiTypeImpl objectApiType;
+	final static Logger log = Logger.getLogger(ConcreteClassMapping.class.getName());
 
 	public ConcreteClassMapping(MarshallerImpl marshaller, Class clz, Model model, Object customMapper, ServiceProvider serviceProvider, ObjectApiTypeImpl objectApiType) throws ConfigurationException {
 		this.marshaller = marshaller;
@@ -61,6 +66,7 @@ public class ConcreteClassMapping implements ObjectApiType {
 			}
 			fieldMapping.setServiceProvider(serviceProvider);
 			if (!fieldMapping.initAccessors(clz)) {
+				log.warning("No accessors found for property "+fieldMapping.getName()+" of class "+clz.getName());
 				leftoverFields.add(fld);
 				continue;
 			}
