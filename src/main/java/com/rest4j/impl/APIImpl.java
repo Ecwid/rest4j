@@ -18,16 +18,16 @@
 package com.rest4j.impl;
 
 import com.rest4j.API;
-import com.rest4j.impl.model.*;
-import com.rest4j.impl.model.Endpoint;
 import com.rest4j.*;
 import com.rest4j.ObjectFactory;
+import com.rest4j.impl.model.*;
 import com.rest4j.impl.model.Error;
+import com.rest4j.json.JSONObject;
 import com.rest4j.type.ApiType;
+import com.rest4j.type.ArrayApiType;
 import com.rest4j.type.SimpleApiType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
-import com.rest4j.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -396,9 +396,13 @@ public class APIImpl implements API {
 					argHandler = new ArgHandler() {
 						@Override
 						public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
-							JSONObject object;
+							Object object;
 							try {
-								object = request.objectInput();
+								if (apiType instanceof ArrayApiType) {
+									object = request.arrayInput();
+								} else {
+									object = request.objectInput();
+								}
 							} catch (ApiException ex) {
 								if (contentType.getJson().isOptional()) {
 									return null;
