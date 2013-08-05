@@ -1,0 +1,278 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+body, p, h1, h2, h3, h4, table, td, th, ul, ol, textarea, input {
+	font-family: verdana,helvetica,arial,sans-serif;
+	font-size: 14px;
+	color: #444;
+}
+
+body {
+	margin: 30px 5%;
+	background-color: #F6F4F0;
+}
+
+h1 {
+	font-weight: bold;
+	font-size: 24px;
+	border-bottom: dotted 1px;
+	padding-bottom: 10px;
+	margin-bottom: 20px;
+}
+
+article section {
+	margin-left: 30px;
+}
+section > h2 {
+	margin-left: -30px;
+}
+
+h2 {
+	font-size: 17px;
+	margin-top: 1.2em;
+	margin-bottom: 0.7em;
+}
+
+a:link, a:visited { color: #45e; text-decoration: none; }
+
+a:hover, a:active { text-decoration: underline }
+
+.url {
+	font-family: "Courier New", Courier, monospace;
+	font-size: 15px;
+}
+
+.url .method {
+	margin-right: 0.77em;
+}
+
+.url .path-param {
+	font-weight: bold;
+	font-style: italic;
+}
+
+.url .path-param:before {
+	content: "[";
+}
+
+.url .path-param:after {
+	content: "]";
+}
+
+.url .query-param-name {
+	font-weight: bold;
+}
+
+.url .query-param-value {
+	font-style: italic;
+}
+
+.url .query-param-value:before {
+	content: "·";
+}
+
+.url .query-param-value:after {
+	content: "·";
+}
+
+table {
+	border-collapse: collapse;
+	width:100%;
+}
+th {
+	color: #ffffff;
+	background-color: #555555;
+	border: 1px solid #555555;
+	font-size: 14px;
+	padding: 4px 7px;
+	vertical-align: top;
+	text-align: left;
+}
+
+td {
+	border:1px solid #d4d4d4;
+	padding:5px;padding-top:7px;padding-bottom:7px;
+	vertical-align:top;
+	text-align: left;
+}
+
+td.param-name {
+	width: 20%;
+}
+td.param-type {
+	width: 20%;
+}
+td.param-description {
+	width: 60%;
+}
+
+td.error-status {
+	width: 20%;
+}
+td.error-type {
+	width: 20%;
+}
+td.error-description {
+	width: 60%;
+}
+
+tr:nth-child(odd)	{background-color:#F6F4F0}
+tr:nth-child(even) {background-color:#ffffff}
+
+section.params > table {
+	margin-top: 10px;
+}
+
+.one-of-following {
+	margin: 5px 0px;
+	font-style: italic;
+}
+table.values {
+	width: auto;
+}
+
+table.values td {
+	border: 1px solid #d4d4d4;
+	padding: 4px 7px;
+	vertical-align:top;
+	text-align: left;
+}
+
+table.values tr {
+	background: transparent;
+}
+
+ol.notes {
+	list-style: square inside url('data:image/gif;base64,R0lGODlhBQAKAIABAAAAAP///yH5BAEAAAEALAAAAAAFAAoAAAIIjI+ZwKwPUQEAOw==');
+	list-style: asterisks;
+	margin: 0px;
+	padding-left: 0px;
+}
+ol.notes li {
+	margin-left: 20px;
+	font-style: italic;
+}
+
+span.mandatory:after {
+	content: "*";
+	vertical-align: super;
+	font-size: 12px;
+}
+
+span.nullable:after {
+	content: "nullable";
+	font-size: 12px;
+	font-style: italic;
+}
+td > span.nullable:after {
+	display: block;
+}
+
+h3 {
+	margin: 20px 0px 1px;
+	font-size: 14px;
+	font-weight: bold;
+}
+
+nav.navigation {
+	float: left;
+	margin: 59px 25px 10px 0px;
+	border: solid 1px #ccc;
+	padding: 10px 12px 20px;
+	background-color: #f8f8f8;
+	min-width: 200px;
+	box-shadow: 5px 5px 5px #ccc;
+}
+
+nav.navigation li {
+	display: block;
+	margin-left:5px;
+}
+
+div.nav-group {
+	margin: 17px 0px 14px 0px;
+	position: relative;
+	height: 14px;
+}
+
+div.nav-group > span {
+	z-index:1000;
+	position: absolute;
+	display: block;
+	width: 100%;
+	text-align: center;
+}
+div.nav-group > span > span {
+	background-color: #f8f8f8;
+	padding-right: 7px;
+	padding-left: 7px;
+}
+
+div.nav-group:after {
+	content: "";
+	position: absolute;
+	top: 10px;
+	right: 0;
+	border-bottom: dotted 1px #ccc;
+	width: 100%;
+}
+
+table.page {
+	border: none;
+	width:100%;
+}
+
+table.page > tbody > tr {
+	background: transparent;
+}
+
+td.nav-col, td.center-col {
+	padding: 0;
+	background: transparent;
+	border: none;
+}
+
+td.center-col {
+	width: 100%;
+}
+
+article {
+	background-color: white;
+	border: 1px solid #ccc;
+	padding: 0px 12px 20px;
+	box-shadow: 5px 5px 5px #ccc;
+	margin-bottom: 30px;
+}
+
+.endpoint-description {
+	margin-left: 30px;
+}
+
+/*
+.readonly, .writeonly {
+	display: block;
+	text-align: right;
+	font-size: 12px;
+	font-style: italic;
+}
+.readonly:after {
+	content: "readonly";
+}
+.writeonly:after {
+	content: "writeonly";
+}
+*/
