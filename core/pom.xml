@@ -22,10 +22,10 @@
 	<url>https://code.google.com/p/rest4j/</url>
 	<scm>
 		<connection>
-			scm:https://code.google.com/p/rest4j/
+			scm:git:https://code.google.com/p/rest4j/
 		</connection>
 		<developerConnection>
-			scm:https://code.google.com/p/rest4j/
+			scm:git:https://code.google.com/p/rest4j/
 		</developerConnection>
 		<url>
 			https://code.google.com/p/rest4j/
