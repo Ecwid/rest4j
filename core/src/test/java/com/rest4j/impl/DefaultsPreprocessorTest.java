@@ -82,6 +82,18 @@ public class DefaultsPreprocessorTest implements NamespaceContext {
 		assertEquals("TEST doc,TEST1 doc,S doc", join(nodes));
 	}
 
+	@Test public void testProcess_path_params_mandatory() throws Exception {
+		Document xml = parse("path-params-mandatory.xml");
+		preprocessor.process(xml);
+
+		XPathFactory xPathfactory = new XPathFactoryImpl();
+		XPath xpath = xPathfactory.newXPath();
+		xpath.setNamespaceContext(this);
+
+		NodeList nodes = (NodeList) xpath.compile("//endpoint/parameters/parameter/@optional").evaluate(xml, XPathConstants.NODESET);
+		assertEquals("true,false", join(nodes));
+	}
+
 	String join(NodeList nodes) {
 		StringBuilder result = new StringBuilder();
 		for (int i = 0; i<nodes.getLength(); i++) {

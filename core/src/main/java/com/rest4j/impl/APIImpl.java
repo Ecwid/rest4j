@@ -299,13 +299,17 @@ public class APIImpl implements API {
 							@Override
 							public Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException {
 								Object val = request.objectInput().opt(name);
-								val = val == null ? null : marshaller.unmarshal(fieldMapping.getType(), val);
+								try {
+									val = val == null ? null : marshaller.unmarshal(fieldMapping.getType(), val);
 								try {
 									return fieldMapping.getType().cast(val, paramType);
 								} catch (NullPointerException npe) {
 									throw new ApiException("Field "+fieldMapping.parent+"."+name+" value is absent");
 								} catch (IllegalArgumentException iae) {
 									throw new ApiException("Field "+fieldMapping.parent+"."+name+" has wrong value: "+iae.getMessage());
+								}
+								} catch (ApiException apiex) {
+									throw Util.replaceValue(apiex, "request body." + name);
 								}
 							}
 						};
@@ -415,7 +419,11 @@ public class APIImpl implements API {
 									throw ex;
 								}
 							}
-							return marshaller.unmarshal(apiType, object);
+							try {
+								return marshaller.unmarshal(apiType, object);
+							} catch (ApiException apiex) {
+								throw Util.replaceValue(apiex, "request body");
+							}
 						}
 					};
 				} else if (contentType.getPatch() != null) {

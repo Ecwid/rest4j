@@ -14,36 +14,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.rest4j.client;
 
-package com.rest4j.doc;
+import org.apache.http.HttpEntity;
+import org.json.JSONException;
+
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class TemplateParam {
-	String name, value;
+public abstract class Request<T> {
+	final protected URI uri;
+	final protected HttpEntity body;
 
-	public TemplateParam() {
+	public Request(URI uri) {
+		this.uri = uri;
+		this.body = null;
 	}
 
-	public TemplateParam(String name, String value) {
-		this.name = name;
-		this.value = value;
+	public Request(URI uri, HttpEntity body) {
+		this.uri = uri;
+		this.body = body;
 	}
 
-	public String getName() {
-		return name;
+	public URI getUri() {
+		return uri;
 	}
 
-	public String getValue() {
-		return value;
+	public HttpEntity getBody() {
+		return body;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public void setValue(String value) {
-		this.value = value;
-	}
+	public abstract T execute() throws IOException, JSONException;
 }

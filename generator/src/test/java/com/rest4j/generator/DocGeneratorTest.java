@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.rest4j.doc;
+package com.rest4j.generator;
 
 import com.rest4j.impl.Util;
 import org.junit.Test;
@@ -42,15 +42,15 @@ import static org.junit.Assert.assertEquals;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class DocGeneratorTest {
-	DocGenerator gen = new DocGenerator();
+	Generator gen = new Generator();
 
 	@Test public void testComputeModelGraph() throws Exception {
 		Document xml = getDocument("doc-generator-graph.xml");
-		List<DocGenerator.ModelNode> graph = gen.computeModelGraph(xml);
+		List<Generator.ModelNode> graph = gen.computeModelGraph(xml);
 		assertEquals(3, graph.size());
-		DocGenerator.ModelNode a = find(graph, "A");
-		DocGenerator.ModelNode b = find(graph, "B");
-		DocGenerator.ModelNode c = find(graph, "C");
+		Generator.ModelNode a = find(graph, "A");
+		Generator.ModelNode b = find(graph, "B");
+		Generator.ModelNode c = find(graph, "C");
 
 		assertEquals(set(ref(b, false), ref(b, true)), a.references);
 		assertEquals(set(ref(c, false)), b.references);
@@ -59,7 +59,7 @@ public class DocGeneratorTest {
 
 	@Test public void testComputeModels() throws Exception {
 		Document xml = getDocument("doc-generator-graph.xml");
-		List<DocGenerator.ModelNode> graph = gen.computeModelGraph(xml);
+		List<Generator.ModelNode> graph = gen.computeModelGraph(xml);
 		assertEquals("A,B,C", modelsToString(gen.computeModels(graph, "A", false)));
 		assertEquals("patch A,patch B,B,patch C,C", modelsToString(gen.computeModels(graph, "A", true)));
 	}
@@ -69,7 +69,7 @@ public class DocGeneratorTest {
 		gen.preprocess(xml);
 		XPathFactory xPathfactory = XPathFactory.newInstance();
 		XPath xpath = xPathfactory.newXPath();
-		xpath.setNamespaceContext(new DocGenerator.APINamespaceContext());
+		xpath.setNamespaceContext(new Generator.APINamespaceContext());
 
 		assertEquals("patch A,patch B,B,patch C,C", modelsToString(xpath.compile("//api:endpoint[api:service/@method='patch']/api:body/api:model").evaluate(xml, XPathConstants.NODESET)));
 		assertEquals("C", modelsToString(xpath.compile("//api:endpoint[api:service/@method='patch']/api:response/api:model").evaluate(xml, XPathConstants.NODESET)));
@@ -104,8 +104,8 @@ public class DocGeneratorTest {
 		return sb.toString();
 	}
 
-	DocGenerator.Ref ref(DocGenerator.ModelNode node, boolean array) {
-		DocGenerator.Ref ref = new DocGenerator.Ref();
+	Generator.Ref ref(Generator.ModelNode node, boolean array) {
+		Generator.Ref ref = new Generator.Ref();
 		ref.referencedModel = node;
 		ref.array = array;
 		return ref;
@@ -117,8 +117,8 @@ public class DocGeneratorTest {
 		return result;
 	}
 
-	private DocGenerator.ModelNode find(List<DocGenerator.ModelNode> graph, String name) {
-		for (DocGenerator.ModelNode node: graph) {
+	private Generator.ModelNode find(List<Generator.ModelNode> graph, String name) {
+		for (Generator.ModelNode node: graph) {
 			if (node.name().equals(name)) return node;
 		}
 		return null;

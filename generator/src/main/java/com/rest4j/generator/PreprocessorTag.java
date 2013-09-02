@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.rest4j.doc;
+package com.rest4j.generator;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>

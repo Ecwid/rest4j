@@ -29,7 +29,7 @@
 
 	<xsl:param name="url"/>
 	<xsl:param name="https-url"/>
-	<xsl:param name="style"/>
+	<xsl:param name="style" select="'style.css'"/>
 	<xsl:param name="css"/>
 
 	<xsl:template match="api">

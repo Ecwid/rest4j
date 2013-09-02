@@ -22,6 +22,9 @@
 			<complex name="b1" collection="singleton" type="B" access="readonly"></complex>
 			<complex name="b2" collection="map" type="B"></complex>
 			<complex name="bs" collection="array" type="B"></complex>
+			<simple name="changeable" type="number" access="writeonly">
+				<description>Changes something.<html:p/></description>
+			</simple>
 		</fields>
 	</model>
 	<model name="B" class="java.lang.Object">
@@ -34,12 +37,15 @@
 			<simple name="changeable" type="number" access="writeonly">
 				<description>Changes something.<html:p/></description>
 			</simple>
+			<simple name="prop with.wrong-characters!" type="number">
+			</simple>
 		</fields>
 	</model>
 
-	<endpoint http="PATCH" httpsonly="true">
+	<endpoint http="PUT" httpsonly="true">
 		<route>patch/<param>ID</param></route>
-		<description><html:title>Patch an A</html:title> And return <html:b>C</html:b>.</description>
+		<description><html:title>Patch an A</html:title> And return
+			<html:b>C</html:b>.</description>
 		<parameters>
 			<parameter name="ID" type="number">
 				<description>The unique ID</description>
@@ -61,13 +67,13 @@
 			<json type="C"/>
 		</response>
 		<errors></errors>
-		<service name="patch" method="patch"/>
+		<service name="a" method="patch"/>
 		<extra><group>Patching</group></extra>
 	</endpoint>
 
-	<endpoint http="PATCH" httpsonly="true">
+	<endpoint http="PUT" httpsonly="true">
 		<route>patch/b/<param>ID</param></route>
-		<description><title>Patch a B</title> And return <b>C</b>.</description>
+		<description><html:title>Patch a B</html:title> And return <html:b>C</html:b>.</description>
 		<parameters>
 			<parameter name="ID" type="number">
 				<description>The unique ID</description>
@@ -89,31 +95,31 @@
 			<json type="C"/>
 		</response>
 		<errors></errors>
-		<service name="patch" method="patch_b"/>
+		<service name="b" method="patch_b"/>
 		<extra><group>Patching</group></extra>
 	</endpoint>
 
 	<endpoint http="GET">
 		<route>get</route>
-		<description><title>Get B</title>x</description>
+		<description><html:title>Get B</html:title>x</description>
 		<parameters></parameters>
 		<response>
 			<json type="B"></json>
 		</response>
 		<errors></errors>
-		<service name="get" method="get"/>
+		<service name="b" method="get"/>
 		<extra><group>Getting</group></extra>
 	</endpoint>
 	
 	<endpoint http="GET">
 		<route>binary</route>
-		<description><title>Get binary</title>x</description>
+		<description><html:title>Get binary</html:title>x</description>
 		<parameters></parameters>
 		<response>
 			<binary></binary>
 		</response>
 		<errors></errors>
-		<service name="binary" method="binary"/>
+		<service name="binary"/>
 		<extra><group>Getting</group></extra>
 	</endpoint>
 		

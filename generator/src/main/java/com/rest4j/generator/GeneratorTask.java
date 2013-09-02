@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 
-package com.rest4j.doc;
+package com.rest4j.generator;
 
-import com.rest4j.generator.Generator;
-import com.rest4j.generator.PreprocessorTag;
-import com.rest4j.generator.TemplateParam;
 import org.apache.tools.ant.BuildException;
 
 import java.io.File;
@@ -28,11 +25,15 @@ import java.net.MalformedURLException;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class DocGeneratorTask extends org.apache.tools.ant.Task  {
+public class GeneratorTask extends org.apache.tools.ant.Task {
 	Generator gen = new Generator();
 
 	public void addConfiguredPreprocessor(PreprocessorTag preprocessorTag) {
 		gen.addPreprocessor(preprocessorTag.getClazz());
+	}
+
+	public void setStylesheet(String xslt) {
+		gen.setStylesheet(xslt);
 	}
 
 	public void setApiXml(File xml) throws MalformedURLException {
@@ -61,5 +62,4 @@ public class DocGeneratorTask extends org.apache.tools.ant.Task  {
 			throw new BuildException(ex);
 		}
 	}
-
 }

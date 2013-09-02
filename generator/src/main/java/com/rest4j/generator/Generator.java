@@ -15,12 +15,14 @@
  * limitations under the License.
  */
 
-package com.rest4j.doc;
+package com.rest4j.generator;
 
 import com.rest4j.ApiFactory;
 import com.rest4j.Preprocessor;
 import com.rest4j.impl.Util;
 import com.sun.org.apache.xml.internal.resolver.helpers.FileURL;
+import net.sf.saxon.Configuration;
+import net.sf.saxon.s9api.*;
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
@@ -30,7 +32,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.*;
-import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
@@ -47,31 +48,30 @@ import java.util.*;
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class DocGenerator implements URIResolver {
+public class Generator implements URIResolver {
 	URL apiXml;
-	URL customXSLT;
+	URL postprocessingXSLT;
 	String outputDir = "target/doc";
 	List<TemplateParam> params = new ArrayList<TemplateParam>();
 	List<String> preprocessors = new ArrayList<String>();
 	TransformerFactory tFactory = new net.sf.saxon.TransformerFactoryImpl();
-	static final List<TemplateParam> defaultParams = new ArrayList<TemplateParam>();
-	static {
-		defaultParams.add(new TemplateParam("style", "style.css"));
-	}
+	private String stylesheet = "doc.xslt";
 
 	public static void main(String[] args) throws Exception {
 		if (args.length == 0 || args[0].equals("-h") || args[0].equals("--help")) {
 			help();
 			return;
 		}
-		DocGenerator gen = new DocGenerator();
+		Generator gen = new Generator();
 		for (int i=0; i<args.length-1; i++) {
-			if (args[i].equals("--output-dir") || args[i].equals("-o")) {
+			if (args[i].equals("--xslt") || args[i].equals("-t")) {
+				gen.setStylesheet(args[++i]);
+			} else if (args[i].equals("--output-dir") || args[i].equals("-o")) {
 				gen.setOutputDir(args[++i]);
 			} else if (args[i].equals("--api-xml") || args[i].equals("-x")) {
 				gen.setApiXml(new File(args[++i]));
 			} else if (args[i].equals("--xslt") || args[i].equals("-s")) {
-				gen.setCustomXSLT(new File(args[++i]));
+				gen.setPostprocessingXSLT(new File(args[++i]));
 			} else if (args[i].equals("--preprocessor") || args[i].equals("-p")) {
 				gen.preprocessors.add(args[++i]);
 			} else if (args[i].equals("--param") || args[i].equals("-v")) {
@@ -101,7 +101,7 @@ public class DocGenerator implements URIResolver {
 		System.out.println(s);
 	}
 
-	public DocGenerator() {
+	public Generator() {
 		tFactory.setURIResolver(this);
 	}
 
@@ -113,12 +113,16 @@ public class DocGenerator implements URIResolver {
 		this.apiXml = xml;
 	}
 
-	public void setCustomXSLT(File customXSLT) throws MalformedURLException {
-		this.customXSLT = customXSLT.toURI().toURL();
+	public void setStylesheet(String stylesheet) {
+		this.stylesheet = stylesheet;
+	}
+
+	public void setPostprocessingXSLT(File postprocessingXSLT) throws MalformedURLException {
+		this.postprocessingXSLT = postprocessingXSLT.toURI().toURL();
 	}
 
 	public void setCustomXSLTUrl(URL customXSLTUrl) {
-		this.customXSLT = customXSLTUrl;
+		this.postprocessingXSLT = customXSLTUrl;
 	}
 
 	public void setOutputDir(String outputDir) {
@@ -129,6 +133,10 @@ public class DocGenerator implements URIResolver {
 		params.add(param);
 	}
 
+	public void addPreprocessor(String clazz) {
+		preprocessors.add(clazz);
+	}
+
 	public void generate() throws Exception {
 		ApiFactory fac = new ApiFactory(apiXml, null, null);
 		for (String className: preprocessors) {
@@ -137,7 +145,7 @@ public class DocGenerator implements URIResolver {
 		}
 		Document xml = fac.getDocument();
 		preprocess(xml);
-		URL url = getDefaultStylesheet();
+		URL url = getStylesheet();
 
 		String filename = "index.html";
 		for (TemplateParam param: params) {
@@ -147,9 +155,9 @@ public class DocGenerator implements URIResolver {
 		}
 
 		Document doc = transform(xml, url);
-		cleanup(doc.getDocumentElement());
+		cleanupBeforePostprocess(doc.getDocumentElement());
 
-		if (customXSLT != null) {
+		if (postprocessingXSLT != null) {
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 			documentBuilderFactory.setNamespaceAware(true);
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -162,7 +170,7 @@ public class DocGenerator implements URIResolver {
 
 			xml = null; doc = null; // free some mem
 
-			doc = transform(composed, customXSLT);
+			doc = transform(composed, postprocessingXSLT);
 		}
 
 		if ("files".equals(doc.getDocumentElement().getLocalName())) {
@@ -178,7 +186,18 @@ public class DocGenerator implements URIResolver {
 					System.out.println("Write " + file.getAbsolutePath());
 					Attr copyFromAttr = (Attr)child.getAttributes().getNamedItem("copy-from");
 					if (copyFromAttr == null) {
-						output(child, file);
+						cleanupFinal((Element) child);
+						if (child.getAttributes().getNamedItem("text") != null) {
+							// plain-text output
+							FileOutputStream fos = new FileOutputStream(file);
+							try {
+								IOUtils.write(child.getTextContent(), fos);
+							} finally {
+								IOUtils.closeQuietly(fos);
+							}
+						} else {
+							output(child, file);
+						}
 					} else {
 						String copyFrom = copyFromAttr.getValue();
 						URL asset = getClass().getClassLoader().getResource(copyFrom);
@@ -188,8 +207,16 @@ public class DocGenerator implements URIResolver {
 						if (asset == null) {
 							File assetFile = new File(copyFrom);
 							if (!assetFile.canRead()) {
-								if (customXSLT != null) {
-									asset = new URL(customXSLT, copyFrom);
+								if (postprocessingXSLT != null) {
+									asset = new URL(postprocessingXSLT, copyFrom);
+									try {
+										asset.openStream().close();
+									} catch (FileNotFoundException fnfe) {
+										asset = null;
+									}
+								}
+								if (asset == null) {
+									asset = new URL(getStylesheet(), copyFrom);
 									try {
 										asset.openStream().close();
 									} catch (FileNotFoundException fnfe) {
@@ -217,6 +244,7 @@ public class DocGenerator implements URIResolver {
 		} else {
 			File file = new File(outputDir, filename);
 			System.out.println("Write "+file.getAbsolutePath());
+			cleanupFinal(doc.getDocumentElement());
 			DOMSource source = new DOMSource(doc);
 			FileOutputStream fos = new FileOutputStream(file);
 			try {
@@ -229,37 +257,77 @@ public class DocGenerator implements URIResolver {
 		}
 	}
 
-	private void cleanup(Element element) {
+	private void cleanupBeforePostprocess(Element element) {
 		if ("http://www.w3.org/1999/xhtml".equals(element.getNamespaceURI())) {
 			element.getOwnerDocument().renameNode(element, null, element.getLocalName());
 		}
 		for (Node child: Util.it(element.getChildNodes())) {
 			if (child instanceof Element) {
-				cleanup((Element)child);
+				cleanupBeforePostprocess((Element) child);
+			}
+		}
+	}
+
+	private void cleanupFinal(Element element) {
+		if ("http://www.w3.org/1999/xhtml".equals(element.getNamespaceURI())) {
+			element.getOwnerDocument().renameNode(element, null, element.getLocalName());
+		}
+		NamedNodeMap attrs = element.getAttributes();
+		if (attrs.getNamedItem("xmlns") != null) {
+			attrs.removeNamedItem("xmlns");
+		}
+		if (attrs.getNamedItem("xmlns:html") != null) {
+			attrs.removeNamedItem("xmlns:html");
+		}
+		for (Node child: Util.it(element.getChildNodes())) {
+			if (child instanceof Element) {
+				cleanupFinal((Element) child);
 			}
 		}
 	}
 
 	private Document transform(Document xml, URL url) throws IOException, ParserConfigurationException, TransformerException {
-		Templates templates = tFactory.newTemplates(new StreamSource(url.openStream(), url.toString()));
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setValidating(false);
-		Transformer transformer = templates.newTransformer();
-		Set<String> paramNames = new HashSet<String>();
-		if (params != null) for (TemplateParam param: params) {
-			transformer.setParameter(param.getName(), param.getValue());
-			paramNames.add(param.getName());
+		Configuration config = new Configuration();
+		config.setURIResolver(this);
+		config.setValidation(false);
+		net.sf.saxon.s9api.Processor processor = new net.sf.saxon.s9api.Processor(config);
+		for (ExtensionFunction func: XSLTFunctions.functions()) {
+			processor.registerExtensionFunction(func);
 		}
-		for (TemplateParam deflt: defaultParams) {
-			if (!paramNames.contains(deflt.getName())) {
-				transformer.setParameter(deflt.getName(), deflt.getValue());
+		try {
+			XsltCompiler xsltCompiler = processor.newXsltCompiler();
+			XsltExecutable exec = xsltCompiler.compile(new StreamSource(url.openStream(), url.toString()));
+			XsltTransformer transformer = exec.load();
+			Set<String> paramNames = new HashSet<String>();
+			if (params != null) for (TemplateParam param: params) {
+				transformer.setParameter(new net.sf.saxon.s9api.QName(param.getName()), new XdmAtomicValue(param.getValue()));
+				paramNames.add(param.getName());
 			}
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			Document doc = factory.newDocumentBuilder().newDocument();
+			transformer.setSource(new DOMSource(xml));
+			transformer.setDestination(new DOMDestination(doc));
+			transformer.transform();
+			return doc;
+		} catch (SaxonApiException e) {
+			throw new TransformerException(e);
 		}
-		Document doc = factory.newDocumentBuilder().newDocument();
-		//transformer.setOutputProperty("indent", "no");
-		//transformer.transform(new DOMSource(xml), new StreamResult(System.out)/*new DOMResult(doc)*/);
-		transformer.transform(new DOMSource(xml), new DOMResult(doc));
-		return doc;
+
+
+//		Templates templates = tFactory.newTemplates(new StreamSource(url.openStream(), url.toString()));
+//		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+//		factory.setValidating(false);
+//		Transformer transformer = templates.newTransformer();
+//		Set<String> paramNames = new HashSet<String>();
+//		if (params != null) for (TemplateParam param: params) {
+//			transformer.setParameter(param.getName(), param.getValue());
+//			paramNames.add(param.getName());
+//		}
+//		Document doc = factory.newDocumentBuilder().newDocument();
+//		//transformer.setOutputProperty("indent", "no");
+//		//transformer.transform(new DOMSource(xml), new StreamResult(System.out)/*new DOMResult(doc)*/);
+//		transformer.transform(new DOMSource(xml), new DOMResult(doc));
+//		return doc;
 	}
 
 	private void output(Node node, File file) throws TransformerException, IOException {
@@ -321,28 +389,42 @@ public class DocGenerator implements URIResolver {
 		return null;
 	}
 
-	public URL getDefaultStylesheet() {
-		return getClass().getResource("doc.xslt");
+	public URL getStylesheet() {
+		return tryFind(stylesheet);
+	}
+
+	private URL tryFind(String filename) {
+		URL url = getClass().getResource(filename);
+		if (url == null) {
+			url = getClass().getClassLoader().getResource(filename);
+		}
+		if (url == null) {
+			try {
+				File file = new File(filename);
+				if (file.canRead())
+					return file.toURI().toURL();
+			} catch (MalformedURLException e) {
+			}
+		}
+		if (url == null) {
+			url = getClass().getClassLoader().getResource("com/rest4j/doc/"+filename);
+		}
+		return url;
 	}
 
 	@Override
 	public Source resolve(String href, String base) throws TransformerException {
 		String uri = href;
-		String result = null;
-		if (href.equals("doc.xslt")) {
-			result = getDefaultStylesheet().toString();
-		}
-		if (result == null) {
+		URL found = tryFind(href);
+		if (found == null) {
 			try {
 				URL url;
 
 				if (base==null) {
-					url = new URL(uri);
-					result = url.toString();
+					found = new URL(uri);
 				} else {
 					URL baseURL = new URL(base);
-					url = (href.length()==0 ? baseURL : new URL(baseURL, uri));
-					result = url.toString();
+					found = (href.length()==0 ? baseURL : new URL(baseURL, uri));
 				}
 			} catch (java.net.MalformedURLException mue) {
 				// try to make an absolute URI from the current base
@@ -359,7 +441,7 @@ public class DocGenerator implements URIResolver {
 		}
 
 		SAXSource source = new SAXSource();
-		source.setInputSource(new InputSource(result));
+		source.setInputSource(new InputSource(found.toString()));
 		return source;
 	}
 

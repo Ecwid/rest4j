@@ -25,7 +25,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
-import static com.rest4j.impl.Util.*;
+import static com.rest4j.impl.Util.find;
+import static com.rest4j.impl.Util.it;
 
 /**
  * A preprocessor that fills default values:
@@ -80,22 +81,66 @@ public class DefaultsPreprocessor implements Preprocessor {
 			method.setNodeValue(httpMethod.toLowerCase(Locale.ENGLISH));
 			service.getAttributes().setNamedItem(method);
 		}
+		defaultValue(xml, element, "httpsonly", "false");
 		Node parameters = find(element, "parameters");
 		for (Node param: it(parameters.getChildNodes())) {
 			if ("parameter".equals(param.getNodeName())) {
 				processParameter(xml, param);
 			}
 		}
+		Node response = find(element, "response");
+		if (response != null) {
+			Node json = find(response, "json");
+			if (json != null) {
+				defaultValue(xml, json, "collection", "singleton");
+				defaultValue(xml, json, "optional", "false");
+			}
+		}
+		Node body = find(element, "body");
+		if (body != null) {
+			Node json = find(body, "json");
+			if (json != null) {
+				defaultValue(xml, json, "collection", "singleton");
+				defaultValue(xml, json, "optional", "false");
+			}
+		}
+	}
+
+	private void defaultValue(Document xml, Node element, String attrName, String value) {
+		Attr collection = attr(element, attrName);
+		if (collection == null) {
+			collection = xml.createAttribute(attrName);
+			collection.setValue(value);
+			element.getAttributes().setNamedItem(collection);
+		}
 	}
 
 	private void processParameter(Document xml, Node param) throws ConfigurationException {
-		Attr type = attr(param, "type");
-		if (type == null) {
-			type = xml.createAttribute("type");
-			type.setValue("string");
-			param.getAttributes().setNamedItem(type);
+		defaultValue(xml, param, "type", "string");
+		if (isPathParam(param)) {
+			Attr optionalAttr = attr(param, "optional");
+			if (optionalAttr != null && "true".equals(optionalAttr.getValue())) {
+				throw new ConfigurationException("The path parameter '"+param.getAttributes().getNamedItem("name").getTextContent()+"' is declared as optional='true'. Path parameters cannot be optional.");
+			}
+			defaultValue(xml, param, "optional", "false");
+		} else {
+			defaultValue(xml, param, "optional", "true");
 		}
+		defaultValue(xml, param, "httpsonly", "false");
 		processEnums(xml, param);
+	}
+
+	private boolean isPathParam(Node param) {
+		String name = attr(param, "name").getValue();
+		Node routeNode = find(param.getParentNode().getParentNode(), "route");
+		for (Node child: Util.it(routeNode.getChildNodes())) {
+			if ("param".equals(child.getNodeName())) {
+				if (name.equals(child.getTextContent())) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private void processField(Document xml, Node child) throws ConfigurationException {
