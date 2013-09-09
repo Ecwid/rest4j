@@ -422,8 +422,8 @@ public class Client {
 	<xsl:template match="endpoint[response/text]" mode="endpoint-result-type">String</xsl:template>
 	<xsl:template match="endpoint" mode="endpoint-result-type">Void</xsl:template>
 
-	<xsl:template match="endpoint/@client-method-name" mode="endpoint-method-name"><xsl:value-of select="@client-method-name"/></xsl:template>
-	<xsl:template match="endpoint" mode="endpoint-method-name"><xsl:value-of select="rest4j:camelCase(service/@method,service/@name)"/></xsl:template>
+	<xsl:template match="endpoint[@client-method-name]" mode="endpoint-method-name"><xsl:value-of select="@client-method-name"/></xsl:template>
+	<xsl:template match="endpoint" mode="endpoint-method-name"><xsl:value-of select="rest4j:camelCase(service/@method,rest4j:singular(service/@name))"/></xsl:template>
 	<xsl:template match="endpoint" mode="endpoint-method-params">
 		<xsl:variable name="params">
 			<xsl:for-each select="parameters/parameter[not(fn:index-of($common-param-set,@name))]" xml:space='preserve'><xxx><xsl:call-template name='param-type'><xsl:with-param name="type" select="@type"/></xsl:call-template> <xsl:value-of select="rest4j:paramNameAsIdentifier(@name)"/></xxx>

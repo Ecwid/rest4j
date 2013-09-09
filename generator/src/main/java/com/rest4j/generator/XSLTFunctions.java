@@ -33,7 +33,8 @@ public class XSLTFunctions {
 				new CamelCase(),
 				new Quote(),
 				new JavadocEscape(),
-				new ParamNameAsIdentifier()
+				new ParamNameAsIdentifier(),
+				new Singular()
 		};
 	}
 
@@ -87,6 +88,31 @@ public class XSLTFunctions {
 		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
 			String arg = ((XdmAtomicValue)arguments[0].itemAt(0)).getStringValue();
 			return new XdmAtomicValue("\""+StringEscapeUtils.escapeJava(arg)+"\"");
+		}
+	}
+
+	static class Singular implements ExtensionFunction {
+		@Override
+		public QName getName() {
+			return new QName(NAMESPACE, "singular");
+		}
+
+		@Override
+		public SequenceType getResultType() {
+			return SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ONE);
+		}
+
+		@Override
+		public SequenceType[] getArgumentTypes() {
+			return new SequenceType[] {SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ONE)};
+		}
+
+		@Override
+		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
+			String arg = ((XdmAtomicValue)arguments[0].itemAt(0)).getStringValue();
+			if (arg.endsWith("ies")) arg = arg.substring(0, arg.length()-3)+"y";
+			else if (arg.endsWith("s")) arg = arg.substring(0, arg.length()-1);
+			return new XdmAtomicValue(arg);
 		}
 	}
 
