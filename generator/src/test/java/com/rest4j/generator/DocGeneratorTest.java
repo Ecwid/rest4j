@@ -18,6 +18,7 @@
 package com.rest4j.generator;
 
 import com.rest4j.impl.Util;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -86,6 +88,13 @@ public class DocGeneratorTest {
 		gen.addParam(new TemplateParam("https-url", "https://api.rest4j.com/"));
 		gen.setCustomXSLTUrl(getClass().getResource("custom.xslt"));
 		gen.generate();
+	}
+
+	@Test public void testGenerate_client_lang() throws Exception {
+		testGenerate();
+		String patchA = IOUtils.toString(new File("target/doc/a.patch.html").toURI());
+		assertFalse(patchA, patchA.contains("Some additional client info")); // Some additional python client info
+		assertFalse(patchA, patchA.contains("Some additional python client info"));
 	}
 
 	String modelsToString(Object input) {

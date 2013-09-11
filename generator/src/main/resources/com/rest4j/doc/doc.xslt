@@ -58,7 +58,7 @@
 			</xsl:with-param>
 			<xsl:with-param name="content">
 				<div class="endpoint-description">
-				<xsl:copy-of select="description/(*|text())[fn:name()!='html:title']"/>
+				<xsl:copy-of select="description/(*|text())[name()!='html:title' and not(@client-lang)]"/>
 				</div>
 				<xsl:apply-templates select="." mode="request"/>
 
@@ -195,7 +195,7 @@
 	</xsl:template>
 
 	<xsl:template match="parameter|simple|complex" mode="param-description">
-		<xsl:copy-of select="description/(*|text())"/>
+		<xsl:copy-of select="description/(*[not(@client-lang)]|text())"/>
 		<xsl:if test="values and not(values/value/@description)">
 			<div class="one-of">One of <xsl:for-each select="values/value"><xsl:if test="position()!=1">, </xsl:if>'<xsl:value-of select="."/>'</xsl:for-each></div>
 		</xsl:if>

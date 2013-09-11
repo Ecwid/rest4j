@@ -155,7 +155,7 @@ public class Client {
 	<xsl:if test="not($doc/api/endpoint/parameters/parameter[@name=$param-name])"><xsl:value-of select="error(fn:QName('http://rest4j.com/','PARAM-NOT-FOUND'),concat('Parameter not found: ', $param-name))"/></xsl:if>
     /**
      * Sets the value of the "<xsl:value-of select="$param-name"/>" request parameter for subsequent requests.
-     * <xsl:value-of select="rest4j:javadocEscape(($doc/api/endpoint/parameters/parameter[@name=$param-name]/description)[1]/(*|text()))"/>
+     * <xsl:value-of select="rest4j:javadocEscape(($doc/api/endpoint/parameters/parameter[@name=$param-name]/description)[1]/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text()))"/>
      */
     public Client <xsl:value-of select="rest4j:camelCase('set',$param-name)"/>(
 	<xsl:call-template name='param-type'>
@@ -168,6 +168,15 @@ public class Client {
 <xsl:for-each select="endpoint">
 	<xsl:apply-templates select='.' mode='endpoint-method'/>
 </xsl:for-each>
+<xsl:if test="endpoint/body/binary">
+    private InputStreamEntity createInputStreamEntity(java.io.InputStream body) {
+        String contentType = body instanceof HasContentType ? ((HasContentType)body).getContentType() : "application/octet-stream";
+        long contentLength = body instanceof HasContentLength ? ((HasContentLength)body).getContentLength() : -1;
+        InputStreamEntity ise = new InputStreamEntity(body, contentLength);
+        if (contentType != null) ise.setContentType(contentType);
+        return ise;
+	}
+</xsl:if>
 }
 			</api:file>
 			<api:file name="pom.xml" xml:space='preserve'>
@@ -272,6 +281,8 @@ public class Client {
 			<api:file name="src/main/java/com/rest4j/client/JsonObjectMap.java" copy-from="java/JsonObjectMap.inc"/>
 			<api:file name="src/main/java/com/rest4j/client/JsonUtil.java" copy-from="java/JsonUtil.inc"/>
 			<api:file name="src/main/java/com/rest4j/client/Request.java" copy-from="java/Request.inc"/>
+			<api:file name="src/main/java/com/rest4j/client/HasContentLength.java" copy-from="java/HasContentLength.inc"/>
+			<api:file name="src/main/java/com/rest4j/client/HasContentType.java" copy-from="java/HasContentType.inc"/>
 		</api:files>
 	</xsl:template>
 
@@ -325,8 +336,12 @@ public class Client {
      * Builds Request object for the "<code><xsl:value-of select="@http"/><xsl:text> </xsl:text><xsl:apply-templates select="route" mode="route"/></code>" request.
 		</xsl:otherwise>
 	</xsl:choose>
-     * To actually execute the request, call the execute() method on the returned object.<p/>
-     * <xsl:value-of select="rest4j:javadocEscape(description/(*|text())[fn:name()!='html:title'])"/>
+     * To actually execute the request, call the execute() method on the returned object.&lt;p/&gt;
+     * <xsl:value-of select="rest4j:javadocEscape(description/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text())[name()!='html:title'])"/>
+<xsl:for-each select="parameters/parameter[not(index-of($common-param-set,@name))]" xml:space="preserve">
+     * @param <xsl:value-of select="@name"/> <xsl:value-of select="rest4j:javadocEscape(description/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text()))"/>
+</xsl:for-each>
+     * @return A Request&amp;lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&amp;gt; object that can be executed later.
      */
     public Request&lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&gt; <xsl:apply-templates select='.' mode="endpoint-method-name"/>(<xsl:apply-templates select='.' mode="endpoint-method-params"/>) {
         try {
@@ -343,7 +358,7 @@ public class Client {
 		<xsl:when test="body/json">, new StringEntity(<xsl:apply-templates select="body/json" mode="body-as-json"/>, ContentType.APPLICATION_JSON)</xsl:when>
 		<xsl:when test="body/patch">, new StringEntity(body.asJson().toString(), ContentType.APPLICATION_JSON)</xsl:when>
 		<xsl:when test="body/text">, new StringEntity(body, ContentType.TEXT_PLAIN)</xsl:when>
-		<xsl:when test="body/binary">, new InputStreamEntity(body, -1)</xsl:when>
+		<xsl:when test="body/binary">, createInputStreamEntity(body)</xsl:when>
 	</xsl:choose>) {
                 @Override
                 public <xsl:apply-templates select='.' mode="endpoint-result-type"/> execute() throws IOException, JSONException {
@@ -436,7 +451,7 @@ public class Client {
 				<xsl:when test="body/text"><xxx>String body</xxx></xsl:when>
 			</xsl:choose>
 		</xsl:variable>
-		<xsl:value-of select="fn:string-join($params/*:xxx,', ')"/>
+		<xsl:value-of select="string-join($params/*:xxx,', ')"/>
 	</xsl:template>
 
 	<xsl:template name="param-type">

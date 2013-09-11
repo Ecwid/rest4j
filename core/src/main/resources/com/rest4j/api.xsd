@@ -200,7 +200,10 @@ documentation and client libraries, as well as for query dispatching.
 			<xsd:element name="description" type="Description" minOccurs="0" maxOccurs="1">
 				<xsd:annotation><xsd:documentation>
 					An HTML documentation of a model. Should not contain documentation of fields, because this
-					information is presented elsewhere.
+					information is presented elsewhere. An optional argument 'client-lang' of top-level tags
+					denotes that the tags only appear in the client library documentation. The special value '*' of the 'client-lang'
+					attribute means that it applies to all programming languages. Otherwise, the value contains
+					a comma-separated programming language names, e.g. &lt;p client-lang='java,python'&gt;...&lt;/p&gt;.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
 			<xsd:element name="fields" type="Fields" minOccurs="1" maxOccurs="1">
@@ -278,7 +281,10 @@ documentation and client libraries, as well as for query dispatching.
 			<xsd:element name="description" type="Description" minOccurs="0" maxOccurs="1">
 				<xsd:annotation><xsd:documentation>
 					An HTML documentation of a JSON field. Should also describe the meaning of an absent optional field
-					(or null value).
+					(or null value). An optional argument 'client-lang' of top-level tags
+					denotes that the tags only appear in the client library documentation. The special value '*' of the 'client-lang'
+					attribute means that it applies to all programming languages. Otherwise, the value contains
+					a comma-separated programming language names, e.g. &lt;p client-lang='java,python'&gt;...&lt;/p&gt;.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -411,6 +417,10 @@ documentation and client libraries, as well as for query dispatching.
 				<xsd:annotation><xsd:documentation>
 					Documentation for this parameter in English. Can contain HTML tags. Should contain the meaning
 					of an absent parameter, if the parameter is optional and does not have a default value.
+					An optional argument 'client-lang' of top-level tags
+					denotes that the tags only appear in the client library documentation. The special value '*' of the 'client-lang'
+					attribute means that it applies to all programming languages. Otherwise, the value contains
+					a comma-separated programming language names, e.g. &lt;p client-lang='java,python'&gt;...&lt;/p&gt;.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
 			<xsd:element name="values" type="Values" minOccurs="0" maxOccurs="1">

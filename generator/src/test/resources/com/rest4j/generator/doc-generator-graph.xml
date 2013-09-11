@@ -23,7 +23,7 @@
 			<complex name="b2" collection="map" type="B"></complex>
 			<complex name="bs" collection="array" type="B"></complex>
 			<simple name="changeable" type="number" access="writeonly">
-				<description>Changes something.<html:p/></description>
+				<description>Changes something.<html:p client-lang="*">Some additional client info...</html:p></description>
 			</simple>
 		</fields>
 	</model>
@@ -45,7 +45,7 @@
 	<endpoint http="PUT" httpsonly="true">
 		<route>patch/<param>ID</param></route>
 		<description><html:title>Patch an A</html:title> And return
-			<html:b>C</html:b>.</description>
+			<html:b>C</html:b>. <html:p client-lang="python">Some additional python client info...</html:p></description>
 		<parameters>
 			<parameter name="ID" type="number">
 				<description>The unique ID</description>
@@ -121,6 +121,17 @@
 		<errors></errors>
 		<service name="binary"/>
 		<extra><group>Getting</group></extra>
+	</endpoint>
+
+	<endpoint http="POST">
+		<route>upload</route>
+		<description><html:title>Upload a file</html:title></description>
+		<parameters></parameters>
+		<body>
+			<binary></binary>
+		</body>
+		<service name="upload"/>
+		<extra><group>Uploading</group></extra>
 	</endpoint>
 		
 </api>

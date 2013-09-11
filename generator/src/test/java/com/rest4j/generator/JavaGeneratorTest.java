@@ -18,11 +18,13 @@
 package com.rest4j.generator;
 
 import org.apache.commons.exec.*;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import java.io.File;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -47,6 +49,10 @@ public class JavaGeneratorTest {
 		executor.setWatchdog(watchdog);
 		int exitValue = executor.execute(cmdLine);
 		assertFalse(executor.isFailure(exitValue));
+
+		String a = IOUtils.toString(new File("target/java/src/main/java/api/model/A.java").toURI());
+		assertTrue(a, a.contains("Some additional client info"));
+		assertFalse(a, a.contains("Some additional python client info"));
 	}
 
 
