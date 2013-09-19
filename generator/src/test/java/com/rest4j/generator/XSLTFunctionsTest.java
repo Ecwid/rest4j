@@ -31,7 +31,7 @@ public class XSLTFunctionsTest {
 	@Test
 	public void testJavadoc() throws Exception {
 		Processor proc = new Processor(false);
-		proc.registerExtensionFunction(new XSLTFunctions.JavadocEscape());
+		proc.registerExtensionFunction(new XSLTFunctions.JavadocEscape(4, "javadocEscape"));
 		XdmNode doc = proc.newDocumentBuilder().build(new StreamSource(getClass().getResourceAsStream("javadoc.xml")));
 		XPathCompiler xPathCompiler = proc.newXPathCompiler();
 		xPathCompiler.declareNamespace("rest4j", XSLTFunctions.NAMESPACE);

@@ -32,7 +32,8 @@ public class XSLTFunctions {
 		return new ExtensionFunction[] {
 				new CamelCase(),
 				new Quote(),
-				new JavadocEscape(),
+				new JavadocEscape(4, "javadocEscape"),
+				new JavadocEscape(0, "javadocEscape0"),
 				new ParamNameAsIdentifier(),
 				new Singular()
 		};
@@ -117,9 +118,17 @@ public class XSLTFunctions {
 	}
 
 	static class JavadocEscape implements ExtensionFunction {
+		final int indent;
+		final String name;
+
+		JavadocEscape(int indent, String name) {
+			this.indent = indent;
+			this.name = name;
+		}
+
 		@Override
 		public QName getName() {
-			return new QName(NAMESPACE, "javadocEscape");
+			return new QName(NAMESPACE, name);
 		}
 
 		@Override
@@ -129,13 +138,16 @@ public class XSLTFunctions {
 
 		@Override
 		public SequenceType[] getArgumentTypes() {
-			return new SequenceType[] {SequenceType.makeSequenceType(ItemType.ANY_ITEM, OccurrenceIndicator.ZERO_OR_MORE)};
+			return new SequenceType[] {
+					SequenceType.makeSequenceType(ItemType.ANY_ITEM, OccurrenceIndicator.ZERO_OR_MORE) // comment text, HTML
+			};
 		}
 
 		@Override
 		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
 			JavadocBuilder sb = new JavadocBuilder();
-			for (XdmItem item:arguments[0]) {
+			sb.setIndent(indent);
+			for (XdmItem item : arguments[0]) {
 				if (item instanceof XdmAtomicValue) sb.append(item.getStringValue());
 				else if (item instanceof XdmNode) {
 					XdmNode node = (XdmNode) item;
@@ -171,6 +183,7 @@ public class XSLTFunctions {
 					sb.append("</").append(node.getNodeName().getLocalName()).append('>');
 					break;
 				case TEXT:
+				case DOCUMENT: // for external entities
 					sb.appendText(node.getStringValue());
 					break;
 			}
@@ -181,6 +194,8 @@ public class XSLTFunctions {
 		StringBuilder buf = new StringBuilder();
 		boolean leadingSpaces = true;
 		boolean startOfLineSpaces = true;
+		private int indent;
+		private String asterisk = "     * ";
 
 		JavadocBuilder append(char c) {
 			if (leadingSpaces && (c == ' ' || c == '\r' || c == '\n' || c == '\t')) {
@@ -194,7 +209,7 @@ public class XSLTFunctions {
 			buf.append(c);
 			if (c == '\n') {
 				startOfLineSpaces = true;
-				buf.append("     * ");
+				buf.append(asterisk);
 			}
 			return this;
 		}
@@ -230,6 +245,11 @@ public class XSLTFunctions {
 			}
 			buf.setLength(i+1);
 			return buf.toString();
+		}
+
+		public void setIndent(int indent) {
+			this.indent = indent;
+			asterisk = StringUtils.repeat(" ", indent) + " * ";
 		}
 	}
 

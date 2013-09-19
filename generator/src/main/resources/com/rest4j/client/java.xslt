@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE stylesheet [
 		<!ENTITY apache-copyright SYSTEM "apache-copyright.inc">
+		<!ENTITY JsonUtil SYSTEM "java/JsonUtil.inc">
+		<!ENTITY JsonArrayList SYSTEM "java/JsonArrayList.inc">
+		<!ENTITY JsonElementFactory SYSTEM "java/JsonElementFactory.inc">
+		<!ENTITY JsonObjectMap SYSTEM "java/JsonObjectMap.inc">
+		<!ENTITY Request SYSTEM "java/Request.inc">
+		<!ENTITY HasContentLength SYSTEM "java/HasContentLength.inc">
+		<!ENTITY HasContentType SYSTEM "java/HasContentType.inc">
 ]>
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 				xmlns:api="http://rest4j.com/api-description"
@@ -40,7 +47,7 @@
 package <xsl:value-of select="$package"/>.model;
 import java.util.*;
 import org.json.*;
-import com.rest4j.client.*;
+import <xsl:value-of select="$package"/>.util.*;
 
 public class <xsl:value-of select="@name"/> {
     private JSONObject object;
@@ -103,8 +110,8 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.HttpResponse;
 import java.net.URISyntaxException;
 import <xsl:value-of select="$package"/>.model.*;
+import <xsl:value-of select="$package"/>.util.*;
 import java.util.*;
-import com.rest4j.client.*;
 import java.io.IOException;
 import org.json.*;
 
@@ -275,14 +282,14 @@ public class Client {
 </project>
 			</api:file>
 
-			<!-- Utility files from the com.rest4j.client package -->
-			<api:file name="src/main/java/com/rest4j/client/JsonArrayList.java" copy-from="java/JsonArrayList.inc"/>
-			<api:file name="src/main/java/com/rest4j/client/JsonElementFactory.java" copy-from="java/JsonElementFactory.inc"/>
-			<api:file name="src/main/java/com/rest4j/client/JsonObjectMap.java" copy-from="java/JsonObjectMap.inc"/>
-			<api:file name="src/main/java/com/rest4j/client/JsonUtil.java" copy-from="java/JsonUtil.inc"/>
-			<api:file name="src/main/java/com/rest4j/client/Request.java" copy-from="java/Request.inc"/>
-			<api:file name="src/main/java/com/rest4j/client/HasContentLength.java" copy-from="java/HasContentLength.inc"/>
-			<api:file name="src/main/java/com/rest4j/client/HasContentType.java" copy-from="java/HasContentType.inc"/>
+			<!-- Utility files -->
+			<api:file name="src/main/java/{replace($package,'\.','/')}/util/JsonArrayList.java" text="on">&JsonArrayList;</api:file>
+			<api:file name="src/main/java/{replace($package,'\.','/')}/util/JsonElementFactory.java" text="on">&JsonElementFactory;</api:file>
+			<api:file name="src/main/java/{replace($package,'\.','/')}/util/JsonObjectMap.java" text="on">&JsonObjectMap;</api:file>
+			<api:file name="src/main/java/{replace($package,'\.','/')}/util/JsonUtil.java" text="on">&JsonUtil;</api:file>
+			<api:file name="src/main/java/{replace($package,'\.','/')}/Request.java" text="on">&Request;</api:file>
+			<api:file name="src/main/java/{replace($package,'\.','/')}/HasContentLength.java" text="on">&HasContentLength;</api:file>
+			<api:file name="src/main/java/{replace($package,'\.','/')}/HasContentType.java" text="on">&HasContentType;</api:file>
 		</api:files>
 	</xsl:template>
 

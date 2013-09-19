@@ -650,6 +650,7 @@ documentation and client libraries, as well as for query dispatching.
 					<xsd:complexType>
 						<xsd:attribute name="name" type="xsd:string"/>
 						<xsd:attribute name="copy-from" type="xsd:string"/>
+						<xsd:attribute name="text" type="xsd:string"/>
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:sequence>
