@@ -112,6 +112,8 @@ public class XSLTFunctions {
 		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
 			String arg = ((XdmAtomicValue)arguments[0].itemAt(0)).getStringValue();
 			if (arg.endsWith("ies")) arg = arg.substring(0, arg.length()-3)+"y";
+			else if (arg.endsWith("ses")) arg = arg.substring(0, arg.length()-2);
+			else if (arg.endsWith("hes")) arg = arg.substring(0, arg.length()-2);
 			else if (arg.endsWith("s")) arg = arg.substring(0, arg.length()-1);
 			return new XdmAtomicValue(arg);
 		}

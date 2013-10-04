@@ -4,6 +4,7 @@
 package <xsl:value-of select="$package"/>;
 <![CDATA[
 import org.apache.http.HttpEntity;
+import org.apache.http.client.HttpClient;
 import org.json.JSONException;
 
 import java.io.IOException;
@@ -16,15 +17,18 @@ import java.net.URI;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public abstract class Request<T> {
+	final protected HttpClient client;
 	final protected URI uri;
 	final protected HttpEntity body;
 
-	public Request(URI uri) {
+	public Request(HttpClient client, URI uri) {
+		this.client = client;
 		this.uri = uri;
 		this.body = null;
 	}
 
-	public Request(URI uri, HttpEntity body) {
+	public Request(HttpClient client, URI uri, HttpEntity body) {
+		this.client = client;
 		this.uri = uri;
 		this.body = body;
 	}
@@ -37,6 +41,10 @@ public abstract class Request<T> {
 		return body;
 	}
 
-	public abstract T execute() throws IOException, JSONException;
+	public final T execute() throws IOException, JSONException {
+		return execute(client);
+	}
+
+	public abstract T execute(HttpClient client) throws IOException, JSONException;
 }
 ]]>

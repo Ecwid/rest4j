@@ -39,6 +39,7 @@ public class JavaGeneratorTest {
 		gen.setApiXmlUrl(getClass().getResource("doc-generator-graph.xml"));
 		gen.setOutputDir("target/java");
 		gen.addParam(new TemplateParam("common-params", "access-token"));
+		gen.addParam(new TemplateParam("additional-client-code", "// ADDITIONAL CODE"));
 		gen.generate();
 
 		// let's try compiling the damn thing
@@ -58,6 +59,9 @@ public class JavaGeneratorTest {
 		// check some file paths
 		assertTrue(new File("target/java/src/main/java/api/util/JsonUtil.java").canRead());
 		assertTrue(new File("target/java/src/main/java/api/Request.java").canRead());
+
+		String client = IOUtils.toString(new File("target/java/src/main/java/api/Client.java").toURI());
+		assertTrue(client.contains("ADDITIONAL CODE"));
 	}
 
 

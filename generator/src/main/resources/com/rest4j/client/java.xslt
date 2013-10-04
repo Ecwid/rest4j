@@ -34,6 +34,7 @@
 	<xsl:param name="developer-email"/>
 	<xsl:param name="license-name" select="'The Apache Software License, Version 2.0'"/>
 	<xsl:param name="license-url" select="'http://www.apache.org/licenses/LICENSE-2.0.txt'"/>
+	<xsl:param name="additional-client-code" select="'// use the additional-client-code xslt parameter to insert custom code here'"/>
 
 	<xsl:variable name="common-param-set" select="fn:tokenize($common-params,' ')"/>
 
@@ -145,6 +146,13 @@ public class Client {
         this.url = url;
         return this;
     }
+
+    /**
+     * Gets the endpoint URL.
+     */
+    public String getUrl() {
+        return url;
+    }
 <xsl:if test="$https-url">
     /**
      * Sets the HTTPS REST API endpoint URL. The default is "<xsl:value-of select='$https-url'/>".
@@ -154,6 +162,17 @@ public class Client {
         this.secureUrl = url;
         if (this.url == null) this.url = url;
         return this;
+    }
+
+    /**
+     * Gets the HTTPS endpoint URL.
+     */
+    public String getSecureUrl() {
+        return secureUrl;
+    }
+
+    public HttpClient getClient() {
+        return client;
     }
 </xsl:if>
 <!-- setters for common params -->
@@ -171,10 +190,21 @@ public class Client {
         this.<xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/> = <xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>;
         return this;
     }
+    /**
+     * Gets the value of the "<xsl:value-of select="$param-name"/>" request parameter set previously by <xsl:value-of select="rest4j:camelCase('set',$param-name)"/>.
+     */
+    public <xsl:call-template name='param-type'>
+		<xsl:with-param name="type" select="$doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1]"/>
+	</xsl:call-template> <xsl:value-of select="rest4j:camelCase('get',$param-name)"/>() {
+        return this.<xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>;
+    }
 </xsl:for-each>
 <xsl:for-each select="endpoint">
 	<xsl:apply-templates select='.' mode='endpoint-method'/>
 </xsl:for-each>
+
+<xsl:value-of select='$additional-client-code'/>
+
 <xsl:if test="endpoint/body/binary">
     private InputStreamEntity createInputStreamEntity(java.io.InputStream body) {
         String contentType = body instanceof HasContentType ? ((HasContentType)body).getContentType() : "application/octet-stream";
@@ -337,17 +367,14 @@ public class Client {
 	<xsl:template match="endpoint" mode="endpoint-method">
     /**<xsl:choose>
 		<xsl:when test="description/html:title">
-     * Builds Request object for the "<xsl:value-of select="rest4j:javadocEscape(description/html:title/(*|text()))"/>" request.
-		</xsl:when>
+     * Builds Request object for the "<xsl:value-of select="rest4j:javadocEscape(description/html:title/(*|text()))"/>" request.</xsl:when>
 		<xsl:otherwise>
-     * Builds Request object for the "<code><xsl:value-of select="@http"/><xsl:text> </xsl:text><xsl:apply-templates select="route" mode="route"/></code>" request.
-		</xsl:otherwise>
+     * Builds Request object for the "<code><xsl:value-of select="@http"/><xsl:text> </xsl:text><xsl:apply-templates select="route" mode="route"/></code>" request.</xsl:otherwise>
 	</xsl:choose>
      * To actually execute the request, call the execute() method on the returned object.&lt;p/&gt;
      * <xsl:value-of select="rest4j:javadocEscape(description/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text())[name()!='html:title'])"/>
 <xsl:for-each select="parameters/parameter[not(index-of($common-param-set,@name))]" xml:space="preserve">
-     * @param <xsl:value-of select="@name"/> <xsl:value-of select="rest4j:javadocEscape(description/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text()))"/>
-</xsl:for-each>
+     * @param <xsl:value-of select="@name"/> <xsl:value-of select="rest4j:javadocEscape(description/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text()))"/></xsl:for-each>
      * @return A Request&amp;lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&amp;gt; object that can be executed later.
      */
     public Request&lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&gt; <xsl:apply-templates select='.' mode="endpoint-method-name"/>(<xsl:apply-templates select='.' mode="endpoint-method-params"/>) {
@@ -360,7 +387,7 @@ public class Client {
             </xsl:for-each>
 
             <xsl:if test="body and not(body/json/@optional='true')">if (body == null) throw new IllegalArgumentException("No request body");</xsl:if>
-            return new Request&lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&gt;(builder.build()<xsl:choose>
+            return new Request&lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&gt;(client, builder.build()<xsl:choose>
 		<xsl:when test="body/json/@optional='true'">, body == null ? null : new StringEntity(<xsl:apply-templates select="body/json" mode="body-as-json"/>, ContentType.APPLICATION_JSON)</xsl:when>
 		<xsl:when test="body/json">, new StringEntity(<xsl:apply-templates select="body/json" mode="body-as-json"/>, ContentType.APPLICATION_JSON)</xsl:when>
 		<xsl:when test="body/patch">, new StringEntity(body.asJson().toString(), ContentType.APPLICATION_JSON)</xsl:when>
@@ -368,7 +395,7 @@ public class Client {
 		<xsl:when test="body/binary">, createInputStreamEntity(body)</xsl:when>
 	</xsl:choose>) {
                 @Override
-                public <xsl:apply-templates select='.' mode="endpoint-result-type"/> execute() throws IOException, JSONException {
+                public <xsl:apply-templates select='.' mode="endpoint-result-type"/> execute(HttpClient client) throws IOException, JSONException {
                     <xsl:choose>
 						<xsl:when test="@http='GET'">HttpGet method = new HttpGet(uri);</xsl:when>
 						<xsl:when test="@http='PUT'">HttpPut method = new HttpPut(uri); method.setEntity(body);</xsl:when>
