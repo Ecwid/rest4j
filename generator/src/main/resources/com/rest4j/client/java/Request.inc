@@ -17,17 +17,17 @@ import java.net.URI;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public abstract class Request<T> {
-	final protected HttpClient client;
+	final protected RequestExecutor client;
 	final protected URI uri;
 	final protected HttpEntity body;
 
-	public Request(HttpClient client, URI uri) {
+	public Request(RequestExecutor client, URI uri) {
 		this.client = client;
 		this.uri = uri;
 		this.body = null;
 	}
 
-	public Request(HttpClient client, URI uri, HttpEntity body) {
+	public Request(RequestExecutor client, URI uri, HttpEntity body) {
 		this.client = client;
 		this.uri = uri;
 		this.body = body;
@@ -45,6 +45,6 @@ public abstract class Request<T> {
 		return execute(client);
 	}
 
-	public abstract T execute(HttpClient client) throws IOException, JSONException;
+	public abstract T execute(RequestExecutor client) throws IOException, JSONException;
 }
 ]]>

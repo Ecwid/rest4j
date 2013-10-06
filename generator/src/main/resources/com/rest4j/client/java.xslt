@@ -8,6 +8,7 @@
 		<!ENTITY Request SYSTEM "java/Request.inc">
 		<!ENTITY HasContentLength SYSTEM "java/HasContentLength.inc">
 		<!ENTITY HasContentType SYSTEM "java/HasContentType.inc">
+		<!ENTITY RequestExecutor SYSTEM "java/RequestExecutor.inc">
 ]>
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 				xmlns:api="http://rest4j.com/api-description"
@@ -105,6 +106,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.client.methods.*;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.*;
 import org.apache.http.util.EntityUtils;
@@ -117,7 +119,7 @@ import java.io.IOException;
 import org.json.*;
 
 public class Client {
-    final HttpClient client;
+    final RequestExecutor executor;
     String url = "<xsl:value-of select='$url'/>";
 <xsl:if test="$https-url">    String secureUrl = "<xsl:value-of select='$https-url'/>";
 </xsl:if>
@@ -131,11 +133,20 @@ public class Client {
 	<xsl:value-of select="concat(' ', rest4j:paramNameAsIdentifier($param-name))"/>;
 </xsl:for-each>
     public Client() {
-        client = new DefaultHttpClient();
+        this(new DefaultHttpClient());
     }
 
-    public Client(HttpClient client) {
-        this.client = client;
+    public Client(final HttpClient client) {
+        this(new RequestExecutor() {
+                @Override
+                public HttpResponse execute(HttpUriRequest request) throws IOException, ClientProtocolException {
+                    return client.execute(request);
+                }
+            });
+    }
+
+    public Client(RequestExecutor executor) {
+        this.executor = executor;
     }
 
     /**
@@ -171,10 +182,10 @@ public class Client {
         return secureUrl;
     }
 
-    public HttpClient getClient() {
-        return client;
-    }
 </xsl:if>
+    public RequestExecutor getRequestExecutor() {
+        return executor;
+    }
 <!-- setters for common params -->
 <xsl:for-each select="$common-param-set" xml:space="preserve">
 	<xsl:variable name='param-name' select='.'/>
@@ -320,6 +331,7 @@ public class Client {
 			<api:file name="src/main/java/{replace($package,'\.','/')}/Request.java" text="on">&Request;</api:file>
 			<api:file name="src/main/java/{replace($package,'\.','/')}/HasContentLength.java" text="on">&HasContentLength;</api:file>
 			<api:file name="src/main/java/{replace($package,'\.','/')}/HasContentType.java" text="on">&HasContentType;</api:file>
+			<api:file name="src/main/java/{replace($package,'\.','/')}/RequestExecutor.java" text="on">&RequestExecutor;</api:file>
 		</api:files>
 	</xsl:template>
 
@@ -387,7 +399,7 @@ public class Client {
             </xsl:for-each>
 
             <xsl:if test="body and not(body/json/@optional='true')">if (body == null) throw new IllegalArgumentException("No request body");</xsl:if>
-            return new Request&lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&gt;(client, builder.build()<xsl:choose>
+            return new Request&lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&gt;(getRequestExecutor(), builder.build()<xsl:choose>
 		<xsl:when test="body/json/@optional='true'">, body == null ? null : new StringEntity(<xsl:apply-templates select="body/json" mode="body-as-json"/>, ContentType.APPLICATION_JSON)</xsl:when>
 		<xsl:when test="body/json">, new StringEntity(<xsl:apply-templates select="body/json" mode="body-as-json"/>, ContentType.APPLICATION_JSON)</xsl:when>
 		<xsl:when test="body/patch">, new StringEntity(body.asJson().toString(), ContentType.APPLICATION_JSON)</xsl:when>
@@ -395,7 +407,7 @@ public class Client {
 		<xsl:when test="body/binary">, createInputStreamEntity(body)</xsl:when>
 	</xsl:choose>) {
                 @Override
-                public <xsl:apply-templates select='.' mode="endpoint-result-type"/> execute(HttpClient client) throws IOException, JSONException {
+                public <xsl:apply-templates select='.' mode="endpoint-result-type"/> execute(RequestExecutor executor) throws IOException, JSONException {
                     <xsl:choose>
 						<xsl:when test="@http='GET'">HttpGet method = new HttpGet(uri);</xsl:when>
 						<xsl:when test="@http='PUT'">HttpPut method = new HttpPut(uri); method.setEntity(body);</xsl:when>
@@ -403,7 +415,7 @@ public class Client {
 						<xsl:when test="@http='DELETE'">HttpDelete method = new HttpDelete(uri);</xsl:when>
 					</xsl:choose>
                     try {
-                        HttpResponse response = client.execute(method);
+                        HttpResponse response = executor.execute(method);
                         if (response.getStatusLine().getStatusCode() >= 400) {
                             throw new IOException("Unexpected HTTP status: "+response.getStatusLine());
                         }
