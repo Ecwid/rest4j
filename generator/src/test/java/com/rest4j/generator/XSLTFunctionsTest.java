@@ -42,5 +42,19 @@ public class XSLTFunctionsTest {
 				"     * <a href=\"test\">C</a>. &lt;Abrakadabra&gt;&.\n" +
 				"     * What else?", result);
 	}
+
+	@Test
+	public void testHashComment() throws Exception {
+		Processor proc = new Processor(false);
+		proc.registerExtensionFunction(new XSLTFunctions.HashComment());
+		XPathCompiler xPathCompiler = proc.newXPathCompiler();
+		xPathCompiler.declareNamespace("rest4j", XSLTFunctions.NAMESPACE);
+		XPathSelector selector = xPathCompiler.compile("rest4j:hashComment('line 1\r\n line 2\r\n')").load();
+		String result = selector.iterator().next().getStringValue();
+		assertEquals(
+				"# line 1\n" +
+				"#  line 2\n" +
+				"# ", result);
+	}
 }
 

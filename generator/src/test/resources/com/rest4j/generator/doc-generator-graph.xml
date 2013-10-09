@@ -19,7 +19,7 @@
 
 	<model name="A" class="java.lang.Object">
 		<fields>
-			<complex name="b1" collection="singleton" type="B" access="readonly"></complex>
+			<complex name="b1" collection="singleton" type="B" access="readonly" client-name="bbb"></complex>
 			<complex name="b2" collection="map" type="B"></complex>
 			<complex name="bs" collection="array" type="B"></complex>
 			<simple name="changeable" type="number" access="writeonly">

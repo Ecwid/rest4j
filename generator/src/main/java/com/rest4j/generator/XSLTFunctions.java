@@ -35,7 +35,8 @@ public class XSLTFunctions {
 				new JavadocEscape(4, "javadocEscape"),
 				new JavadocEscape(0, "javadocEscape0"),
 				new ParamNameAsIdentifier(),
-				new Singular()
+				new Singular(),
+				new HashComment()
 		};
 	}
 
@@ -62,8 +63,8 @@ public class XSLTFunctions {
 
 		@Override
 		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
-			String first = ((XdmAtomicValue)arguments[0].itemAt(0)).getStringValue();
-			String second = ((XdmAtomicValue)arguments[1].itemAt(0)).getStringValue();
+			String first = arguments[0].itemAt(0).getStringValue();
+			String second = arguments[1].itemAt(0).getStringValue();
 			second = second.replaceAll("[^a-zA-Z0-9_]", "_");
 			return new XdmAtomicValue(first + StringUtils.capitalize(second));
 		}
@@ -87,7 +88,7 @@ public class XSLTFunctions {
 
 		@Override
 		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
-			String arg = ((XdmAtomicValue)arguments[0].itemAt(0)).getStringValue();
+			String arg = arguments[0].itemAt(0).getStringValue();
 			return new XdmAtomicValue("\""+StringEscapeUtils.escapeJava(arg)+"\"");
 		}
 	}
@@ -110,7 +111,7 @@ public class XSLTFunctions {
 
 		@Override
 		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
-			String arg = ((XdmAtomicValue)arguments[0].itemAt(0)).getStringValue();
+			String arg = arguments[0].itemAt(0).getStringValue();
 			if (arg.endsWith("ies")) arg = arg.substring(0, arg.length()-3)+"y";
 			else if (arg.endsWith("ses")) arg = arg.substring(0, arg.length()-2);
 			else if (arg.endsWith("hes")) arg = arg.substring(0, arg.length()-2);
@@ -273,9 +274,44 @@ public class XSLTFunctions {
 
 		@Override
 		public XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
-			String stringValue = ((XdmAtomicValue) xdmValues[0]).itemAt(0).getStringValue();
+			String stringValue = xdmValues[0].itemAt(0).getStringValue();
 			stringValue = stringValue.replace('-', '_').replace(' ', '_');
 			return new XdmAtomicValue(stringValue);
+		}
+	}
+
+	static class HashComment implements ExtensionFunction {
+		@Override
+		public QName getName() {
+			return new QName(NAMESPACE, "hashComment");
+		}
+
+		@Override
+		public SequenceType getResultType() {
+			return SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ONE);
+		}
+
+		@Override
+		public SequenceType[] getArgumentTypes() {
+			return new SequenceType[]{
+					SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ONE)
+			};
+		}
+
+		@Override
+		public XdmValue call(XdmValue[] xdmValues) throws SaxonApiException {
+			String stringValue = xdmValues[0].itemAt(0).getStringValue();
+			if (stringValue.length() == 0) return new XdmAtomicValue("");
+			StringBuilder result = new StringBuilder("# ");
+			for (int i=0; i<stringValue.length(); i++) {
+				char c = stringValue.charAt(i);
+				if (c == '\r') continue;
+				result.append(c);
+				if (c == '\n') {
+					result.append("# ");
+				}
+			}
+			return new XdmAtomicValue(result.toString());
 		}
 	}
 }

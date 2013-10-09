@@ -37,6 +37,9 @@ h1 {
 article section {
 	margin-left: 30px;
 }
+article section section {
+	margin-left: 0px;
+}
 section > h2 {
 	margin-left: -30px;
 }

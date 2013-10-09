@@ -334,6 +334,12 @@ documentation and client libraries, as well as for query dispatching.
 				instance and the field value.
 			</xsd:documentation></xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="client-name" type="xsd:string" use="optional">
+			<xsd:annotation><xsd:documentation>
+				Use this name for the client library property instead of 'name'. Useful when there are more then one field
+				with the same name but different type.
+			</xsd:documentation></xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="access" type="FieldAccessType" default="readwrite"/>
 	</xsd:complexType>
 

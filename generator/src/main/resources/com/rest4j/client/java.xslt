@@ -10,6 +10,22 @@
 		<!ENTITY HasContentType SYSTEM "java/HasContentType.inc">
 		<!ENTITY RequestExecutor SYSTEM "java/RequestExecutor.inc">
 ]>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 				xmlns:api="http://rest4j.com/api-description"
 				xmlns:fn="http://www.w3.org/2005/xpath-functions"
@@ -56,10 +72,11 @@ public class <xsl:value-of select="@name"/> {
     public <xsl:value-of select="@name"/>() { object = new JSONObject(); }
     public <xsl:value-of select="@name"/>(JSONObject json) { object = json; }
 <xsl:for-each select="fields/(complex|simple)" xml:space="preserve">
+	<xsl:variable name="name"><xsl:apply-templates select="." mode="field-name"/></xsl:variable>
     /**
      * @return <xsl:value-of select="rest4j:javadocEscape(description/(*|text()))"/>
      */
-    public <xsl:apply-templates select="." mode="prop-type"/> <xsl:value-of select="rest4j:camelCase('get',@name)"/>() {
+    public <xsl:apply-templates select="." mode="prop-type"/> <xsl:value-of select="rest4j:camelCase('get',$name)"/>() {
         Object val = object.opt(<xsl:value-of select="rest4j:quote(@name)"/>);
         return val == null ? null : <xsl:apply-templates select="." mode="prop-cast"/>;
     }
@@ -68,7 +85,7 @@ public class <xsl:value-of select="@name"/> {
      * Sets the <xsl:value-of select="rest4j:quote(@name)"/> property value. Properties that are not set will not be
      * present in the JSON. Properties that are set to null will be passed as null values in JSON.
      */
-    public void <xsl:value-of select="rest4j:camelCase('set',@name)"/>(<xsl:apply-templates select="." mode="prop-type"/> val) {
+    public void <xsl:value-of select="rest4j:camelCase('set',$name)"/>(<xsl:apply-templates select="." mode="prop-type"/> val) {
         try {
             object.put(<xsl:value-of select="rest4j:quote(@name)"/>, <xsl:apply-templates select="." mode="prop-json"/>);
         } catch (JSONException ex) {
@@ -509,5 +526,10 @@ public class Client {
 			<xsl:when test="$type='date'">java.util.Date</xsl:when>
 			<xsl:otherwise><xsl:value-of select="error(fn:QName('http://rest4j.com/','TYPE'),'unexpected &lt;parameter&gt; type')"/></xsl:otherwise>
 		</xsl:choose>
+	</xsl:template>
+
+	<xsl:template match="simple|complex" mode="field-name">
+		<xsl:if test="@client-name"><xsl:value-of select="@client-name"/></xsl:if>
+		<xsl:if test="not(@client-name)"><xsl:value-of select="@name"/></xsl:if>
 	</xsl:template>
 </xsl:stylesheet>
