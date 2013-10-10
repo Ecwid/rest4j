@@ -48,7 +48,7 @@ public class DefaultsPreprocessorTest implements NamespaceContext {
 	@Test public void testProcess_doc_method_not_found() throws Exception {
 		Document xml = parse("method-not-found.xml");
 		try {
-			preprocessor.process(xml);
+			preprocessor.process(null, xml);
 			fail();
 		} catch (ConfigurationException ce) {
 			assertEquals("doc-method 'nosuchmethod' not found in class com.rest4j.impl.TestEnum", ce.getMessage());
@@ -58,7 +58,7 @@ public class DefaultsPreprocessorTest implements NamespaceContext {
 	@Test public void testProcess_enum_class_with_values() throws Exception {
 		Document xml = parse("enum-class-with-values.xml");
 		try {
-			preprocessor.process(xml);
+			preprocessor.process(null, xml);
 			fail();
 		} catch (ConfigurationException ce) {
 			assertEquals("<values> should not have both @enum attribute and value subtags", ce.getMessage());
@@ -67,7 +67,7 @@ public class DefaultsPreprocessorTest implements NamespaceContext {
 
 	@Test public void testProcess_dynamic_enums() throws Exception {
 		Document xml = parse("dynamic-enums.xml");
-		preprocessor.process(xml);
+		preprocessor.process(null, xml);
 
 		XPathFactory xPathfactory = new XPathFactoryImpl();
 		XPath xpath = xPathfactory.newXPath();
@@ -84,7 +84,7 @@ public class DefaultsPreprocessorTest implements NamespaceContext {
 
 	@Test public void testProcess_path_params_mandatory() throws Exception {
 		Document xml = parse("path-params-mandatory.xml");
-		preprocessor.process(xml);
+		preprocessor.process(null, xml);
 
 		XPathFactory xPathfactory = new XPathFactoryImpl();
 		XPath xpath = xPathfactory.newXPath();

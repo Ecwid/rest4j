@@ -17,6 +17,7 @@
 
 package com.rest4j.impl;
 
+import com.rest4j.ApiFactory;
 import com.rest4j.ConfigurationException;
 import com.rest4j.Preprocessor;
 import org.w3c.dom.*;
@@ -43,7 +44,7 @@ import static com.rest4j.impl.Util.it;
 public class DefaultsPreprocessor implements Preprocessor {
 
 	@Override
-	public void process(Document xml) throws ConfigurationException {
+	public void process(ApiFactory apiFactory, Document xml) throws ConfigurationException {
 		cleanup(xml.getDocumentElement());
 		for (Node element : it(xml.getDocumentElement().getChildNodes())) {
 			if ("model".equals(element.getNodeName())) {

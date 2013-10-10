@@ -96,6 +96,38 @@ public class ApiFactory {
 		this.extObjectFactory = extObjectFactory;
 	}
 
+	public URL getApiDescriptionXml() {
+		return apiDescriptionXml;
+	}
+
+	public String getPathPrefix() {
+		return pathPrefix;
+	}
+
+	public ServiceProvider getServiceProvider() {
+		return serviceProvider;
+	}
+
+	public List<ObjectFactory> getFactories() {
+		return factories;
+	}
+
+	public List<FieldFilter> getFieldFilters() {
+		return fieldFilters;
+	}
+
+	public List<Preprocessor> getPreprocessors() {
+		return preprocessors;
+	}
+
+	public String getExtSchema() {
+		return extSchema;
+	}
+
+	public Class getExtObjectFactory() {
+		return extObjectFactory;
+	}
+
 	public API createAPI() throws ConfigurationException {
 		try {
 			JAXBContext context;
@@ -152,7 +184,7 @@ public class ApiFactory {
 			e.printStackTrace();
 		}
 		for (Preprocessor pre: preprocessors) {
-			pre.process(xml);
+			pre.process(this, xml);
 		}
 		return xml;
 	}

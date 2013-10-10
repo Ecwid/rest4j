@@ -25,5 +25,5 @@ import org.w3c.dom.Document;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface Preprocessor {
-	void process(Document xml) throws ConfigurationException;
+	void process(ApiFactory apiFactory, Document xml) throws ConfigurationException;
 }
