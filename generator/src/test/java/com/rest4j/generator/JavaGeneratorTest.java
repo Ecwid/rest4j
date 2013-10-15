@@ -56,6 +56,10 @@ public class JavaGeneratorTest {
 		assertTrue(a, a.contains("Some additional client info"));
 		assertFalse(a, a.contains("Some additional python client info"));
 
+		// check existence of Parameter Object class
+		a = IOUtils.toString(new File("target/java/src/main/java/api/model/PatchBRequest.java").toURI());
+		assertTrue(a, a.contains("class PatchBRequest"));
+
 		// check some file paths
 		assertTrue(new File("target/java/src/main/java/api/util/JsonUtil.java").canRead());
 		assertTrue(new File("target/java/src/main/java/api/Request.java").canRead());

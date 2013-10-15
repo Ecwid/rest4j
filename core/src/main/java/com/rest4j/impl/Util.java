@@ -166,7 +166,12 @@ public class Util {
 	}
 
 	static <T> T deepClone(T object) {
-		return kryo.copy(object);
+		try {
+			return kryo.copy(object);
+		} catch (java.lang.IncompatibleClassChangeError e) {
+			System.out.println(object.getClass());
+			throw e;
+		}
 	}
 
 //	static <T> T deepClone(T object) {

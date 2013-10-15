@@ -267,7 +267,7 @@
 			</xsl:if>
 			<xsl:if test="not(@patch)">
 				<xsl:if test="fields/*[@nullable='true']">
-					<li>Some fields can have null value, in which case they are marked as <span class="nullable"/>.</li>
+					<li>Some fields can have null value or be absent, in which case they are marked as <span class="nullable"/>.</li>
 				</xsl:if>
 			</xsl:if>
 			</ol>

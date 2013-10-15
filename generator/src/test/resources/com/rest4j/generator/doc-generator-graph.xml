@@ -71,7 +71,7 @@
 		<extra><group>Patching</group></extra>
 	</endpoint>
 
-	<endpoint http="PUT" httpsonly="true">
+	<endpoint http="PUT" httpsonly="true" client-param-object="PatchBRequest">
 		<route>patch/b/<param>ID</param></route>
 		<description><html:title>Patch a B</html:title> And return <html:b>C</html:b>.</description>
 		<parameters>

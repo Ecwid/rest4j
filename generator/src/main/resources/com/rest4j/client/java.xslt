@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE stylesheet [
+		<!ENTITY spc "<xsl:text xml:space='preserve'> </xsl:text>">
 		<!ENTITY apache-copyright SYSTEM "apache-copyright.inc">
 		<!ENTITY JsonUtil SYSTEM "java/JsonUtil.inc">
 		<!ENTITY JsonArrayList SYSTEM "java/JsonArrayList.inc">
@@ -57,6 +58,13 @@
 
 	<xsl:template match="api">
 		<api:files>
+
+			<!--
+					**********************************************
+					**************** Models (DTOs) ***************
+					**********************************************
+			-->
+
 			<xsl:for-each select="model">
 				<api:file>
 					<xsl:attribute name="name">src/main/java/<xsl:value-of select="fn:replace($package,'\.','/')"/>/model/<xsl:value-of select="@name"/>.java</xsl:attribute>
@@ -113,6 +121,64 @@ public class <xsl:value-of select="@name"/> {
     }
 }</api:file>
 			</xsl:for-each>
+
+			<!--
+					*********************************************************
+					***************  Parameter Object classes  **************
+					*********************************************************
+			-->
+
+			<xsl:for-each select="endpoint[@client-param-object]">
+				<api:file>
+					<xsl:attribute name="name">src/main/java/<xsl:value-of select="fn:replace($package,'\.','/')"/>/model/<xsl:value-of select="@client-param-object"/>.java</xsl:attribute>
+					<xsl:attribute name="text">on</xsl:attribute>/*
+<xsl:value-of select="$copyright"/>*/
+package <xsl:value-of select="$package"/>.model;
+import java.util.*;
+import org.json.*;
+import <xsl:value-of select="$package"/>.util.*;
+<xsl:variable name="params" select="rest4j:param-variables(.)"/>
+
+public class <xsl:value-of select="@client-param-object"/> {
+	<xsl:for-each select="$params" xml:space="preserve">
+    <xsl:value-of select="*:type"/>&spc;<xsl:value-of select="*:name"/>;
+	</xsl:for-each>
+    public <xsl:value-of select="@client-param-object"/>() { }
+
+    /**
+     * Copy constructor
+     */
+    public <xsl:value-of select="@client-param-object"/>(<xsl:value-of select="@client-param-object"/> another) {
+        <xsl:for-each select="$params" xml:space="preserve">
+        this.<xsl:value-of select="*:name"/> = another.<xsl:value-of select="*:name"/>;
+        </xsl:for-each>
+    }
+
+	<xsl:for-each select="$params" xml:space="preserve">
+    /**
+     * <xsl:value-of select="*:doc"/>
+     */
+    public <xsl:value-of select="*:type"/>&spc;<xsl:value-of select="rest4j:camelCase('get',*:name)"/> () {
+        return <xsl:value-of select="*:name"/>;
+    }
+
+    /**
+     * <xsl:value-of select="*:doc"/>
+     */
+    public void <xsl:value-of select="rest4j:camelCase('set',*:name)"/> (<xsl:value-of select="*:type"/> value) {
+        <xsl:value-of select="*:name"/> = value;
+    }
+	</xsl:for-each>
+}
+				</api:file>
+			</xsl:for-each>
+
+			<!--
+					***************************************************
+					**************** The main API Class ***************
+					***************************************************
+			-->
+
 			<api:file>
 				<xsl:attribute name="name">src/main/java/<xsl:value-of select="fn:replace($package,'\.','/')"/>/Client.java</xsl:attribute>
 				<xsl:attribute name="text">on</xsl:attribute>/*
@@ -144,10 +210,7 @@ public class Client {
 <xsl:for-each select="$common-param-set">
 	<xsl:variable name='param-name' select='.'/>
 	<xsl:text xml:space="preserve">    </xsl:text> <!-- indent -->
-	<xsl:call-template name='param-type'>
-		<xsl:with-param name="type" select="$doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1]"/>
-	</xsl:call-template>
-	<xsl:value-of select="concat(' ', rest4j:paramNameAsIdentifier($param-name))"/>;
+	<xsl:value-of select='rest4j:param-type($doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1])'/>&spc;<xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>;
 </xsl:for-each>
     public Client() {
         this(new DefaultHttpClient());
@@ -212,18 +275,14 @@ public class Client {
      * <xsl:value-of select="rest4j:javadocEscape(($doc/api/endpoint/parameters/parameter[@name=$param-name]/description)[1]/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text()))"/>
      */
     public Client <xsl:value-of select="rest4j:camelCase('set',$param-name)"/>(
-	<xsl:call-template name='param-type'>
-		<xsl:with-param name="type" select="$doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1]"/>
-	</xsl:call-template> <xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>) {
+	<xsl:value-of select="rest4j:param-type($doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1])"/> <xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>) {
         this.<xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/> = <xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>;
         return this;
     }
     /**
      * Gets the value of the "<xsl:value-of select="$param-name"/>" request parameter set previously by <xsl:value-of select="rest4j:camelCase('set',$param-name)"/>.
      */
-    public <xsl:call-template name='param-type'>
-		<xsl:with-param name="type" select="$doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1]"/>
-	</xsl:call-template> <xsl:value-of select="rest4j:camelCase('get',$param-name)"/>() {
+    public <xsl:value-of select="rest4j:param-type($doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1])"/> <xsl:value-of select="rest4j:camelCase('get',$param-name)"/>() {
         return this.<xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>;
     }
 </xsl:for-each>
@@ -244,6 +303,13 @@ public class Client {
 </xsl:if>
 }
 			</api:file>
+
+			<!--
+					***************************************************
+					***************  pom.xml file  ********************
+					***************************************************
+			-->
+
 			<api:file name="pom.xml" xml:space='preserve'>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -393,36 +459,51 @@ public class Client {
 	<xsl:template match="complex" mode="prop-singleton-json">val == null? JSONObject.NULL : val.asJson()</xsl:template>
 	<xsl:template match="simple" mode="prop-singleton-json">JsonUtil.asJsonSingleton(val)</xsl:template>
 
+	<!--
+			***************************************************
+			**************  The endpoint method  **************
+			***************************************************
+	-->
 	<xsl:template match="endpoint" mode="endpoint-method">
+		<xsl:variable name="params" select="rest4j:param-variables(.)"/>
     /**<xsl:choose>
 		<xsl:when test="description/html:title">
      * Builds Request object for the "<xsl:value-of select="rest4j:javadocEscape(description/html:title/(*|text()))"/>" request.</xsl:when>
 		<xsl:otherwise>
-     * Builds Request object for the "<code><xsl:value-of select="@http"/><xsl:text> </xsl:text><xsl:apply-templates select="route" mode="route"/></code>" request.</xsl:otherwise>
+     * Builds Request object for the "<code><xsl:value-of select="@http"/><xsl:text xml:space="preserve"> </xsl:text><xsl:apply-templates select="route" mode="route"/></code>" request.</xsl:otherwise>
 	</xsl:choose>
      * To actually execute the request, call the execute() method on the returned object.&lt;p/&gt;
-     * <xsl:value-of select="rest4j:javadocEscape(description/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text())[name()!='html:title'])"/>
-<xsl:for-each select="parameters/parameter[not(index-of($common-param-set,@name))]" xml:space="preserve">
-     * @param <xsl:value-of select="@name"/> <xsl:value-of select="rest4j:javadocEscape(description/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text()))"/></xsl:for-each>
+     * <xsl:value-of select="rest4j:description(description)"/>
+		<xsl:choose>
+			<xsl:when test="@client-param-object" xml:space="preserve">
+     * @param <xsl:value-of select="@client-param-object"/> The request parameters object.</xsl:when>
+			<xsl:otherwise>
+				<xsl:for-each select="$params" xml:space="preserve">
+     * @param <xsl:value-of select="*:name"/> <xsl:value-of select="*:doc"/></xsl:for-each>
+			</xsl:otherwise>
+		</xsl:choose>
      * @return A Request&amp;lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&amp;gt; object that can be executed later.
      */
     public Request&lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&gt; <xsl:apply-templates select='.' mode="endpoint-method-name"/>(<xsl:apply-templates select='.' mode="endpoint-method-params"/>) {
         try {
             URIBuilder builder = new URIBuilder(<xsl:if test="rest4j:secure(.)='true'">secureUrl</xsl:if><xsl:if test="rest4j:secure(.)='false'">url</xsl:if><xsl:apply-templates select="route/(param|text())"/>);
-            <xsl:for-each select="parameters/parameter[@optional='true' and rest4j:path-param(ancestor::endpoint,@name)='false']">if (<xsl:value-of select="rest4j:paramNameAsIdentifier(@name)"/> != null) builder.setParameter("<xsl:value-of select="@name"/>", <xsl:value-of select="rest4j:paramNameAsIdentifier(@name)"/>.toString());
+            <xsl:for-each select="parameters/parameter[@optional='true' and rest4j:path-param(ancestor::endpoint,@name)='false']">if (<xsl:value-of select="rest4j:param-value(ancestor::endpoint, @name)"/> != null) builder.setParameter("<xsl:value-of select="@name"/>", <xsl:value-of select="rest4j:param-value(ancestor::endpoint, @name)"/>.toString());
             </xsl:for-each>
-            <xsl:for-each select="parameters/parameter[@optional='false']">if (<xsl:value-of select="rest4j:paramNameAsIdentifier(@name)"/> == null) throw new IllegalArgumentException("No parameter <xsl:value-of select="@name"/> is set");
-            <xsl:if test="rest4j:path-param(ancestor::endpoint,@name)='false'">builder.setParameter("<xsl:value-of select="@name"/>", <xsl:value-of select="rest4j:paramNameAsIdentifier(@name)"/>.toString());</xsl:if>
+            <xsl:for-each select="parameters/parameter[@optional='false']">
+            if (<xsl:value-of select="rest4j:param-value(ancestor::endpoint, @name)"/> == null) throw new IllegalArgumentException("No parameter <xsl:value-of select="@name"/> is set");
+            <xsl:if test="rest4j:path-param(ancestor::endpoint,@name)='false'">builder.setParameter("<xsl:value-of select="@name"/>", <xsl:value-of select="rest4j:param-value(ancestor::endpoint, @name)"/>.toString());</xsl:if>
             </xsl:for-each>
-
-            <xsl:if test="body and not(body/json/@optional='true')">if (body == null) throw new IllegalArgumentException("No request body");</xsl:if>
-            return new Request&lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&gt;(getRequestExecutor(), builder.build()<xsl:choose>
-		<xsl:when test="body/json/@optional='true'">, body == null ? null : new StringEntity(<xsl:apply-templates select="body/json" mode="body-as-json"/>, ContentType.APPLICATION_JSON)</xsl:when>
-		<xsl:when test="body/json">, new StringEntity(<xsl:apply-templates select="body/json" mode="body-as-json"/>, ContentType.APPLICATION_JSON)</xsl:when>
-		<xsl:when test="body/patch">, new StringEntity(body.asJson().toString(), ContentType.APPLICATION_JSON)</xsl:when>
-		<xsl:when test="body/text">, new StringEntity(body, ContentType.TEXT_PLAIN)</xsl:when>
-		<xsl:when test="body/binary">, createInputStreamEntity(body)</xsl:when>
-	</xsl:choose>) {
+            <xsl:variable name="body" select="rest4j:param-value(., 'body')"/>
+            <xsl:if test="body and not(body/json/@optional='true')">
+            if (<xsl:value-of select="$body"/> == null) throw new IllegalArgumentException("No request body");</xsl:if>
+            return new Request&lt;<xsl:apply-templates select='.' mode="endpoint-result-type"/>&gt;(getRequestExecutor(), builder.build()
+		    <xsl:choose>
+                <xsl:when test="body/json/@optional='true'">, <xsl:value-of select="$body"/> == null ? null : new StringEntity(<xsl:apply-templates select="body/json" mode="body-as-json"/>, ContentType.APPLICATION_JSON)</xsl:when>
+                <xsl:when test="body/json">, new StringEntity(<xsl:apply-templates select="body/json" mode="body-as-json"/>, ContentType.APPLICATION_JSON)</xsl:when>
+                <xsl:when test="body/patch">, new StringEntity(<xsl:value-of select="$body"/>.asJson().toString(), ContentType.APPLICATION_JSON)</xsl:when>
+                <xsl:when test="body/text">, new StringEntity(<xsl:value-of select="$body"/>, ContentType.TEXT_PLAIN)</xsl:when>
+                <xsl:when test="body/binary">, createInputStreamEntity(<xsl:value-of select="$body"/>)</xsl:when>
+            </xsl:choose>) {
                 @Override
                 public <xsl:apply-templates select='.' mode="endpoint-result-type"/> execute(RequestExecutor executor) throws IOException, JSONException {
                     <xsl:choose>
@@ -468,7 +549,16 @@ public class Client {
 	</xsl:template>
 
 	<xsl:template match="route/text()">+"<xsl:value-of select="."/>"</xsl:template>
-	<xsl:template match="route/param">+<xsl:value-of select="rest4j:paramNameAsIdentifier(text())"/></xsl:template>
+	<xsl:template match="route/param">+<xsl:value-of select="rest4j:param-value(ancestor::endpoint, text())"/></xsl:template>
+
+	<xsl:function name="rest4j:param-value">
+		<xsl:param name="endpoint"/>
+		<xsl:param name="name"/>
+		<xsl:choose>
+			<xsl:when test="$endpoint/@client-param-object and not(fn:index-of($common-param-set,$name))">params.<xsl:value-of select="rest4j:camelCase('get',rest4j:paramNameAsIdentifier($name))"/>()</xsl:when>
+			<xsl:otherwise><xsl:value-of select="rest4j:paramNameAsIdentifier($name)"/></xsl:otherwise>
+		</xsl:choose>
+	</xsl:function>
 
 	<xsl:function name="rest4j:path-param">
 		<xsl:param name="endpoint"/>
@@ -503,21 +593,54 @@ public class Client {
 	<xsl:template match="endpoint[@client-method-name]" mode="endpoint-method-name"><xsl:value-of select="@client-method-name"/></xsl:template>
 	<xsl:template match="endpoint" mode="endpoint-method-name"><xsl:value-of select="rest4j:camelCase(service/@method,rest4j:singular(service/@name))"/></xsl:template>
 	<xsl:template match="endpoint" mode="endpoint-method-params">
-		<xsl:variable name="params">
-			<xsl:for-each select="parameters/parameter[not(fn:index-of($common-param-set,@name))]" xml:space='preserve'><xxx><xsl:call-template name='param-type'><xsl:with-param name="type" select="@type"/></xsl:call-template> <xsl:value-of select="rest4j:paramNameAsIdentifier(@name)"/></xxx>
-			</xsl:for-each>
-			<xsl:choose>
-				<xsl:when test="body/json/@collection='singleton' or body/patch"><xxx><xsl:value-of select="body/(json|patch)/@type"/> body</xxx></xsl:when>
-				<xsl:when test="body/json/@collection='array'"><xxx>List&lt;<xsl:value-of select="body/json/@type"/>&gt; body</xxx></xsl:when>
-				<xsl:when test="body/json/@collection='map'"><xxx>Map&lt;String,<xsl:value-of select="body/json/@type"/>&gt; body</xxx></xsl:when>
-				<xsl:when test="body/binary"><xxx>java.io.InputStream body</xxx></xsl:when>
-				<xsl:when test="body/text"><xxx>String body</xxx></xsl:when>
-			</xsl:choose>
-		</xsl:variable>
-		<xsl:value-of select="string-join($params/*:xxx,', ')"/>
+		<xsl:choose>
+			<xsl:when test="@client-param-object"><xsl:value-of select="@client-param-object"/>&spc;params</xsl:when>
+			<xsl:otherwise>
+				<xsl:for-each select="rest4j:param-variables(.)">
+					<xsl:if test="position()>1">,</xsl:if>
+					<xsl:value-of select="*:type"/>&spc;<xsl:value-of select="*:name"/>
+				</xsl:for-each>
+			</xsl:otherwise>
+		</xsl:choose>
 	</xsl:template>
 
-	<xsl:template name="param-type">
+	<!--
+	   Returns params/param/(type|name|doc) for all non-common API method parameters, including the body.
+	  -->
+	<xsl:function name="rest4j:param-variables">
+		<xsl:param name="endpoint"></xsl:param>
+		<xsl:variable name="body" select="$endpoint/body"/>
+		<xsl:for-each select="$endpoint/parameters/parameter[not(fn:index-of($common-param-set,@name))]">
+			<param>
+				<type><xsl:value-of select="rest4j:param-type(@type)"/></type>
+				<name><xsl:value-of select="rest4j:paramNameAsIdentifier(@name)"/></name>
+				<doc><xsl:value-of select="rest4j:description(description)"/></doc>
+			</param>
+		</xsl:for-each>
+		<xsl:variable name="body-name-doc">
+			<name>
+				<xsl:choose>
+					<xsl:when test="$body/@client-name"><xsl:value-of select="$body/@client-name"/></xsl:when>
+					<xsl:otherwise>body</xsl:otherwise>
+				</xsl:choose>
+			</name>
+			<doc><xsl:value-of select="rest4j:description($body/description)"/></doc>
+		</xsl:variable>
+		<xsl:choose>
+			<xsl:when test="$body/json/@collection='singleton' or $body/patch"><param><type><xsl:value-of select="$body/(json|patch)/@type"/></type><xsl:copy-of select="$body-name-doc"/></param></xsl:when>
+			<xsl:when test="$body/json/@collection='array'"><param><type>List&lt;<xsl:value-of select="$body/json/@type"/>&gt;</type><xsl:copy-of select="$body-name-doc"/></param></xsl:when>
+			<xsl:when test="$body/json/@collection='map'"><param><type>Map&lt;String,<xsl:value-of select="$body/json/@type"/>&gt;</type><xsl:copy-of select="$body-name-doc"/></param></xsl:when>
+			<xsl:when test="$body/binary"><param><type>java.io.InputStream</type><xsl:copy-of select="$body-name-doc"/></param></xsl:when>
+			<xsl:when test="$body/text"><param><type>String</type><xsl:copy-of select="$body-name-doc"/></param></xsl:when>
+		</xsl:choose>
+	</xsl:function>
+
+	<xsl:function name="rest4j:description">
+		<xsl:param name="description"/>
+		<xsl:value-of select="rest4j:javadocEscape($description/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text())[name()!='html:title'])"/>
+	</xsl:function>
+
+	<xsl:function name="rest4j:param-type">
 		<xsl:param name="type"/>
 		<xsl:choose>
 			<xsl:when test="$type='number'">Number</xsl:when>
@@ -526,7 +649,7 @@ public class Client {
 			<xsl:when test="$type='date'">java.util.Date</xsl:when>
 			<xsl:otherwise><xsl:value-of select="error(fn:QName('http://rest4j.com/','TYPE'),'unexpected &lt;parameter&gt; type')"/></xsl:otherwise>
 		</xsl:choose>
-	</xsl:template>
+	</xsl:function>
 
 	<xsl:template match="simple|complex" mode="field-name">
 		<xsl:if test="@client-name"><xsl:value-of select="@client-name"/></xsl:if>
