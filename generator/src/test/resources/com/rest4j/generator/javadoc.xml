@@ -18,5 +18,22 @@
 	<javadoc xmlns:html="http://www.w3.org/1999/xhtml">
 		<html:title>Patch an A</html:title> And return
 		<html:a href="test">C</html:a>. &lt;Abrakadabra&gt;&amp;.
-		What else?
+		<ol>
+		<li>What else?</li>
+		</ol>
+
+		<p>
+			Paragraph
+		</p>
+		lines<br/>separated<br/>
+		by<br/>
+		brs<br/>
+		<table>
+			<tr><th>col1</th><th>col2</th></tr>
+			<tr><td>val1</td><td>val2</td></tr>
+		</table>
+
+
+
+		&#228;
 	</javadoc>

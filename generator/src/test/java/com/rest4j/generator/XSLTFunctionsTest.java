@@ -40,21 +40,82 @@ public class XSLTFunctionsTest {
 		String result = selector.iterator().next().getStringValue();
 		assertEquals("Patch an A And return\n" +
 				"     * <a href=\"test\">C</a>. &lt;Abrakadabra&gt;&.\n" +
-				"     * What else?", result);
+				"     * <ol>\n" +
+				"     * <li>What else?</li>\n" +
+				"     * </ol>\n" +
+				"     * \n" +
+				"     * <p>\n" +
+				"     * Paragraph\n" +
+				"     * </p>\n" +
+				"     * lines<br></br>separated<br></br>\n" +
+				"     * by<br></br>\n" +
+				"     * brs<br></br>\n" +
+				"     * <table>\n" +
+				"     * <tr><th>col1</th><th>col2</th></tr>\n" +
+				"     * <tr><td>val1</td><td>val2</td></tr>\n" +
+				"     * </table>\n" +
+				"     * \n" +
+				"     * \n" +
+				"     * \n" +
+				"     * ä", result);
 	}
 
 	@Test
 	public void testHashComment() throws Exception {
-		Processor proc = new Processor(false);
-		proc.registerExtensionFunction(new XSLTFunctions.HashComment());
-		XPathCompiler xPathCompiler = proc.newXPathCompiler();
-		xPathCompiler.declareNamespace("rest4j", XSLTFunctions.NAMESPACE);
-		XPathSelector selector = xPathCompiler.compile("rest4j:hashComment('line 1\r\n line 2\r\n')").load();
-		String result = selector.iterator().next().getStringValue();
+		String result = xpath("rest4j:hashComment('line 1\r\n line 2\r\n')", new XSLTFunctions.HashComment());
 		assertEquals(
 				"# line 1\n" +
 				"#  line 2\n" +
 				"# ", result);
+	}
+
+	@Test
+	public void testHtmlToPlain() throws Exception {
+		Processor proc = new Processor(false);
+		proc.registerExtensionFunction(new XSLTFunctions.HtmlToPlain(2, "htmlToPlain"));
+		XdmNode doc = proc.newDocumentBuilder().build(new StreamSource(getClass().getResourceAsStream("javadoc.xml")));
+		XPathCompiler xPathCompiler = proc.newXPathCompiler();
+		xPathCompiler.declareNamespace("rest4j", XSLTFunctions.NAMESPACE);
+		XPathSelector selector = xPathCompiler.compile("rest4j:htmlToPlain(javadoc/(*|text()))").load();
+		selector.setContextItem(doc);
+		String result = selector.iterator().next().getStringValue();
+		assertEquals("Patch an A And return\n" +
+				"\t\tC(test). <Abrakadabra>&.\n" +
+				"\t\t\n" +
+				"\t\t- What else?\n" +
+				"\n" +
+				"\t\tParagraph\n" +
+				"\t\t\n" +
+				"\t\tlines\n" +
+				"\t\tseparated\n" +
+				"\t\tby\n" +
+				"\t\tbrs\n" +
+				"\t\t|col1||col2|\n" +
+				"\t\t|val1||val2|\n" +
+				"\t\tä", result);
+	}
+
+	@Test
+	public void testIdentifier_keyword() throws Exception {
+		XSLTFunctions.Identifier function = new XSLTFunctions.Identifier();
+		assertEquals("For", xpath("rest4j:identifier('for','for while id then else')", function));
+		assertEquals("for", xpath("rest4j:identifier('for','forward')", function));
+	}
+
+	@Test
+	public void testIdentifier_bad_chars() throws Exception {
+		XSLTFunctions.Identifier function = new XSLTFunctions.Identifier();
+		assertEquals("for_some_reason", xpath("rest4j:identifier('for.some@reason','for while id then else')", function));
+		assertEquals("_5for", xpath("rest4j:identifier('5for','')", function));
+	}
+
+	private String xpath(String xpath, ExtensionFunction function) throws SaxonApiException {
+		Processor proc = new Processor(false);
+		proc.registerExtensionFunction(function);
+		XPathCompiler xPathCompiler = proc.newXPathCompiler();
+		xPathCompiler.declareNamespace("rest4j", XSLTFunctions.NAMESPACE);
+		XPathSelector selector = xPathCompiler.compile(xpath).load();
+		return selector.iterator().next().getStringValue();
 	}
 }
 

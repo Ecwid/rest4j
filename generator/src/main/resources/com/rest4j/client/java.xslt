@@ -210,7 +210,7 @@ public class Client {
 <xsl:for-each select="$common-param-set">
 	<xsl:variable name='param-name' select='.'/>
 	<xsl:text xml:space="preserve">    </xsl:text> <!-- indent -->
-	<xsl:value-of select='rest4j:param-type($doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1])'/>&spc;<xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>;
+	<xsl:value-of select='rest4j:param-type($doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1])'/>&spc;<xsl:value-of select="rest4j:javaIdentifier($param-name)"/>;
 </xsl:for-each>
     public Client() {
         this(new DefaultHttpClient());
@@ -272,18 +272,18 @@ public class Client {
 	<xsl:if test="not($doc/api/endpoint/parameters/parameter[@name=$param-name])"><xsl:value-of select="error(fn:QName('http://rest4j.com/','PARAM-NOT-FOUND'),concat('Parameter not found: ', $param-name))"/></xsl:if>
     /**
      * Sets the value of the "<xsl:value-of select="$param-name"/>" request parameter for subsequent requests.
-     * <xsl:value-of select="rest4j:javadocEscape(($doc/api/endpoint/parameters/parameter[@name=$param-name]/description)[1]/(*[not(@client-lang) or @client-lang='*' or contains('java,', concat(@client-lang,','))]|text()))"/>
+     * <xsl:value-of select="rest4j:description(($doc/api/endpoint/parameters/parameter[@name=$param-name]/description)[1])"/>
      */
-    public Client <xsl:value-of select="rest4j:camelCase('set',$param-name)"/>(
-	<xsl:value-of select="rest4j:param-type($doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1])"/> <xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>) {
-        this.<xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/> = <xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>;
+    public Client <xsl:value-of select="rest4j:camelCase('set',rest4j:javaIdentifier($param-name))"/>(
+	<xsl:value-of select="rest4j:param-type($doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1])"/> <xsl:value-of select="rest4j:javaIdentifier($param-name)"/>) {
+        this.<xsl:value-of select="rest4j:javaIdentifier($param-name)"/> = <xsl:value-of select="rest4j:javaIdentifier($param-name)"/>;
         return this;
     }
     /**
      * Gets the value of the "<xsl:value-of select="$param-name"/>" request parameter set previously by <xsl:value-of select="rest4j:camelCase('set',$param-name)"/>.
      */
-    public <xsl:value-of select="rest4j:param-type($doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1])"/> <xsl:value-of select="rest4j:camelCase('get',$param-name)"/>() {
-        return this.<xsl:value-of select="rest4j:paramNameAsIdentifier($param-name)"/>;
+    public <xsl:value-of select="rest4j:param-type($doc/api/endpoint/parameters/parameter[@name=$param-name]/@type[1])"/> <xsl:value-of select="rest4j:camelCase('get',rest4j:javaIdentifier($param-name))"/>() {
+        return this.<xsl:value-of select="rest4j:javaIdentifier($param-name)"/>;
     }
 </xsl:for-each>
 <xsl:for-each select="endpoint">
@@ -555,8 +555,8 @@ public class Client {
 		<xsl:param name="endpoint"/>
 		<xsl:param name="name"/>
 		<xsl:choose>
-			<xsl:when test="$endpoint/@client-param-object and not(fn:index-of($common-param-set,$name))">params.<xsl:value-of select="rest4j:camelCase('get',rest4j:paramNameAsIdentifier($name))"/>()</xsl:when>
-			<xsl:otherwise><xsl:value-of select="rest4j:paramNameAsIdentifier($name)"/></xsl:otherwise>
+			<xsl:when test="$endpoint/@client-param-object and not(fn:index-of($common-param-set,$name))">params.<xsl:value-of select="rest4j:camelCase('get',rest4j:javaIdentifier($name))"/>()</xsl:when>
+			<xsl:otherwise><xsl:value-of select="rest4j:javaIdentifier($name)"/></xsl:otherwise>
 		</xsl:choose>
 	</xsl:function>
 
@@ -613,7 +613,7 @@ public class Client {
 		<xsl:for-each select="$endpoint/parameters/parameter[not(fn:index-of($common-param-set,@name))]">
 			<param>
 				<type><xsl:value-of select="rest4j:param-type(@type)"/></type>
-				<name><xsl:value-of select="rest4j:paramNameAsIdentifier(@name)"/></name>
+				<name><xsl:value-of select="rest4j:javaIdentifier(@name)"/></name>
 				<doc><xsl:value-of select="rest4j:description(description)"/></doc>
 			</param>
 		</xsl:for-each>
@@ -653,6 +653,12 @@ public class Client {
 
 	<xsl:template match="simple|complex" mode="field-name">
 		<xsl:if test="@client-name"><xsl:value-of select="@client-name"/></xsl:if>
-		<xsl:if test="not(@client-name)"><xsl:value-of select="@name"/></xsl:if>
+		<xsl:if test="not(@client-name)"><xsl:value-of select="rest4j:javaIdentifier(@name)"/></xsl:if>
 	</xsl:template>
+
+	<xsl:function name="rest4j:javaIdentifier">
+		<xsl:param name="str"/>
+		<xsl:value-of select="rest4j:identifier($str, 'abstract continue for new switch assert default goto package synchronized boolean do if private this break double implements protected throw byte else import public throws case enum instanceof return transient catch extends int short try char final interface static void class finally long strictfp volatile const float native super while')"/>
+	</xsl:function>
+
 </xsl:stylesheet>
