@@ -35,11 +35,11 @@ public class XSLTFunctions {
 	public static ExtensionFunction[] functions() {
 		return new ExtensionFunction[] {
 				new CamelCase(),
+				new PackageCamelCase(),
 				new Quote(),
 				new JavadocEscape(4, "javadocEscape"),
 				new JavadocEscape(0, "javadocEscape0"),
 				new Identifier(),
-				new CIIdentifier(),
 				new Singular(),
 				new HashComment(),
 				new HtmlToPlain(1, "htmlToPlain1"),
@@ -74,6 +74,43 @@ public class XSLTFunctions {
 			String second = arguments[1].itemAt(0).getStringValue();
 			second = second.replaceAll(WRONG_CHAR_PTRN, "_");
 			return new XdmAtomicValue(first + StringUtils.capitalize(second));
+		}
+	}
+
+	static class PackageCamelCase implements ExtensionFunction {
+		@Override
+		public QName getName() {
+			return new QName(NAMESPACE, "packageCamelCase");
+		}
+
+		@Override
+		public SequenceType getResultType() {
+			return SequenceType.makeSequenceType(
+					ItemType.STRING, OccurrenceIndicator.ONE
+			);
+		}
+
+		@Override
+		public SequenceType[] getArgumentTypes() {
+			return new SequenceType[] {
+					SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ONE)
+			};
+		}
+
+		@Override
+		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
+			String packageName = arguments[0].itemAt(0).getStringValue();
+			StringBuilder sb = new StringBuilder(packageName.length());
+			char c = 0;
+			for (int i=0; i<packageName.length(); i++) {
+				if (c == '.')
+					c = Character.toUpperCase(packageName.charAt(i));
+				else
+					c = packageName.charAt(i);
+				if (i == 0) c = Character.toUpperCase(c);
+				sb.append(c);
+			}
+			return new XdmAtomicValue(sb.toString());
 		}
 	}
 

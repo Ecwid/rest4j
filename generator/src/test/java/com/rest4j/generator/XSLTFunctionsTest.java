@@ -109,6 +109,18 @@ public class XSLTFunctionsTest {
 		assertEquals("_5for", xpath("rest4j:identifier('5for','')", function));
 	}
 
+	@Test
+	public void testPackageCamelCase_empty() throws Exception {
+		XSLTFunctions.PackageCamelCase function = new XSLTFunctions.PackageCamelCase();
+		assertEquals("", xpath("rest4j:packageCamelCase('')", function));
+	}
+
+	@Test
+	public void testPackageCamelCase_dots() throws Exception {
+		XSLTFunctions.PackageCamelCase function = new XSLTFunctions.PackageCamelCase();
+		assertEquals("My.Package.Name", xpath("rest4j:packageCamelCase('my.package.Name')", function));
+	}
+
 	private String xpath(String xpath, ExtensionFunction function) throws SaxonApiException {
 		Processor proc = new Processor(false);
 		proc.registerExtensionFunction(function);

@@ -23,7 +23,7 @@ import com.sun.org.apache.bcel.internal.classfile.ClassParser;
 import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 import com.sun.org.apache.bcel.internal.classfile.LocalVariable;
 import com.sun.org.apache.bcel.internal.classfile.Method;
-import org.objenesis.instantiator.ObjectInstantiator;
+import com.esotericsoftware.shaded.org.objenesis.instantiator.ObjectInstantiator;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
