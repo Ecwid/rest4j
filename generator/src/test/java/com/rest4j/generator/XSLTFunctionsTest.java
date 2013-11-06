@@ -22,7 +22,9 @@ import org.junit.Test;
 
 import javax.xml.transform.stream.StreamSource;
 
-import static org.junit.Assert.assertEquals;
+import java.util.UUID;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -96,6 +98,64 @@ public class XSLTFunctionsTest {
 	}
 
 	@Test
+	public void testXmlComments() throws Exception {
+		Processor proc = new Processor(false);
+		proc.registerExtensionFunction(new XSLTFunctions.XmlComments(1, "xmlComments"));
+		XdmNode doc = proc.newDocumentBuilder().build(new StreamSource(getClass().getResourceAsStream("javadoc.xml")));
+		XPathCompiler xPathCompiler = proc.newXPathCompiler();
+		xPathCompiler.declareNamespace("rest4j", XSLTFunctions.NAMESPACE);
+		XPathSelector selector = xPathCompiler.compile("rest4j:xmlComments(javadoc/(*|text()))").load();
+		selector.setContextItem(doc);
+		String result = selector.iterator().next().getStringValue();
+		assertEquals("Patch an A And return\n" +
+				"    /// C(test). &lt;Abrakadabra>&amp;.\n" +
+				"    /// <para>- What else?</para>\n" +
+				"    /// <para>\n"+
+				"    /// Paragraph\n" +
+				"    /// </para>\n"+
+				"    /// lines<para/>\n" +
+				"    /// separated<para/>\n" +
+				"    /// by<para/>\n" +
+				"    /// brs<para/>\n" +
+				"    /// <para>|col1||col2|</para>\n" +
+				"    /// <para>|val1||val2|</para>\n" +
+				"    /// ä", result);
+	}
+
+	@Test
+	public void testRandomUUID() throws Exception {
+		Processor proc = new Processor(false);
+		proc.registerExtensionFunction(new XSLTFunctions.RandomUUID());
+		XPathCompiler xPathCompiler = proc.newXPathCompiler();
+		xPathCompiler.declareNamespace("rest4j", XSLTFunctions.NAMESPACE);
+		XPathSelector selector = xPathCompiler.compile("rest4j:randomUUID()").load();
+		String result = selector.iterator().next().getStringValue();
+		System.out.println(result);
+		System.out.println(UUID.randomUUID().getMostSignificantBits());
+		System.out.println(UUID.randomUUID().getLeastSignificantBits());
+	}
+
+	@Test
+	public void testAssemblyUUID() throws Exception {
+		Processor proc = new Processor(false);
+		proc.registerExtensionFunction(new XSLTFunctions.AssemblyUUID());
+		XPathCompiler xPathCompiler = proc.newXPathCompiler();
+		xPathCompiler.declareNamespace("rest4j", XSLTFunctions.NAMESPACE);
+
+		XPathSelector selector = xPathCompiler.compile("rest4j:assemblyUUID('Module')").load();
+		String result = selector.iterator().next().getStringValue();
+		System.out.println(result);
+
+		selector = xPathCompiler.compile("rest4j:assemblyUUID('Module')").load();
+		String result1 = selector.iterator().next().getStringValue();
+		assertEquals(result, result1);
+
+		selector = xPathCompiler.compile("rest4j:assemblyUUID('Module1')").load();
+		String result2 = selector.iterator().next().getStringValue();
+		assertFalse(result.equals(result2));
+	}
+
+	@Test
 	public void testIdentifier_keyword() throws Exception {
 		XSLTFunctions.Identifier function = new XSLTFunctions.Identifier();
 		assertEquals("For", xpath("rest4j:identifier('for','for while id then else')", function));
@@ -121,9 +181,15 @@ public class XSLTFunctionsTest {
 		assertEquals("My.Package.Name", xpath("rest4j:packageCamelCase('my.package.Name')", function));
 	}
 
+	@Test
+	public void testNormalizeVersion() throws Exception {
+		assertEquals("1.0", xpath("replace('1.0-SNAPSHOT','(([0-9]+\\.)*[0-9]+).*', '$1')", null));
+		assertEquals("5.0.11", xpath("replace('5.0.11-20131025','(([0-9]+\\.)*[0-9]+).*', '$1')", null));
+	}
+
 	private String xpath(String xpath, ExtensionFunction function) throws SaxonApiException {
 		Processor proc = new Processor(false);
-		proc.registerExtensionFunction(function);
+		if (function != null) proc.registerExtensionFunction(function);
 		XPathCompiler xPathCompiler = proc.newXPathCompiler();
 		xPathCompiler.declareNamespace("rest4j", XSLTFunctions.NAMESPACE);
 		XPathSelector selector = xPathCompiler.compile(xpath).load();

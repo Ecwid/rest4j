@@ -33,7 +33,7 @@
 	<xsl:param name="url" select="'use the url parameter to set default endpoint url, and an optional https-url to set the https url.'"/>
 	<xsl:param name="https-url"/>
 	<xsl:param name="module-name" select="'apiclient'"/>
-	<xsl:param name="version" select="'1.0-SNAPSHOT'"/>
+	<xsl:param name="version" select="'1.0.0.0'"/>
 	<xsl:param name="project-url" select="'use the project-url parameter to set the project URL.'"/>
 	<xsl:param name="description" select="'use the deacirption parameter to set the project description.'"/>
 	<xsl:param name="name" select="'use the name parameter to set the project name.'"/>

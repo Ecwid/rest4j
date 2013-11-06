@@ -179,6 +179,7 @@ abstract class FieldMapping implements com.rest4j.type.Field {
 	protected Object cast(Object fieldVal) throws ApiException {
 		try {
 			fieldVal = converter.unmarshal(fieldVal, propType, type);
+			fieldVal = type.cast(fieldVal, propType);
 		} catch (NullPointerException npe) {
 			throw new ApiException("Field " + parent + "." + name + " value is absent");
 		} catch (IllegalArgumentException iae) {

@@ -71,6 +71,7 @@ public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType, Patchable
 	@Override
 	public Object cast(Object value, Type javaClass) {
 		if (value == null) return null;
+		if (!(javaClass instanceof ParameterizedType) || !(value instanceof Map)) return value;
 		ParameterizedType pType = (ParameterizedType) javaClass;
 		Type keyJavaType = pType.getActualTypeArguments()[0];
 		Type elementJavaType = pType.getActualTypeArguments()[1];

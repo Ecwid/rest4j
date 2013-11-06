@@ -44,7 +44,7 @@
 	<xsl:param name="copyright">&apache-copyright;</xsl:param>
 	<xsl:param name="group-id" select="$package"/>
 	<xsl:param name="artifact-id" select="'java-client'"/>
-	<xsl:param name="version" select="'1.0-SNAPSHOT'"/>
+	<xsl:param name="version" select="'1.0.0.0-SNAPSHOT'"/>
 	<xsl:param name="project-url" select="'use the project-url parameter to set the project URL.'"/>
 	<xsl:param name="description" select="'use the deacirption parameter to set the project description.'"/>
 	<xsl:param name="name" select="'use the name parameter to set the project name.'"/>
@@ -53,6 +53,7 @@
 	<xsl:param name="license-name" select="'The Apache Software License, Version 2.0'"/>
 	<xsl:param name="license-url" select="'http://www.apache.org/licenses/LICENSE-2.0.txt'"/>
 	<xsl:param name="additional-client-code" select="'// use the additional-client-code xslt parameter to insert custom code here'"/>
+	<xsl:param name="api-name" select="'API'"/>
 
 	<xsl:variable name="common-param-set" select="fn:tokenize($common-params,' ')"/>
 
@@ -82,7 +83,7 @@ public class <xsl:value-of select="@name"/> {
 <xsl:for-each select="fields/(complex|simple)" xml:space="preserve">
 	<xsl:variable name="name"><xsl:apply-templates select="." mode="field-name"/></xsl:variable>
     /**
-     * @return <xsl:value-of select="rest4j:javadocEscape(description/(*|text()))"/>
+     * @return <xsl:value-of select="rest4j:description(description)"/>
      */
     public <xsl:apply-templates select="." mode="prop-type"/> <xsl:value-of select="rest4j:camelCase('get',$name)"/>() {
         Object val = object.opt(<xsl:value-of select="rest4j:quote(@name)"/>);
@@ -230,7 +231,7 @@ public class Client {
     }
 
     /**
-     * Sets the REST API endpoint URL. The default is "<xsl:value-of select='$url'/>".
+     * Sets the <xsl:value-of select="$api-name"/> endpoint URL. The default is "<xsl:value-of select='$url'/>".
      */
     public Client setUrl(String url) throws URISyntaxException {
         new URIBuilder(url);
@@ -246,7 +247,7 @@ public class Client {
     }
 <xsl:if test="$https-url">
     /**
-     * Sets the HTTPS REST API endpoint URL. The default is "<xsl:value-of select='$https-url'/>".
+     * Sets the HTTPS <xsl:value-of select="$api-name"/> endpoint URL. The default is "<xsl:value-of select='$https-url'/>".
      */
     public Client setSecureUrl(String url) throws URISyntaxException {
         new URIBuilder(url);

@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -39,12 +40,66 @@ public class XSLTFunctions {
 				new Quote(),
 				new JavadocEscape(4, "javadocEscape"),
 				new JavadocEscape(0, "javadocEscape0"),
+				new XmlComments(2, "xmlComments"),
 				new Identifier(),
 				new Singular(),
 				new HashComment(),
 				new HtmlToPlain(1, "htmlToPlain1"),
 				new HtmlToPlain(2, "htmlToPlain2"),
+				new RandomUUID(),
+				new AssemblyUUID()
 		};
+	}
+
+	static class AssemblyUUID implements ExtensionFunction {
+		@Override
+		public QName getName() {
+			return new QName(NAMESPACE, "assemblyUUID");
+		}
+
+		@Override
+		public SequenceType getResultType() {
+			return SequenceType.makeSequenceType(
+					ItemType.STRING, OccurrenceIndicator.ONE
+			);
+		}
+
+		@Override
+		public SequenceType[] getArgumentTypes() {
+			return new SequenceType[] {SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ONE)};
+		}
+
+		@Override
+		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
+			String packageName = arguments[0].itemAt(0).getStringValue();
+			UUID uuid = new UUID(4421721295643364989l, -5717901630047851516l ^ packageName.hashCode());
+			return new XdmAtomicValue(uuid.toString());
+		}
+	}
+
+	static class RandomUUID implements ExtensionFunction {
+		@Override
+		public QName getName() {
+			return new QName(NAMESPACE, "randomUUID");
+		}
+
+		@Override
+		public SequenceType getResultType() {
+			return SequenceType.makeSequenceType(
+					ItemType.STRING, OccurrenceIndicator.ONE
+			);
+		}
+
+		@Override
+		public SequenceType[] getArgumentTypes() {
+			return new SequenceType[] {
+			};
+		}
+
+		@Override
+		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
+			return new XdmAtomicValue(java.util.UUID.randomUUID().toString());
+		}
 	}
 
 	static class CamelCase implements ExtensionFunction {
@@ -333,14 +388,7 @@ public class XSLTFunctions {
 				if (item instanceof XdmAtomicValue) sb.append(item.getStringValue());
 				else if (item instanceof XdmNode) {
 					XdmNode node = (XdmNode) item;
-					if (node.getNodeName() != null && "title".equals(node.getNodeName().getLocalName())) {
-						// remove the 'title' tag
-						XdmSequenceIterator it = node.axisIterator(Axis.CHILD);
-						while (it.hasNext()) {
-							XdmItem next = it.next();
-							if (next instanceof XdmNode) toPlainText((XdmNode) next, sb);
-						}
-					} else toPlainText(node, sb);
+					toPlainText(node, sb);
 				}
 			}
 			String s = sb.toString();
@@ -507,6 +555,203 @@ public class XSLTFunctions {
 			while (i >= 0) {
 				char c = buf.charAt(i);
 				if (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != '*') break;
+				i--;
+			}
+			buf.setLength(i+1);
+			return buf.toString();
+		}
+
+		public void setIndent(int indent) {
+			this.indent = indent;
+		}
+	}
+
+	static class XmlComments implements ExtensionFunction {
+		final int indent;
+		final String name;
+
+		XmlComments(int indent, String name) {
+			this.indent = indent;
+			this.name = name;
+		}
+
+		@Override
+		public QName getName() {
+			return new QName(NAMESPACE, name);
+		}
+
+		@Override
+		public SequenceType getResultType() {
+			return SequenceType.makeSequenceType(ItemType.STRING, OccurrenceIndicator.ONE);
+		}
+
+		@Override
+		public SequenceType[] getArgumentTypes() {
+			return new SequenceType[] {
+					SequenceType.makeSequenceType(ItemType.ANY_ITEM, OccurrenceIndicator.ZERO_OR_MORE)
+			};
+		}
+
+		@Override
+		public XdmValue call(XdmValue[] arguments) throws SaxonApiException {
+			XmlCommentsBuilder sb = new XmlCommentsBuilder();
+			sb.setIndent(indent);
+			for (XdmItem item : arguments[0]) {
+				if (item instanceof XdmAtomicValue) sb.append(item.getStringValue());
+				else if (item instanceof XdmNode) {
+					XdmNode node = (XdmNode) item;
+					toXmlComments(node, sb);
+				}
+			}
+			String s = sb.toString();
+			return new XdmAtomicValue(s);
+		}
+
+		private void toXmlComments(XdmNode node, XmlCommentsBuilder sb) {
+			switch (node.getNodeKind()) {
+				case ATTRIBUTE:
+					break;
+				case ELEMENT:
+					XdmSequenceIterator it;
+					String elementName = node.getNodeName().getLocalName();
+					if ("p".equalsIgnoreCase(elementName) || "tr".equalsIgnoreCase(elementName) || "li".equalsIgnoreCase(elementName) || "dt".equalsIgnoreCase(elementName)) {
+						sb.append("<para>");
+						if ("li".equalsIgnoreCase(elementName) || "dt".equalsIgnoreCase(elementName)) sb.append("- ");
+						it = node.axisIterator(Axis.CHILD);
+						while (it.hasNext()) {
+							toXmlComments((XdmNode) it.next(), sb);
+						}
+						sb.append("</para>\n");
+					} else if ("br".equalsIgnoreCase(elementName) || "hr".equalsIgnoreCase(elementName)) {
+						sb.append("<para/>\n");
+					} else if ("td".equalsIgnoreCase(elementName) || "th".equalsIgnoreCase(elementName)) {
+						// TODO: use https://github.com/iNamik/Java-Text-Table-Formatter
+						sb.append("|");
+						it = node.axisIterator(Axis.CHILD);
+						while (it.hasNext()) {
+							toXmlComments((XdmNode) it.next(), sb);
+						}
+						sb.append("|");
+					} else {
+						it = node.axisIterator(Axis.CHILD);
+						while (it.hasNext()) {
+							toXmlComments((XdmNode) it.next(), sb);
+						}
+					}
+					if ("a".equalsIgnoreCase(elementName)) {
+						String href = node.getAttributeValue(new QName("href"));
+						if (href != null) {
+							sb.append('(').append(href).append(')');
+						}
+					}
+					break;
+				case TEXT:
+				case DOCUMENT: // for external entities
+					sb.appendText(node.getStringValue());
+					break;
+			}
+		}
+	}
+
+	static class XmlCommentsBuilder {
+		StringBuilder buf = new StringBuilder();
+		boolean leadingSpaces = true;
+		boolean startOfLineSpaces = true;
+		boolean doubleNL= false;
+		StringBuilder entity = null;
+		private int indent;
+
+		XmlCommentsBuilder append(char c) {
+			if (entity == null && c == '&') {
+				entity = new StringBuilder();
+				return this;
+			}
+			if (entity != null) {
+				if (c == ';' || Character.isSpaceChar(c)) {
+					buf.append(entityToText(entity.toString()));
+					entity = null;
+					if (c != ';') return append(c);
+					return this;
+				}
+				entity.append(c);
+				return this;
+			}
+			if (leadingSpaces && (c == ' ' || c == '\r' || c == '\n' || c == '\t')) {
+				return this;
+			}
+			leadingSpaces = false;
+			if (startOfLineSpaces) {
+				if (c == ' ' || c == '\t') {
+					return this;
+				}
+				if (c == '\n') return this;
+				if (c == '\013') {
+					if (doubleNL) return this;
+				}
+			}
+			if (c == '\013') {
+				doubleNL = true;
+				if (!startOfLineSpaces) buf.append('\n');
+				c = '\n';
+			}
+			startOfLineSpaces = false;
+			buf.append(c);
+			if (c == '\n') {
+				startOfLineSpaces = true;
+				buf.append(StringUtils.repeat("    ", indent)+"/// ");
+			} else {
+				doubleNL = false;
+			}
+			return this;
+		}
+
+		static Map<String, String> entities = new HashMap<String, String>();
+		static {
+			entities.put("nbsp", " ");
+			entities.put("gt", ">");
+			entities.put("cent", "¢");
+			entities.put("pound", "£");
+			entities.put("yen", "¥");
+			entities.put("euro", "€");
+			entities.put("copy", "©");
+			entities.put("reg", "®");
+			entities.put("trade", "™");
+			entities.put("quot", "\"");
+			entities.put("apos", "'");
+		}
+
+		static String entityToText(String entity) {
+			String result = entities.get(entity);
+			return result == null ? "&"+entity+";" : result;
+		}
+
+		XmlCommentsBuilder append(String s) {
+			for (int i=0; i<s.length(); i++) {
+				append(s.charAt(i));
+			}
+			return this;
+		}
+
+		XmlCommentsBuilder appendText(char c) {
+			if (c == '&') return append("&amp;");
+			if (c == '<') return append("&lt;");
+			return append(c);
+		}
+
+		XmlCommentsBuilder appendText(String s) {
+			for (int i=0; i<s.length(); i++) {
+				appendText(s.charAt(i));
+			}
+			return this;
+		}
+
+		@Override
+		public String toString() {
+			// remove trailing empty lines and spaces
+			int i = buf.length()-1;
+			while (i >= 0) {
+				char c = buf.charAt(i);
+				if (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != '/') break;
 				i--;
 			}
 			buf.setLength(i+1);

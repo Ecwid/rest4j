@@ -78,7 +78,8 @@ class SimpleFieldMapping extends FieldMapping {
 		try {
 			fieldVal = cast(fieldVal);
 			propSetter.invoke(inst, fieldVal);
-
+		} catch (IllegalArgumentException e) {
+			throw new ApiException("Cannot invoke "+propSetter+" "+e.getMessage()).setHttpStatus(500);
 		} catch (IllegalAccessException e) {
 			throw new ApiException("Cannot invoke "+propSetter+" "+e.getMessage()).setHttpStatus(500);
 		} catch (InvocationTargetException e) {
@@ -95,6 +96,8 @@ class SimpleFieldMapping extends FieldMapping {
 	public Object get(Object inst) throws ApiException {
 		try {
 			return propGetter.invoke(inst);
+		} catch (IllegalArgumentException e) {
+			throw new ApiException("Cannot invoke "+propSetter+" "+e.getMessage()).setHttpStatus(500);
 		} catch (IllegalAccessException e) {
 			throw new ApiException("Cannot invoke "+propGetter+" "+e.getMessage()).setHttpStatus(500);
 		} catch (InvocationTargetException e) {

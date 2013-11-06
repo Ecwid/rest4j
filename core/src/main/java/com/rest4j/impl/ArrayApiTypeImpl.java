@@ -74,6 +74,7 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 			}
 			return array;
 		} else {
+			if (!(javaClass instanceof ParameterizedType)) return value;
 			ParameterizedType pType = (ParameterizedType) javaClass;
 			Type elementJavaType = pType.getActualTypeArguments()[0];
 			Collection newCollection;
@@ -82,7 +83,7 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 			} else if (Util.getClass(javaClass) == Set.class) {
 				newCollection = new LinkedHashSet(size(value));
 			} else {
-				throw new AssertionError("Unexpected array type "+value.getClass());
+				return value;
 			}
 			for (Object element: iterable(value)) {
 				newCollection.add(elementType.cast(element, elementJavaType));

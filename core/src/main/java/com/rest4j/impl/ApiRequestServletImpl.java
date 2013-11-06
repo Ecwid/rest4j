@@ -72,7 +72,7 @@ public class ApiRequestServletImpl extends ApiRequest {
 	public JSONObject objectInput() throws IOException, ApiException {
 		if (objectInput != null) return objectInput;
 		checkJSON();
-		String json = IOUtils.toString(request.getReader());
+		String json = getString();
 		try {
 			return objectInput = new JSONObject(json);
 		} catch (JSONException e) {
@@ -84,12 +84,20 @@ public class ApiRequestServletImpl extends ApiRequest {
 	public JSONArray arrayInput() throws IOException, ApiException {
 		if (arrayInput != null) return arrayInput;
 		checkJSON();
-		String json = IOUtils.toString(request.getReader());
+		String json = getString();
 		try {
 			return arrayInput = new JSONArray(json);
 		} catch (JSONException e) {
 			throw new ApiException("Wrong JSON format: "+e.getMessage());
 		}
+	}
+
+	private String getString() throws IOException {
+		String json = IOUtils.toString(request.getReader());
+		if (json.startsWith("\ufeff")) { // UTF-8 prefix
+			json = json.substring(1);
+		}
+		return json;
 	}
 
 	@Override
