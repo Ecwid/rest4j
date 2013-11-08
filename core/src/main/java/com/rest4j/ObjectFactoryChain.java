@@ -24,9 +24,23 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * This object is passed to the {@link ObjectFactory#createInstance(String, Class, com.rest4j.json.JSONObject, ObjectFactoryChain)}
+ * as the reference to the next in the chain-of-responsibility.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ObjectFactoryChain {
+	/**
+	 * Creates the java instance from JSON object during unmarshalling. This is a pre-unmarshal operation: implementor
+	 * might not fill the created object with any data, but may choose an appropriate class to instantiate depending on
+	 * input data.
+	 *
+	 * @param modelName The 'name' attribute of the &lt;model>.
+	 * @param clz The 'class' attribute of the &lt;model>.
+	 * @param object The object being unmarshalled, not null.
+	 * @return The java object instance that will be returned. Can return null, in which case the unmarshalled object
+	 *         becomes null.
+	 */
 	@Nullable Object createInstance(
 			@Nonnull String modelName,
 			@Nonnull Class clz,

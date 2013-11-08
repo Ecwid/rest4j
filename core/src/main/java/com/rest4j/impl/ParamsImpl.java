@@ -17,8 +17,6 @@
 
 package com.rest4j.impl;
 
-import com.rest4j.Params;
-
 import java.util.HashMap;
 
 /**

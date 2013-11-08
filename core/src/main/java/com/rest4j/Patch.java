@@ -20,6 +20,21 @@ package com.rest4j;
 import com.rest4j.json.JSONObject;
 
 /**
+ * An optional type of an API service parameter when using 'bod/patch' tag in API XML.
+ * If the body of an API endpoint is declared as a patch, then you have an option to access
+ * both the patched and the original (non-patched) objects, as long as the patching JSON
+ * itself, by declaring a service parameter as Patch&lt;type>. Example:
+ *
+ * <pre>
+ * PetUpdateResult updatePet(int petId, Patch&lt;Pet> patch) {
+ *   if (!patch.getOriginal().getName().equals(patch.getPatched().getName())) {
+ *       // pet name has been changed
+ *   }
+ * }
+ * </pre>
+ *
+ * The original (non-patched) Java object is retrieved by invoking GET method on the same URL.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class Patch<T> {
@@ -27,20 +42,32 @@ public class Patch<T> {
 	final private T patched;
 	final private JSONObject changedProperties;
 
+	/**
+	 * The instance is usually created by Rest4j, no need to call constructor.
+	 */
 	public Patch(T original, T patched, JSONObject patch) {
 		this.original = original;
 		this.patched = patched;
 		this.changedProperties = patch;
 	}
 
+	/**
+	 * The original (non-patched) Java object retrieved by invoking GET method on the same URL.
+	 */
 	public T getOriginal() {
 		return original;
 	}
 
+	/**
+	 * The original object, deep-copied, with che changed properties.
+	 */
 	public T getPatched() {
 		return patched;
 	}
 
+	/**
+	 * The incoming JSON that was used to change the object's properties.
+	 */
 	public JSONObject getChangedProperties() {
 		return changedProperties;
 	}

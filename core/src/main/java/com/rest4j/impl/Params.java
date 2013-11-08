@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package com.rest4j;
+package com.rest4j.impl;
 
 /**
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface Params {

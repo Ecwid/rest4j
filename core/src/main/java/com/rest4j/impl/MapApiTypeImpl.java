@@ -52,12 +52,12 @@ public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType, Patchable
 	}
 
 	@Override
-	public boolean check(Type javaClass) {
-		Class clz = Util.getClass(javaClass);
+	public boolean check(Type javaType) {
+		Class clz = Util.getClass(javaType);
 		if (clz == null) return false;
 		if (clz != Map.class && clz != HashMap.class && clz != LinkedHashMap.class) return false;
-		if (javaClass instanceof ParameterizedType) {
-			ParameterizedType pType = (ParameterizedType) javaClass;
+		if (javaType instanceof ParameterizedType) {
+			ParameterizedType pType = (ParameterizedType) javaType;
 			if (pType.getActualTypeArguments().length != 2) return false;
 			// the first parameter is a string
 			if (!stringApiType.check(pType.getActualTypeArguments()[0])) return false;
@@ -69,10 +69,10 @@ public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType, Patchable
 	}
 
 	@Override
-	public Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaType) {
 		if (value == null) return null;
-		if (!(javaClass instanceof ParameterizedType) || !(value instanceof Map)) return value;
-		ParameterizedType pType = (ParameterizedType) javaClass;
+		if (!(javaType instanceof ParameterizedType) || !(value instanceof Map)) return value;
+		ParameterizedType pType = (ParameterizedType) javaType;
 		Type keyJavaType = pType.getActualTypeArguments()[0];
 		Type elementJavaType = pType.getActualTypeArguments()[1];
 		Map map = (Map)value;

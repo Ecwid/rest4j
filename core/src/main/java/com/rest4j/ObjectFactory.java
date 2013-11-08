@@ -24,13 +24,18 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
+ * Helps creating Java objects during unmarshalling. Useful for implementing polymorphism.
+ * Object factories do not unmarshal JSON, this is done by the Marshaller. However, it is
+ * possible to create instances of different classes depending on the incoming JSON object,
+ * like for example using a type discriminator ('type' field) in the JSON.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ObjectFactory {
 
 	/**
-	 * Creates the java instance from JSON object during unmarshal. This is a pre-unmarshal operation: implementor
-	 * may not fill the created object with any data, but may choose an appropriate class to instantiate depending on
+	 * Creates the java instance from JSON object during unmarshalling. This is a pre-unmarshal operation: implementor
+	 * might not fill the created object with any data, but may choose an appropriate class to instantiate depending on
 	 * input data.
 	 *
 	 * @param modelName The 'name' attribute of the &lt;model>.
@@ -39,7 +44,6 @@ public interface ObjectFactory {
 	 * @param next The chain-of-responsibility delegate.
 	 * @return The java object instance that will be returned. Can return null, in which case the unmarshalled object
 	 *         becomes null.
-	 * @throws JSONException
 	 */
 	@Nullable Object createInstance(
 			@Nonnull String modelName,

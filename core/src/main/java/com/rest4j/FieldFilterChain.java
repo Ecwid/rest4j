@@ -21,9 +21,31 @@ import com.rest4j.type.Field;
 import com.rest4j.type.ObjectApiType;
 
 /**
+ * This is passed as the 'next' reference to {@link FieldFilter#marshal(Object, Object, com.rest4j.type.ObjectApiType, com.rest4j.type.Field, FieldFilterChain)}
+ * and {@link FieldFilter#unmarshal(Object, Object, com.rest4j.type.ObjectApiType, com.rest4j.type.Field, FieldFilterChain)}.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface FieldFilterChain {
-	Object marshal(Object json, Object parentObject, ObjectApiType parentType, Field field);
-	Object unmarshal(Object json, Object parentObject, ObjectApiType parentType, Field field);
+	/**
+	 * Changes JSON field value during marshalling.
+	 *
+	 * @param json The field value, in com.rest4j.json.* type hierarchy. Nulls are encoded as JSONObject.Null.
+	 * @param parentJavaObject The corresponding source Java object.
+	 * @param parentType The object type as described in the API XML.
+	 * @param field The field being filtered as described in the API XML.
+	 * @return Same or changed field value, in com.rest4j.json.* type hierarchy. Null if you want the field removed.
+	 */
+	Object marshal(Object json, Object parentJavaObject, ObjectApiType parentType, Field field);
+
+	/**
+	 * Changes JSON before unmarshalling.
+	 *
+	 * @param json The field value, in com.rest4j.json.* type hierarchy. Nulls are encoded as JSONObject.Null.
+	 * @param parentJavaObject The corresponding destination Java object.
+	 * @param parentType The object type as described in the API XML.
+	 * @param field The field being filtered as described in the API XML.
+	 * @return Same or changed field value, in com.rest4j.json.* type hierarchy. Null if you want the field removed.
+	 */
+	Object unmarshal(Object json, Object parentJavaObject, ObjectApiType parentType, Field field);
 }

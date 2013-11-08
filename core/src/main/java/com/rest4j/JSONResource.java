@@ -28,6 +28,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 /**
+ * A {@link Resource} that represents a JSON object or an array. Has Content-Type: application/json; charset=utf-8
+ * and an Etag based on hashCode. You don't usually have to create this object.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class JSONResource extends ResourceBase {
@@ -35,12 +38,24 @@ public class JSONResource extends ResourceBase {
 	ApiType apiType;
 	private boolean prettify;
 
+	/**
+	 * Constructs the JSON resource with the given JSON data and API type. You don't usually have to
+	 * create this object.
+	 *
+	 * @param object JSONObject or JSONArray.
+	 * @param apiType One of ObjectApiType, ArrayApiType, or MapApiType, which will be available via {@link #getApiType()}.
+	 * This is for information only and can be set to null in most cases.
+	 */
 	public JSONResource(Object object, ApiType apiType) {
 		super("application/json; charset=utf-8");
 		this.object = object;
 		this.apiType = apiType;
 	}
 
+	/**
+	 * One of ObjectApiType, ArrayApiType, or MapApiType that was passed to the constructor.
+	 * @return
+	 */
 	public ApiType getApiType() {
 		return apiType;
 	}

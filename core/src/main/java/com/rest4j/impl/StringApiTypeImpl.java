@@ -64,23 +64,23 @@ class StringApiTypeImpl extends SimpleApiTypeImpl implements StringApiType {
 	}
 
 	@Override
-	public Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaType) {
 		if (value == null) return null;
 		if (value instanceof String) {
-			Class clz = (Class)javaClass;
+			Class clz = (Class) javaType;
 			String str = (String) value;
 			if (clz.isEnum()) {
 				return Util.getEnumConstant(clz, str);
-			} else if (javaClass == char.class) {
+			} else if (javaType == char.class) {
 				return Character.valueOf(str.length() == 0 ? '\0' : asChar(str));
-			} else if (javaClass == Character.class) {
+			} else if (javaType == Character.class) {
 				return str.length() == 0 ? null : Character.valueOf(asChar(str));
 			}
 		} else if (value instanceof Character) {
-			if (javaClass != Character.class && javaClass != char.class) return cast(value.toString(), javaClass);
+			if (javaType != Character.class && javaType != char.class) return cast(value.toString(), javaType);
 		} else if (value instanceof Enum) {
-			Class clz = (Class)javaClass;
-			if (!clz.isEnum()) return cast(((Enum) value).name(), javaClass);
+			Class clz = (Class) javaType;
+			if (!clz.isEnum()) return cast(((Enum) value).name(), javaType);
 		}
 		return value;
 	}

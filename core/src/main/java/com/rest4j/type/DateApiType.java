@@ -18,6 +18,9 @@
 package com.rest4j.type;
 
 /**
+ * The API type corresponding to type='date' in API XML. You can get an instance
+ * using {@link com.rest4j.Marshaller} methods.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface DateApiType extends SimpleApiType {

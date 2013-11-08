@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Receives the API description in XML and creates the corresponding JSON marshaller and unmarshaller.
+ * Creates the instance of {@link API} from the given XML API description in XML.
  *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
@@ -75,21 +75,44 @@ public class ApiFactory {
 		preprocessors.add(new DefaultsPreprocessor());
 	}
 
+	/**
+	 * Add an ObjectFactory to the end of the chain. Object factories are used to create Java object during unmarshalling.
+	 * ObjectFactories are organized into a chain.
+	 *
+	 * @param of The object factory to be added.
+	 * @see ObjectFactory
+	 */
 	public void addObjectFactory(ObjectFactory of) {
 		factories.add(of);
 	}
 
+	/**
+	 * Add a FieldFilter to the end of the chain. Field filters can be used to change or remove JSON fields
+	 * during marshalling and unmarshalling.
+	 * @param ff The field filter to be added.
+	 * @see FieldFilter
+	 */
 	public void addFieldFilter(FieldFilter ff) {
 		fieldFilters.add(ff);
 	}
 
+	/**
+	 * Adds an API description preprocessor to the end of the list. Preprocessors can be used to change the
+	 * API description XML.
+	 *
+	 * @param proc The preprocessor to be added.
+	 * @see Preprocessor
+	 */
 	public void addPreprocessor(Preprocessor proc) {
 		preprocessors.add(proc);
 	}
 
 	/**
 	 * Sets path inside a classpath to the resource containing XML Schema for extra info (&lt;extra> tags).
-	 * @param extObjectFactory ObjectFactory to use when reading extra info.
+	 * &lt;extra> tags can contain information for the your custom generators and field filters. This
+	 * information is an arbitrary XML of the given schema.
+	 *
+	 * @param extObjectFactory the JAXB ObjectFactory to use when reading extra info with JAXB.
 	 */
 	public void setExtSchema(String extSchema, Class extObjectFactory) {
 		this.extSchema = extSchema;
@@ -128,6 +151,14 @@ public class ApiFactory {
 		return extObjectFactory;
 	}
 
+	/**
+	 * Create the API instance. The XML describing the API is read, preprocessed, analyzed for errors,
+	 * and the internal structures for Java object marshalling and unmarshalling are created, as
+	 * well as endpoint mappings.
+	 *
+	 * @return The API instance
+	 * @throws ConfigurationException When there is a problem with your XML description.
+	 */
 	public API createAPI() throws ConfigurationException {
 		try {
 			JAXBContext context;
@@ -173,6 +204,12 @@ public class ApiFactory {
 		}
 	}
 
+	/**
+	 * This method can be used to just read the API description XML into a DOM. The XML is schema-validated
+	 * and preprocessed with the preprocessors that were added with {@link #addPreprocessor(Preprocessor)}.
+	 *
+	 * @return The validated and preprocessed DOM.
+	 */
 	public Document getDocument() throws ParserConfigurationException, SAXException, IOException, ConfigurationException {
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		documentBuilderFactory.setNamespaceAware(true);

@@ -18,6 +18,8 @@
 package com.rest4j;
 
 /**
+ * Represents a HTTP response header in {@link Resource}.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface Header {

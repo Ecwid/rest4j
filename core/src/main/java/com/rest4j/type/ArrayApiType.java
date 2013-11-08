@@ -18,8 +18,14 @@
 package com.rest4j.type;
 
 /**
+ * An API type that corresponds to collection='array' in API XML. You can get an instance
+ * using {@link com.rest4j.Marshaller} methods.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ArrayApiType extends ApiType {
+	/**
+	 * The type of array elements. Cannot be another array or a map.
+	 */
 	ApiType getElementType();
 }

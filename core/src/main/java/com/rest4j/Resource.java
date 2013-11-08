@@ -21,17 +21,34 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
+ * HTTP Response Entity. Part of {@link ApiResponse}. May have Content-Type, Etag and headers.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface Resource {
 
+	/**
+	 * The Content-Type header value.
+	 */
 	String getContentType();
 
+	/**
+	 * The Etag header value. Can be null.
+	 */
 	String getETag();
 
+	/**
+	 * Writes this resource to the output stream.
+	 */
 	void write(OutputStream os) throws IOException;
 
+	/**
+	 * Writes this resource to the output stream as a JSONP.
+	 */
 	void writeJSONP(OutputStream os, String callbackFunctionName) throws IOException;
 
+	/**
+	 * Returns HTTP additional response headers.
+	 */
 	Iterable<Header> headers();
 }

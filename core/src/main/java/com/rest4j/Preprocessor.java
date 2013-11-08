@@ -21,6 +21,16 @@ import org.w3c.dom.Document;
 
 /**
  * Pre-processes API xml definition. Register pre-processors with ApiFactory#addPreprocessor.
+ * You can make any changed to the DOM, as long as they adhere to the following conditions:
+ *
+ * <ul>
+ *     <li>The resulting XML contains all the required tags and attributes declared in the api.xsd. You can add your own
+ *     tags and attributes not declared in the api.xsd.</li>
+ *     <li>All mandatory attributes have their default values, e.g. 'collection' is 'singleton' by default, 'access' is
+ *     'readwrite' etc.</li>
+ * </ul>
+ *
+ * Preprocessors are useful for implementing dynamic datatypes.
  *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */

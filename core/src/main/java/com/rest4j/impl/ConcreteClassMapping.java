@@ -169,13 +169,13 @@ public class ConcreteClassMapping implements ObjectApiType {
 	}
 
 	@Override
-	public boolean check(Type javaClass) {
-		javaClass = Util.getClass(javaClass);
-		return javaClass == clz;
+	public boolean check(Type javaType) {
+		javaType = Util.getClass(javaType);
+		return javaType == clz;
 	}
 
 	@Override
-	public Object cast(@Nullable Object value, Type javaClass) throws NullPointerException {
+	public Object cast(@Nullable Object value, Type javaType) throws NullPointerException {
 		return value;
 	}
 

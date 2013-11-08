@@ -20,10 +20,25 @@ package com.rest4j.type;
 import java.util.List;
 
 /**
+ * Representation of a model field in API XML.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface Field {
+	/**
+	 * Field name.
+	 */
 	String getName();
+
+	/**
+	 * Field type.
+	 */
 	ApiType getType();
+
+	/**
+	 * Additional data inside &lt;extra> tag of the field definition.
+	 * The elements of this list are object deserialized with the JAXB object factory
+	 * configured by {@link com.rest4j.ApiFactory#setExtSchema(String, Class)}.
+	 */
 	List getExtra();
 }

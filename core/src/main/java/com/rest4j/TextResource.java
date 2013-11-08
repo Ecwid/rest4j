@@ -27,6 +27,9 @@ import java.io.Reader;
 import java.io.StringReader;
 
 /**
+ * A {@link Resource} that represents plain text. Has Content-Type: text/plain; charset=utf-8
+ * and an Etag based on hashCode. You don't usually have to create this object.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class TextResource extends ResourceBase {
@@ -56,6 +59,10 @@ public class TextResource extends ResourceBase {
 	}
 
 	@Override
+	/**
+	 * A JSONP representation of a text resource is a JavaScript function call
+	 * with string parameter containing the text data.
+	 */
 	public void writeJSONP(OutputStream os, String callbackFunctionName) throws IOException {
 		os.write((callbackFunctionName+"(\"").getBytes("UTF-8"));
 		JSONEscapingFilter filter = new JSONEscapingFilter(reader);

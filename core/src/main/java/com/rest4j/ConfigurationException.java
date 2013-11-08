@@ -18,6 +18,9 @@
 package com.rest4j;
 
 /**
+ * An exception that is throws during API instance creation in the {@link com.rest4j.ApiFactory#createAPI()}.
+ * Usually caused by problems with API XML description.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class ConfigurationException extends Exception {

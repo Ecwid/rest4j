@@ -47,25 +47,25 @@ public class NumberApiTypeImpl extends SimpleApiTypeImpl implements NumberApiTyp
 	}
 
 	@Override
-	public Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaType) {
 		if (value == null) {
-			if (javaClass == int.class || javaClass == double.class || javaClass == long.class) {
+			if (javaType == int.class || javaType == double.class || javaType == long.class) {
 				throw new NullPointerException();
 			}
 			return null;
 		}
 		if (value instanceof Number) {
 			Number numValue = (Number) value;
-			if (javaClass == Integer.class || javaClass == int.class) return numValue.intValue();
-			if (javaClass == Double.class || javaClass == double.class) return numValue.doubleValue();
-			if (javaClass == Long.class || javaClass == long.class) return numValue.longValue();
-			if (javaClass == Character.class || javaClass == char.class) return Character.valueOf((char)numValue.intValue());
+			if (javaType == Integer.class || javaType == int.class) return numValue.intValue();
+			if (javaType == Double.class || javaType == double.class) return numValue.doubleValue();
+			if (javaType == Long.class || javaType == long.class) return numValue.longValue();
+			if (javaType == Character.class || javaType == char.class) return Character.valueOf((char)numValue.intValue());
 			return value;
 		} else if (value instanceof Character) {
 			char charValue = ((Character)value).charValue();
-			if (javaClass == Integer.class || javaClass == int.class) return Integer.valueOf(charValue);
-			if (javaClass == Double.class || javaClass == double.class) return Double.valueOf(charValue);
-			if (javaClass == Long.class || javaClass == long.class) return Long.valueOf(charValue);
+			if (javaType == Integer.class || javaType == int.class) return Integer.valueOf(charValue);
+			if (javaType == Double.class || javaType == double.class) return Double.valueOf(charValue);
+			if (javaType == Long.class || javaType == long.class) return Long.valueOf(charValue);
 			return value;
 		}
 		return value;

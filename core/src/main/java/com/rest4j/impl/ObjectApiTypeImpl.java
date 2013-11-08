@@ -61,13 +61,13 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 	}
 
 	@Override
-	public boolean check(Type javaClass) {
-		javaClass = Util.getClass(javaClass);
-		return javaClass == clz;
+	public boolean check(Type javaType) {
+		javaType = Util.getClass(javaType);
+		return javaType == clz;
 	}
 
 	@Override
-	public Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaType) {
 		return value;
 	}
 

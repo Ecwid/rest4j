@@ -53,9 +53,9 @@ public class DateApiTypeImpl extends SimpleApiTypeImpl implements DateApiType {
 	}
 
 	@Override
-	public Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaType) {
 		if (value == null) return null;
-		if (javaClass == java.util.Date.class) return value;
+		if (javaType == java.util.Date.class) return value;
 		java.util.Date date = (java.util.Date) value;
 		return new java.sql.Date(date.getTime());
 	}

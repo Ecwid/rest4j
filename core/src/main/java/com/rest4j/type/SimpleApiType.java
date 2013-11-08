@@ -18,6 +18,8 @@
 package com.rest4j.type;
 
 /**
+ * An abstract API type corresponding to simple fields in API XML.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface SimpleApiType extends ApiType {

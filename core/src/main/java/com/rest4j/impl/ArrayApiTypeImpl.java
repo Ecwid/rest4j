@@ -40,15 +40,15 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	}
 
 	@Override
-	public boolean check(Type javaClass) {
-		if (javaClass instanceof GenericArrayType) {
-			return elementType.check(((GenericArrayType)javaClass).getGenericComponentType());
+	public boolean check(Type javaType) {
+		if (javaType instanceof GenericArrayType) {
+			return elementType.check(((GenericArrayType) javaType).getGenericComponentType());
 		}
-		Class clz = Util.getClass(javaClass);
+		Class clz = Util.getClass(javaType);
 		if (clz == null) return false;
 		if (clz != List.class && clz != Set.class && !clz.isArray()) return false;
-		if (javaClass instanceof ParameterizedType) {
-			ParameterizedType pType = (ParameterizedType) javaClass;
+		if (javaType instanceof ParameterizedType) {
+			ParameterizedType pType = (ParameterizedType) javaType;
 			// a parameter is the element type
 			return elementType.check(pType.getActualTypeArguments()[0]);
 		} else if (clz.isArray()) {
@@ -59,13 +59,13 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 	}
 
 	@Override
-	public Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaType) {
 		if (value == null) return null;
-		Class clz = Util.getClass(javaClass);
-		if (clz != null && clz.isArray() || javaClass instanceof GenericArrayType) {
+		Class clz = Util.getClass(javaType);
+		if (clz != null && clz.isArray() || javaType instanceof GenericArrayType) {
 			Type componentType;
 			if (clz != null && clz.isArray()) componentType = clz.getComponentType();
-			else componentType = ((GenericArrayType)javaClass).getGenericComponentType();
+			else componentType = ((GenericArrayType) javaType).getGenericComponentType();
 			Class componentClass = Util.getClass(componentType);
 			Object array = Array.newInstance(componentClass, size(value));
 			int i=0;
@@ -74,13 +74,13 @@ public class ArrayApiTypeImpl extends ApiTypeImpl implements ArrayApiType {
 			}
 			return array;
 		} else {
-			if (!(javaClass instanceof ParameterizedType)) return value;
-			ParameterizedType pType = (ParameterizedType) javaClass;
+			if (!(javaType instanceof ParameterizedType)) return value;
+			ParameterizedType pType = (ParameterizedType) javaType;
 			Type elementJavaType = pType.getActualTypeArguments()[0];
 			Collection newCollection;
-			if (Util.getClass(javaClass) == List.class) {
+			if (Util.getClass(javaType) == List.class) {
 				newCollection = new ArrayList(size(value));
-			} else if (Util.getClass(javaClass) == Set.class) {
+			} else if (Util.getClass(javaType) == Set.class) {
 				newCollection = new LinkedHashSet(size(value));
 			} else {
 				return value;

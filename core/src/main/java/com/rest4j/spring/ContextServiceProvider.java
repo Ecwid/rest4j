@@ -26,6 +26,12 @@ import org.springframework.context.ApplicationContextAware;
 
 /**
  * Treats service names as Spring bean ids and looks up the beans in the current ApplicationContext.
+ * Optionally adds a suffixes to the object names. E.g. if the suffix for mappers is 'Mapper', then
+ * the following API XML definition:
+ * <pre>
+ *     &lt;model name="Pet" class="com.pets.api.Pet" field-mapper="pets">
+ * </pre>
+ * will search for "petsMapper" bean in the context.
  *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
@@ -62,26 +68,44 @@ public class ContextServiceProvider implements ServiceProvider, ApplicationConte
 		this.context = applicationContext;
 	}
 
+	/**
+	 * Gets suffix that is added to the API service names. Default is no suffix.
+	 */
 	public String getServiceSuffix() {
 		return serviceSuffix;
 	}
 
+	/**
+	 * Sets suffix that is added to the API service names. Default is no suffix.
+	 */
 	public void setServiceSuffix(String serviceSuffix) {
 		this.serviceSuffix = serviceSuffix;
 	}
 
+	/**
+	 * Gets suffix that is added to the field mapper names. Default is no suffix.
+	 */
 	public String getMapperSuffix() {
 		return mapperSuffix;
 	}
 
+	/**
+	 * Sets suffix that is added to the field mapper names. Default is no suffix.
+	 */
 	public void setMapperSuffix(String mapperSuffix) {
 		this.mapperSuffix = mapperSuffix;
 	}
 
+	/**
+	 * Gets suffix that is added to the converter names. Default is no suffix.
+	 */
 	public String getConverterSuffix() {
 		return converterSuffix;
 	}
 
+	/**
+	 * Sets suffix that is added to the converter names. Default is no suffix.
+	 */
 	public void setConverterSuffix(String converterSuffix) {
 		this.converterSuffix = converterSuffix;
 	}

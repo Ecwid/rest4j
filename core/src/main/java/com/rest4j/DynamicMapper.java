@@ -20,9 +20,25 @@ package com.rest4j;
 import com.rest4j.type.Field;
 
 /**
+ * An interface that can be implemented by a field mapper which gets and sets properties dynamically.
+ * See <a href="https://code.google.com/p/rest4j/wiki/ApiXmlSchema#model_tag">filed-mapper attribute description</a> in the API XML Schema.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface DynamicMapper<T> {
+	/**
+	 * Gets the field value.
+	 * @param instance The source Java object.
+	 * @param field The JSON field.
+	 * @return The field value, corresponding to the field type described in the XML.
+	 */
 	Object get(T instance, Field field);
+
+	/**
+	 * Sets the field value
+	 * @param instance The source Java object.
+	 * @param field The JSON field.
+	 * @param value The field value obtained from unmarshalling a JSON and optionally converting with a converter.
+	 */
 	void set(T instance, Field field, Object value) throws ApiException;
 }

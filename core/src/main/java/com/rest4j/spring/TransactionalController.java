@@ -17,45 +17,42 @@
 
 package com.rest4j.spring;
 
-import com.rest4j.*;
+import com.rest4j.ApiException;
+import com.rest4j.ApiRequest;
+import com.rest4j.ApiResponse;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.logging.Logger;
 
 /**
- * An utility class that can be used as a Spring controller. For transaction support, see {@link TransactionalController}.
+ * An utility class that can be used as a Spring controller. Supports Spring transactions. Rollbacks
+ * a transaction on any exception.
  *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class Controller implements org.springframework.web.servlet.mvc.Controller {
-	API api;
-	Logger log = Logger.getLogger(Controller.class.getName());
+public class TransactionalController extends Controller {
 
 	@Override
+	@Transactional(rollbackFor = Exception.class)
 	public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
 		ApiResponse response;
 		try {
 			response = api.serve(ApiRequest.from(httpServletRequest));
+			response.outputBody(httpServletResponse);
+			return null;
 		} catch (ApiException e) {
 			response = e.createResponse();
+			response.outputBody(httpServletResponse);
+			throw e;
+		} catch (Exception e) {
+			try {
+				httpServletResponse.setStatus(500, e.getMessage());
+			} catch (Exception ex) {
+				throw e; // do not mask the original exception
+			}
+			throw e;
 		}
-		response.outputBody(httpServletResponse);
-		return null;
-	}
-
-	public API getApi() {
-		return api;
-	}
-
-	public void setApi(API api) {
-		this.api = api;
-	}
-
-	@PostConstruct
-	public void check() throws ConfigurationException {
-		if (api == null) throw new ConfigurationException("api property not configured in Controller");
 	}
 }

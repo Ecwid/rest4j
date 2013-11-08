@@ -12,6 +12,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
+ * An utility servlet that performs REST requests. Possible init-params are:
+ *
+ * <ul>
+ *     <li>pathPrefix - a prefix that is added to the endpoint/route, optional.</li>
+ *     <li>apiDescriptionXml - either classpath or context path to the API description XML.</li>
+ *     <li>serviceProviderClass - class name of ServiceProvider. Should have default constructor.</li>
+ *     <li>objectFactories - comma-separated class names of ObjectFactories. Should have default constructors.</li>
+ *     <li>fieldFilters - comma-separated class names of FieldFilter. Should have default constructors.</li>
+ * </ul>
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class APIServlet extends HttpServlet {

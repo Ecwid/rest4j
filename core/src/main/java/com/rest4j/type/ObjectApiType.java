@@ -23,6 +23,9 @@ import org.w3c.dom.Element;
 import java.util.List;
 
 /**
+ * The API type corresponding to models in API XML. You can get an instance
+ * using {@link com.rest4j.Marshaller} methods.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ObjectApiType extends ApiType {

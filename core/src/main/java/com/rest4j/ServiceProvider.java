@@ -18,6 +18,9 @@
 package com.rest4j;
 
 /**
+ * This interface is used by Rest4j to lookup named objects referenced from the API XML.
+ * This interface is called only during API initialization.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ServiceProvider {
@@ -26,19 +29,25 @@ public interface ServiceProvider {
 	 * Find an object that will execute REST API requests.
 	 *
 	 * @param name The value of the service/@name attribute of the API description or null if absent.
-	 * @return
+	 *
+	 * @return The service object or null if not found.
 	 */
 	Object lookupService(String name);
 
 	/**
 	 * Finds a field mapper corresponding to a name specified in the field-mapper attribute of the API description.
-	 * Field mappers are looked up once during API initialization.
+	 * Field mappers are arbitrary classes with setter/getter methods matching 'mapper-method' attributes.
 	 *
 	 * @param model The name of the model for with the field mapper should be found.
-	 * @param name The field-mapper attribute value or null if not specified.
-	 * @return
+	 * @param name The 'field-mapper' attribute value or null if not specified.
+	 * @return The field mapper, ot null if not found.
 	 */
 	Object lookupFieldMapper(String model, String name);
 
+	/**
+	 * Finds a named converter.
+	 * @param name The 'converter' attribute of the JSON field definition in the API XML.
+	 * @return The converter instance or null if not found.
+	 */
 	Converter lookupConverter(String name);
 }

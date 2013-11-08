@@ -69,10 +69,10 @@ public class APIImpl implements API {
 			if (child instanceof Model) {
 				Model model = (Model) child;
 				Object customMapper = null;
-				if (model.getFieldMapper() != null) {
-					customMapper = serviceProvider.lookupFieldMapper(model.getName(), model.getFieldMapper());
-					if (customMapper == null) {
-						throw new ConfigurationException("No mapper found with name "+model.getFieldMapper());
+				customMapper = serviceProvider.lookupFieldMapper(model.getName(), model.getFieldMapper());
+				if (customMapper == null) {
+					if (model.getFieldMapper() != null) {
+						throw new ConfigurationException("No mapper found for model "+model.getName()+" with name "+model.getFieldMapper());
 					}
 				}
 				modelConfig.add(new MarshallerImpl.ModelConfig(model, customMapper));

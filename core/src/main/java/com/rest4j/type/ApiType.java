@@ -21,13 +21,36 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
 /**
+ * An abstract data type used in API XML. You can get an instance
+ * using {@link com.rest4j.Marshaller} methods.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ApiType {
-	boolean check(Type javaClass);
+	/**
+	 * Check that this data type can be implemented by a given Java type.
+	 * For example, a number can be implemented by java.lang.Integer, java.lang.Number etc.
+	 *
+	 * @return True if the API data type can be implemented by the given Java type.
+	 */
+	boolean check(Type javaType);
 
-	Object cast(@Nullable Object value, Type javaClass) throws NullPointerException;
+	/**
+	 * Cast the unmarshalled value of this data type to a specific Java type.
+	 * For example, a JSON string can be converted to a Java enum constant.
+	 *
+	 * @param value The unmarshalled value. Can be null.
+	 * @param javaType The concrete type to cast value to. The {@link #check(java.lang.reflect.Type)}
+	 *                 function must return true for this type.
+	 * @return The casted value.
+	 * @throws NullPointerException If there was an attempt to cast null to a primitive Java type (e.g. int).
+	 */
+	Object cast(@Nullable Object value, Type javaType) throws NullPointerException;
 
+	/**
+	 * Returns the names of the Java types that are supported by this API type.
+	 * This string can be used in error messages.
+	 */
 	String getJavaName();
 
 }

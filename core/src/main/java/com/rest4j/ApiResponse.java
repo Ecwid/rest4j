@@ -21,13 +21,26 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
+ * Encapsulates the response of the RESTful request. This object is returned by the {@link API#serve(ApiRequest)}
+ * on success and {@link com.rest4j.ApiException#createResponse()} on error.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface ApiResponse {
 
+	/**
+	 * HTTP status code.
+	 */
 	int getStatus();
 
+	/**
+	 * An optional resource that will be returned to the client.
+	 */
 	Resource getResource();
 
+	/**
+	 * Outputs the response to the given HttpServletResponse. This method handles
+	 * format=pretty, JSONP, gzip compression, Etags, custom headers.
+	 */
 	void outputBody(HttpServletResponse response) throws IOException;
 }

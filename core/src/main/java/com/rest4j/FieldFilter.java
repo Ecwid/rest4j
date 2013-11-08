@@ -21,9 +21,34 @@ import com.rest4j.type.Field;
 import com.rest4j.type.ObjectApiType;
 
 /**
+ * Field filters can be used to change or remove JSON fields during marshalling and unmarshalling.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public interface FieldFilter {
+	/**
+	 * Changes JSON field value during marshalling.
+	 *
+	 * @param json The field value, in com.rest4j.json.* type hierarchy. Nulls are encoded as JSONObject.Null.
+	 * @param parentJavaObject The corresponding source Java object.
+	 * @param parentType The object type as described in the API XML.
+	 * @param field The field being filtered as described in the API XML.
+	 * @param next Next filter in the chain. Never null. If you don't want the filter to affect the value,
+	 * return next.marshal(...).
+	 * @return Same or changed field value, in com.rest4j.json.* type hierarchy. Null if you want the field removed.
+	 */
 	Object marshal(Object json, Object parentJavaObject, ObjectApiType parentType, Field field, FieldFilterChain next);
+
+	/**
+	 * Changes JSON before unmarshalling.
+	 *
+	 * @param json The field value, in com.rest4j.json.* type hierarchy. Nulls are encoded as JSONObject.Null.
+	 * @param parentJavaObject The corresponding destination Java object.
+	 * @param parentType The object type as described in the API XML.
+	 * @param field The field being filtered as described in the API XML.
+	 * @param next Next filter in the chain. Never null. If you don't want the filter to affect the value,
+	 * return next.unmarshal(...).
+	 * @return Same or changed field value, in com.rest4j.json.* type hierarchy. Null if you want the field removed.
+	 */
 	Object unmarshal(Object json, Object parentJavaObject, ObjectApiType parentType, Field field, FieldFilterChain next);
 }

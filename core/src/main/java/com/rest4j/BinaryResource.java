@@ -26,6 +26,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
+ * A {@link Resource} that represents a binary entity. Can have a custom Etag and Content-Type.
+ *
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class BinaryResource extends ResourceBase {
@@ -40,6 +42,9 @@ public class BinaryResource extends ResourceBase {
 		this.is = is;
 	}
 
+	/**
+	 * Create an entity containing the given binary data with Content-Type: application/octet-stream.
+	 */
 	public BinaryResource(byte[] content) {
 		super("application/octet-stream");
 		this.is = new ByteArrayInputStream(content);

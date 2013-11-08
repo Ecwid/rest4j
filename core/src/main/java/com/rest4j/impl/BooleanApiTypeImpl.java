@@ -46,9 +46,9 @@ class BooleanApiTypeImpl extends SimpleApiTypeImpl implements BooleanApiType {
 	}
 
 	@Override
-	public Object cast(Object value, Type javaClass) {
+	public Object cast(Object value, Type javaType) {
 		if (value == null) {
-			if (javaClass == boolean.class) throw new NullPointerException();
+			if (javaType == boolean.class) throw new NullPointerException();
 			return null;
 		}
 		return value;
