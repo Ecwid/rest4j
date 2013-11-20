@@ -42,6 +42,9 @@ documentation and client libraries, as well as for query dispatching.
 	<xsd:element name="li" type="complex"/>
 	<xsd:element name="dd" type="complex"/>
 	<xsd:element name="dt" type="complex"/>
+	<xsd:element name="pre" type="complex"/>
+	<xsd:element name="img" type="complex"/>
+	<xsd:element name="script" type="complex"/>
 
 	<xsd:complexType name="complex" mixed="true">
 		<xsd:sequence>
