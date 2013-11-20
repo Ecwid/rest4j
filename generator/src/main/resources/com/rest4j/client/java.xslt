@@ -477,7 +477,7 @@ public class Client {
      * <xsl:value-of select="rest4j:description(description)"/>
 		<xsl:choose>
 			<xsl:when test="@client-param-object" xml:space="preserve">
-     * @param <xsl:value-of select="@client-param-object"/> The request parameters object.</xsl:when>
+     * @param params The request parameters object.</xsl:when>
 			<xsl:otherwise>
 				<xsl:for-each select="$params" xml:space="preserve">
      * @param <xsl:value-of select="*:name"/> <xsl:value-of select="*:doc"/></xsl:for-each>
@@ -572,10 +572,10 @@ public class Client {
 		<xsl:value-of select="$https-url and ($endpoint/@httpsonly='true' or $endpoint/parameters/parameter[@httpsonly='true'])"/>
 	</xsl:function>
 
-	<xsl:template match="json[@collection='singleton']" mode="body-as-json">body.asJson().toString()</xsl:template>
-
 	<xsl:template match="text()" mode="route"><xsl:copy-of select="."/></xsl:template>
 	<xsl:template match="param" mode="route">[<xsl:value-of select="."/>]</xsl:template>
+
+	<xsl:template match="json[@collection='singleton']" mode="body-as-json">body.asJson().toString()</xsl:template>
 
 	<xsl:template match="json[@collection='array']" mode="body-as-json">JsonUtil.asJsonArray(body, new JsonElementFactory&lt;<xsl:value-of select="@type"/>&gt;() {
                public Object json(<xsl:value-of select="@type"/> element) { return element == null ? JSONObject.NULL : element.asJson(); }

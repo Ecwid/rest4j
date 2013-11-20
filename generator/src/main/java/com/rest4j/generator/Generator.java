@@ -191,7 +191,7 @@ public class Generator implements URIResolver {
 							// plain-text output
 							FileOutputStream fos = new FileOutputStream(file);
 							try {
-								IOUtils.write(child.getTextContent(), fos);
+								IOUtils.write(child.getTextContent(), fos, "UTF-8");
 							} finally {
 								IOUtils.closeQuietly(fos);
 							}

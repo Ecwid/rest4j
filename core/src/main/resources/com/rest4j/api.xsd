@@ -166,7 +166,38 @@ The method should return a value corresponding to the `response/json/@type` of t
 Method name defaults to a lower-case HTTP method name, e.g. 'get', 'post' etc.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
-			<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo"/>
+			<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo">
+				<xsd:annotation><xsd:documentation>
+This element can contain arbitrary XML, which is useful for added customized metadata to an API element. To add your 
+custom data, you should first define the custom XML tags in an additional .xsd file:
+{{{
+&lt;?xml version="1.0" encoding="UTF-8"?>
+&lt;xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			targetNamespace="http://petapi.com/extra" xmlns="http://petapi.com/extra"
+			elementFormDefault="qualified" attributeFormDefault="unqualified">
+	&lt;!-- Some additional info about a model field -->
+	&lt;xsd:element name="field-data" type="xsd:string"/>
+&lt;/xsd:schema>
+}}}
+
+Place this file somewhere in your classpath and set the the *extSchema* property of the APIFactoryBean to the classpath
+of this file. Then, generate Java classes from this xsd using the JAXB tool. The output will include a class named
+!ObjectFactory. Pass the full !ObjectFactory class name to the APIFactoryBean through the *extObjectFactory* property.
+
+Then proceed using custom tags to your API XML:
+{{{
+&lt;api xmlns="http://rest4j.com/api-description" xmlns:pets="http://petapi.com/extra" xmlns:html="http://www.w3.org/1999/xhtml">
+  &lt;model name="Pet">
+    &lt;fields>
+      &lt;simple name=...>
+        &lt;extra>&lt;pets:field-data>Some Data&lt;/pets:field-data>&lt;/extra>
+      &lt;/simple>
+      . . .
+}}}
+
+See [DocumentationGeneration#Adding_Custom_Information_to_XML] for examples of using extra tags.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 		<xsd:attribute name="http" type="HttpMethod" use="required">
 			<xsd:annotation><xsd:documentation>
@@ -215,7 +246,11 @@ types and arrays containing primitive types, while `&lt;complex>` elements repre
 that reference other JSON objects and arrays of objects.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
-			<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo"/>
+			<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo">
+				<xsd:annotation><xsd:documentation>
+See [#extra_tag(1) description of extra field] in the `endpoint` tag.
+				</xsd:documentation></xsd:annotation>
+		 	</xsd:element>
 		</xsd:sequence>
 		<xsd:attribute name="name" type="identifier" use="required">
 			<xsd:annotation><xsd:documentation>
@@ -361,7 +396,12 @@ have a getter.
 		<xsd:complexContent>
 			<xsd:extension base="Field">
 				<xsd:sequence>
-					<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo"/>
+					<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo">
+						<xsd:annotation><xsd:documentation>
+See [#extra_tag(1) description of extra field] in the `endpoint` tag. The field extra data is available to field filters
+through the com.rest4j.type.Field.getExtra() method.
+						</xsd:documentation></xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 				<xsd:attribute name="type" type="xsd:string" use="required">
 					<xsd:annotation><xsd:documentation>
@@ -381,7 +421,12 @@ Name of a model. Must reference `/api/model/@name`.
 Possible string values. Only valid for type="string". This can be mapped to Java enums.
 						</xsd:documentation></xsd:annotation>
 					</xsd:element>
-					<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo"/>
+					<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo">
+						<xsd:annotation><xsd:documentation>
+See [#extra_tag(1) description of extra field] in the `endpoint` tag. The field extra data is available to field filters
+through the com.rest4j.type.Field.getExtra() method.
+						</xsd:documentation></xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 				<xsd:attribute name="type" type="FieldType" use="optional" default="string">
 					<xsd:annotation><xsd:documentation>
@@ -449,7 +494,11 @@ service method argument	can have enum type, in which case the enum should contai
 values listed in the nested `&lt;value>` tags.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
-			<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo"/>
+			<xsd:element name="extra" minOccurs="0" maxOccurs="1" type="ExtraInfo">
+				<xsd:annotation><xsd:documentation>
+See [#extra_tag(1) description of extra field] in the `endpoint` tag.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 		<xsd:attribute name="name" type="xsd:string" use="required">
 			<xsd:annotation><xsd:documentation>
