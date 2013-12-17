@@ -20,7 +20,6 @@ package com.rest4j.generator;
 import com.rest4j.ApiFactory;
 import com.rest4j.Preprocessor;
 import com.rest4j.impl.Util;
-import com.sun.org.apache.xml.internal.resolver.helpers.FileURL;
 import net.sf.saxon.Configuration;
 import net.sf.saxon.s9api.*;
 import org.apache.commons.io.IOUtils;
@@ -456,7 +455,7 @@ public class Generator implements URIResolver {
 			return url.toString();
 		} catch (MalformedURLException mue) {
 			try {
-				URL fileURL = FileURL.makeURL(uri);
+				URL fileURL = new File(uri).toURI().toURL();
 				return fileURL.toString();
 			} catch (MalformedURLException mue2) {
 				// bail
