@@ -58,6 +58,10 @@ public class APIImpl implements API {
 	}
 
 	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories, FieldFilter[] fieldFilters) throws ConfigurationException {
+		this(root, pathPrefix, serviceProvider, factories, fieldFilters, null); 
+	}
+	
+	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories, FieldFilter[] fieldFilters, PermissionChecker permissionChecker) throws ConfigurationException {
 		this.pathPrefix = pathPrefix;
 		this.root = root;
 		if (root.getParams() == null) this.params = new APIParams();
@@ -87,7 +91,7 @@ public class APIImpl implements API {
 		for (Object child: root.getEndpointAndModel()) {
 			if (child instanceof Endpoint) {
 				Endpoint endpoint = (Endpoint)child;
-				endpoints.add(new EndpointMapping(endpoint, serviceProvider));
+				endpoints.add(new EndpointMapping(endpoint, serviceProvider, permissionChecker));
 			}
 		}
 	}
@@ -214,6 +218,7 @@ public class APIImpl implements API {
 	}
 
 	class EndpointMapping {
+		private final PermissionChecker permissionChecker;
 		Endpoint endpoint;
 		StringWithParamsMatcher pathMatcher;
 		String httpMethod;
@@ -223,7 +228,8 @@ public class APIImpl implements API {
 		public boolean httpsonly;
 		private boolean patch;
 
-		EndpointMapping(Endpoint ep, ServiceProvider serviceProvider) throws ConfigurationException {
+		EndpointMapping(Endpoint ep, ServiceProvider serviceProvider, PermissionChecker permissionChecker) throws ConfigurationException {
+			this.permissionChecker = permissionChecker;
 			endpoint = ep;
 			pathMatcher = new StringWithParamsMatcher(ep.getRoute());
 			httpMethod = ep.getHttp().name();
@@ -504,6 +510,9 @@ public class APIImpl implements API {
 				Object[] argValues = new Object[args.length];
 				for (int i=0; i<args.length; i++) {
 					argValues[i] = args[i].get(request, getResult, params);
+				}
+				if (permissionChecker != null) { 
+					permissionChecker.check(this.endpoint, request);
 				}
 				result = method.invoke(service, argValues);
 				return result;

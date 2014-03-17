@@ -69,6 +69,7 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 
 	API api;
 	private ApplicationContext context;
+	private PermissionChecker permissionChecker;
 
 	/**
 	 * Gets classpath to API XML description.
@@ -177,6 +178,7 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 			for (FieldFilter ff: getFieldFilters()) {
 				fac.addFieldFilter(ff);
 			}
+			fac.setPermissionChecker(permissionChecker);
 			api = fac.createAPI();
 		}
 		return api;
@@ -265,5 +267,9 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 	 */
 	public void setExtObjectFactory(String extObjectFactory) {
 		this.extObjectFactory = extObjectFactory;
+	}
+	
+	public void setPermissionChecker(PermissionChecker permissionChecker) {
+		this.permissionChecker = permissionChecker;
 	}
 }

@@ -55,6 +55,7 @@ public class ApiFactory {
 	List<Preprocessor> preprocessors = new ArrayList<Preprocessor>();
 	String extSchema;
 	Class extObjectFactory;
+	private PermissionChecker permissionChecker;
 
 	/**
 	 * Create a factory that can be used to create API objects. This constructor does not accept ObjectFactories.
@@ -186,7 +187,8 @@ public class ApiFactory {
 			APIImpl api;
 			api = new APIImpl(root, pathPrefix, serviceProvider,
 					factories.toArray(new ObjectFactory[factories.size()]),
-					fieldFilters.toArray(new FieldFilter[fieldFilters.size()])
+					fieldFilters.toArray(new FieldFilter[fieldFilters.size()]),
+					permissionChecker
 					);
 			return api;
 		} catch (javax.xml.bind.UnmarshalException e) {
@@ -226,4 +228,11 @@ public class ApiFactory {
 		return xml;
 	}
 
+	/**
+	 * Check permission before call api method
+	 * @param permissionChecker
+	 */
+	public void setPermissionChecker(PermissionChecker permissionChecker) {
+		this.permissionChecker = permissionChecker;
+	}
 }
