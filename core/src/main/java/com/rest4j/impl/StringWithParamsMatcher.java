@@ -20,6 +20,8 @@ package com.rest4j.impl;
 import com.rest4j.impl.model.StringWithParams;
 
 import javax.xml.bind.JAXBElement;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +55,14 @@ public class StringWithParamsMatcher {
 		if (!matcher.matches()) return null;
 		Map<String, String> map = new HashMap<String, String>();
 		for (int i=0; i<matcher.groupCount(); i++) {
-			map.put(names.get(i), matcher.group(i + 1));
+			String value;
+			try {
+				value = URLDecoder.decode(matcher.group(i + 1), "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				//сюда попасть вообще не должны, но на всякий случай перестрахуемся
+				value = matcher.group(i + 1);
+			}
+			map.put(names.get(i), value);
 		}
 		return map;
 	}
