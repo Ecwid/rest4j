@@ -19,11 +19,11 @@ package com.rest4j.impl;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.rest4j.ApiException;
-import com.sun.org.apache.bcel.internal.classfile.ClassParser;
-import com.sun.org.apache.bcel.internal.classfile.JavaClass;
-import com.sun.org.apache.bcel.internal.classfile.LocalVariable;
-import com.sun.org.apache.bcel.internal.classfile.Method;
 import com.esotericsoftware.shaded.org.objenesis.instantiator.ObjectInstantiator;
+import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.LocalVariable;
+import org.apache.bcel.classfile.Method;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
