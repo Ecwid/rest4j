@@ -106,26 +106,24 @@ public class ApiResponseImpl implements ApiResponse {
 		}
 
 		OutputStream outputStream;
-		ByteArrayOutputStream outputByteStream = new ByteArrayOutputStream();
-		GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputByteStream);
 		byte[] resourceBytes = ((JSONResource) this.response).getJSONObject().toString().getBytes();
+		int contentLength = resourceBytes.length;
 		if (compress) {
 			response.addHeader("Content-encoding", "gzip");
 
+			ByteArrayOutputStream outputByteStream = new ByteArrayOutputStream();
+			GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputByteStream);
 			gzipOutputStream.write(resourceBytes);
-			gzipOutputStream.flush();
-			gzipOutputStream.finish();
+			gzipOutputStream.finish(); // финиш нужен чтобы результат закрепился!
+			contentLength = outputByteStream.toByteArray().length;
+			gzipOutputStream.close();
+			outputByteStream.close();
 			
 			outputStream = new GZIPOutputStream(response.getOutputStream());
 		} else {
-			outputByteStream.write(resourceBytes);
-			outputByteStream.flush();
-			
 			outputStream = response.getOutputStream();
 		}
-		gzipOutputStream.close();
-		outputByteStream.close();
-		response.addHeader("Content-Length", String.valueOf(outputByteStream.toByteArray().length));
+		response.addHeader("Content-Length", String.valueOf(contentLength));
 		
 
 		if (this.response instanceof JSONResource) {
