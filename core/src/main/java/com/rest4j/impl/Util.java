@@ -103,6 +103,10 @@ public class Util {
 
 	public static Cloner cloner = new Cloner();
 
+	public static void dontClone(final Class<?>... c) {
+		cloner.dontClone(c);
+	}
+
 	static <T> T deepClone(T object) {
 		try {
 			return cloner.deepClone(object);
