@@ -17,7 +17,7 @@
 
     <groupId>com.rest4j</groupId>
     <artifactId>rest4j-core</artifactId>
-	<version>1.2-ecwid-3</version>
+	<version>1.2-ecwid.8</version>
 	<url>https://code.google.com/p/rest4j/</url>
 	<scm>
 		<connection>
@@ -162,9 +162,9 @@
 			<version>2.2</version>
 		</dependency>
 		<dependency>
-			<groupId>com.esotericsoftware.kryo</groupId>
-			<artifactId>kryo</artifactId>
-			<version>2.22</version>
+			<groupId>uk.com.robust-it</groupId>
+			<artifactId>cloning</artifactId>
+			<version>1.9.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>

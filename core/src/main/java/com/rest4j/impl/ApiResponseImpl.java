@@ -21,6 +21,7 @@ import com.rest4j.*;
 import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
@@ -105,12 +106,23 @@ public class ApiResponseImpl implements ApiResponse {
 		}
 
 		OutputStream outputStream;
+		byte[] resourceBytes = ((JSONResource) this.response).getJSONObject().toString().getBytes();
+		int contentLength = resourceBytes.length;
 		if (compress) {
 			response.addHeader("Content-encoding", "gzip");
+			ByteArrayOutputStream outputByteStream = new ByteArrayOutputStream();
+			GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputByteStream);
+			gzipOutputStream.write(resourceBytes);
+			gzipOutputStream.finish(); // финиш нужен чтобы результат закрепился!
+			contentLength = outputByteStream.toByteArray().length;
+			gzipOutputStream.close();
+			outputByteStream.close();
+
 			outputStream = new GZIPOutputStream(response.getOutputStream());
 		} else {
 			outputStream = response.getOutputStream();
 		}
+		response.addHeader("Content-Length", String.valueOf(contentLength));
 
 		if (this.response instanceof JSONResource) {
 			((JSONResource)this.response).setPrettify(prettify);

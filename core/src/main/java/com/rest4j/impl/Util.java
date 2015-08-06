@@ -17,8 +17,8 @@
 
 package com.rest4j.impl;
 
-import com.esotericsoftware.kryo.Kryo;
 import com.rest4j.ApiException;
+import com.rits.cloning.Cloner;
 import com.esotericsoftware.shaded.org.objenesis.instantiator.ObjectInstantiator;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
@@ -102,72 +102,15 @@ public class Util {
 		return owner;
 	}
 
-	public static Kryo kryo = new Kryo();
+	public static Cloner cloner = new Cloner();
 
-	static {
-		ObjectInstantiator listInstantiator = new ObjectInstantiator() {
-			@Override
-			public Object newInstance() {
-				return new ArrayList();
-			}
-		};
-
-		// replace hibernate persistent collections with plain collections
-		try {
-			Class clz = Class.forName("org.hibernate.collection.PersistentBag");
-			kryo.register(clz).setInstantiator(listInstantiator);
-		} catch (ClassNotFoundException e) {
-		}
-		try {
-			Class clz = Class.forName("org.hibernate.collection.PersistentList");
-			kryo.register(clz).setInstantiator(listInstantiator);
-		} catch (ClassNotFoundException e) {
-		}
-		try {
-			Class clz = Class.forName("org.hibernate.collection.PersistentMap");
-			kryo.register(clz).setInstantiator(new ObjectInstantiator() {
-				@Override
-				public Object newInstance() {
-					return new HashMap();
-				}
-			});
-		} catch (ClassNotFoundException e) {
-		}
-		try {
-			Class clz = Class.forName("org.hibernate.collection.PersistentSortedMap");
-			kryo.register(clz).setInstantiator(new ObjectInstantiator() {
-				@Override
-				public Object newInstance() {
-					return new TreeMap();
-				}
-			});
-		} catch (ClassNotFoundException e) {
-		}
-		try {
-			Class clz = Class.forName("org.hibernate.collection.PersistentSet");
-			kryo.register(clz).setInstantiator(new ObjectInstantiator() {
-				@Override
-				public Object newInstance() {
-					return new HashSet();
-				}
-			});
-		} catch (ClassNotFoundException e) {
-		}
-		try {
-			Class clz = Class.forName("org.hibernate.collection.PersistentSortedSet");
-			kryo.register(clz).setInstantiator(new ObjectInstantiator() {
-				@Override
-				public Object newInstance() {
-					return new TreeSet();
-				}
-			});
-		} catch (ClassNotFoundException e) {
-		}
+	public static void dontClone(final Class<?>... c) {
+		cloner.dontClone(c);
 	}
 
 	static <T> T deepClone(T object) {
 		try {
-			return kryo.copy(object);
+			return cloner.deepClone(object);
 		} catch (java.lang.IncompatibleClassChangeError e) {
 			System.out.println(object.getClass());
 			throw e;
