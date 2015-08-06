@@ -110,7 +110,6 @@ public class ApiResponseImpl implements ApiResponse {
 		int contentLength = resourceBytes.length;
 		if (compress) {
 			response.addHeader("Content-encoding", "gzip");
-
 			ByteArrayOutputStream outputByteStream = new ByteArrayOutputStream();
 			GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputByteStream);
 			gzipOutputStream.write(resourceBytes);
@@ -118,13 +117,12 @@ public class ApiResponseImpl implements ApiResponse {
 			contentLength = outputByteStream.toByteArray().length;
 			gzipOutputStream.close();
 			outputByteStream.close();
-			
+
 			outputStream = new GZIPOutputStream(response.getOutputStream());
 		} else {
 			outputStream = response.getOutputStream();
 		}
 		response.addHeader("Content-Length", String.valueOf(contentLength));
-		
 
 		if (this.response instanceof JSONResource) {
 			((JSONResource)this.response).setPrettify(prettify);
