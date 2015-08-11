@@ -22,6 +22,7 @@ import com.rest4j.*;
 import com.rest4j.ObjectFactory;
 import com.rest4j.impl.model.*;
 import com.rest4j.impl.model.Error;
+import com.rest4j.impl.model.Parameter;
 import com.rest4j.json.JSONObject;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.ArrayApiType;

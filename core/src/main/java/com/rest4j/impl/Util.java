@@ -19,7 +19,6 @@ package com.rest4j.impl;
 
 import com.rest4j.ApiException;
 import com.rits.cloning.Cloner;
-import com.esotericsoftware.shaded.org.objenesis.instantiator.ObjectInstantiator;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LocalVariable;
