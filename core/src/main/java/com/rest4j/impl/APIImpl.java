@@ -509,11 +509,11 @@ public class APIImpl implements API {
 			Object result;
 			try {
 				Object[] argValues = new Object[args.length];
-				for (int i=0; i<args.length; i++) {
-					argValues[i] = args[i].get(request, getResult, params);
-				}
 				if (permissionChecker != null) { 
 					permissionChecker.check(this.endpoint, request);
+				}
+				for (int i=0; i<args.length; i++) {
+					argValues[i] = args[i].get(request, getResult, params);
 				}
 				result = method.invoke(service, argValues);
 				return result;
