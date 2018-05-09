@@ -17,8 +17,12 @@
 
 package com.rest4j.impl.petapi;
 
+import com.rest4j.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -60,6 +64,25 @@ public class PetMapping {
 					pet.getAte().add(rel.getPetId());
 					break;
 			}
+		}
+	}
+
+	public JSONObject extraData(Pet pet) {
+		if (pet.extraData != null) {
+			return new JSONObject(pet.extraData);
+		} else {
+			return null;
+		}
+	}
+
+	public void extraData(Pet pet, final JSONObject extraData) {
+		if (extraData != null) {
+			pet.extraData = new HashMap<String, String>();
+			for (String key: (Set<String>) extraData.keySet()) {
+				pet.extraData.put(key, (String) extraData.get(key));
+			}
+		} else {
+			pet.extraData = null;
 		}
 	}
 }

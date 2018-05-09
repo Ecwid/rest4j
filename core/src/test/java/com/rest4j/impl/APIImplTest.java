@@ -279,6 +279,9 @@ public class APIImplTest {
 	}
 
 	@Test public void testServe_get_json_object() throws IOException, ApiException, JSONException {
+		pet.setExtraData(new HashMap<String, String>());
+		pet.getExtraData().put("Color", "Red");
+		pet.getExtraData().put("Size", "Big");
 		ApiRequest request = mockRequest("GET", "/api/v2/pets/555");
 		ApiResponse response = api.serve(request);
 		assertEquals(0, deleted);
@@ -294,6 +297,7 @@ public class APIImplTest {
 		assertEquals(1, relations.length());
 		assertEquals("ate", relations.getJSONObject(0).getString("type"));
 		assertEquals(666, relations.getJSONObject(0).getInt("petId"));
+		assertEquals(new JSONObject("{\"Color\":\"Red\",\"Size\":\"Big\"}"), json.getJSONObject("extraData"));
 	}
 
 	@Test public void testServe_etag() throws IOException, ApiException, JSONException {
@@ -329,6 +333,9 @@ public class APIImplTest {
 		ApiRequest request = mockRequest("POST", "/api/v2/pets");
 		when(request.param("access_token")).thenReturn("xxx");
 		JSONObject json = MarshallerImplTest.createMaxJson();
+		Map<String, String> extraData = new HashMap<String, String>();
+		extraData.put("Color", "Blue");
+		json.put("extraData", extraData);
 		when(request.objectInput()).thenReturn(json);
 		ApiResponseImpl response = (ApiResponseImpl) api.serve(request);
 
@@ -337,12 +344,13 @@ public class APIImplTest {
 		assertEquals(0, created.getId());
 		assertEquals(Collections.singletonList(234), created.getFriends());
 		assertEquals(4.3, created.getPetWeight(), 1e-5);
+		assertEquals(Collections.singletonMap("Color", "Blue"), created.getExtraData());
 	}
 
 	@Test public void testServe_put_as_patch() throws Exception {
 		ApiRequest request = mockRequest("PUT", "/api/v2/pets/555");
 		when(request.param("access_token")).thenReturn("xxx");
-		JSONObject json = new JSONObject("{id:5,weight:5.67}");
+		JSONObject json = new JSONObject("{id:5,weight:5.67,'extraData':{'Color':'Yellow'}}");
 		when(request.objectInput()).thenReturn(json);
 		api.serve(request);
 
@@ -350,6 +358,7 @@ public class APIImplTest {
 		assertEquals(555, patch.getPatched().getId()); // shouldn't change
 		assertEquals(Collections.singletonList(666), patch.getPatched().getAte());
 		assertEquals(5.67, patch.getPatched().getPetWeight(), 1e-5);
+		assertEquals(Collections.singletonMap("Color", "Yellow"), patch.getPatched().getExtraData());
 		assertFalse(patchCalled);
 	}
 
