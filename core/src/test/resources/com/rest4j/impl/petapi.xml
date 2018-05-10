@@ -37,6 +37,7 @@
 				</values>
 			</simple>
 			<simple name="writeonly" type="boolean" access="writeonly" nullable="true"/>
+			<simple name="extraData" type="jsonObject" mapping-method="extraData" nullable="true"/>
 			<complex name="relations" collection="array" type="PetRelation" mapping-method="petRelations" nullable="false" default="empty"/>
 		</fields>
 	</model>

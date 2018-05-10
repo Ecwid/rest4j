@@ -19,6 +19,7 @@ package com.rest4j.impl.petapi;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -34,6 +35,7 @@ public class Pet {
 	List<Integer> ate = new ArrayList<Integer>();
 	boolean writeonly;
 	char middlename = 1;
+	Map<String, String> extraData;
 
 	public boolean isWriteonly() {
 		return writeonly;
@@ -113,5 +115,13 @@ public class Pet {
 
 	public void setMiddlename(char middlename) {
 		this.middlename = middlename;
+	}
+
+	public Map<String, String> getExtraData() {
+		return extraData;
+	}
+
+	public void setExtraData(Map<String, String> extraData) {
+		this.extraData = extraData;
 	}
 }

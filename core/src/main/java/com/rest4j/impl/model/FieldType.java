@@ -41,7 +41,9 @@ public enum FieldType {
     @XmlEnumValue("boolean")
     BOOLEAN("boolean"),
     @XmlEnumValue("date")
-    DATE("date");
+    DATE("date"),
+    @XmlEnumValue("jsonObject")
+    JSON_OBJECT("jsonObject");
     private final String value;
 
     FieldType(String v) {
