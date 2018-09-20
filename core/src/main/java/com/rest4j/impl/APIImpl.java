@@ -33,6 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -583,6 +584,11 @@ public class APIImpl implements API {
 				return newMethod;
 			}
 		};
+	}
+
+	public <T extends Annotation> T getMethodAnnotation(ApiRequest request, Class<T> annotationClass) throws IOException, ApiException {
+		EndpointMapping endpoint = findEndpoint(request);
+		return endpoint.method.getAnnotation(annotationClass);
 	}
 
 	EndpointMapping findEndpoint(ApiRequest request) throws IOException, ApiException {
