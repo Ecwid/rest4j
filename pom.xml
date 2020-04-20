@@ -74,7 +74,7 @@
 		<repository>
 			<id>ecwid-nexus</id>
 			<name>Ecwid Nexus</name>
-			<url>http://nexus.ecwid.com/content/groups/public</url>
+			<url>https://public-nexus.ecwid.com/content/groups/public</url>
 		</repository>
 	</repositories>
 
