@@ -430,7 +430,7 @@ through the com.rest4j.type.Field.getExtra() method.
 				</xsd:sequence>
 				<xsd:attribute name="type" type="FieldType" use="optional" default="string">
 					<xsd:annotation><xsd:documentation>
-A type of the field, one of 'number', 'string', 'boolean', 'date', 'jsonObject'.
+A type of the field, one of 'number', 'string', 'boolean', 'date', 'jsonObject', 'jsonArray'.
 These types are mapped to java types in the following way:
 
 || *API type*|| *Property type*||
@@ -439,6 +439,7 @@ These types are mapped to java types in the following way:
 || boolean   || boolean or java.lang.Boolean||
 || date      || java.util.Date or java.sql.Date||
 || jsonObject|| com.rest4j.json.JSONObject
+|| jsonArray || com.rest4j.json.JSONArray
 					</xsd:documentation></xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="value" type="xsd:string">
@@ -607,6 +608,7 @@ set to the exception class name.
 			<xsd:enumeration value="boolean" />
 			<xsd:enumeration value="date" />
 			<xsd:enumeration value="jsonObject" />
+			<xsd:enumeration value="jsonArray" />
 		</xsd:restriction>
 	</xsd:simpleType>
 

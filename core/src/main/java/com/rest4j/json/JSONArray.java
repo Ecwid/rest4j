@@ -80,9 +80,56 @@ import java.util.Map;
 public class JSONArray {
 
     /**
+     * JSONArray.NULL is equivalent to the value that JavaScript calls null,
+     * whilst Java's null is equivalent to the value that JavaScript calls
+     * undefined.
+     */
+    private static final class Null {
+
+        /**
+         * There is only intended to be a single instance of the NULL object,
+         * so the clone method returns itself.
+         *
+         * @return NULL.
+         */
+        protected final Object clone() {
+            return this;
+        }
+
+        /**
+         * A Null object is equal to the null value and to itself.
+         *
+         * @param object
+         *            An object to test for nullness.
+         * @return true if the object parameter is the JSONArray.NULL object or
+         *         null.
+         */
+        public boolean equals(Object object) {
+            return object == null || object == this;
+        }
+
+        /**
+         * Get the "null" string value.
+         *
+         * @return The string "null".
+         */
+        public String toString() {
+            return "null";
+        }
+    }
+
+    /**
      * The arrayList where the JSONArray's properties are kept.
      */
     private final ArrayList myArrayList;
+
+    /**
+     * It is sometimes more convenient and less ambiguous to have a
+     * <code>NULL</code> object than to use Java's <code>null</code> value.
+     * <code>JSONArray.NULL.equals(null)</code> returns <code>true</code>.
+     * <code>JSONArray.NULL.toString()</code> returns <code>"null"</code>.
+     */
+    public static final Object NULL = new Null();
 
     /**
      * Construct an empty JSONArray.

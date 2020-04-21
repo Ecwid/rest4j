@@ -17,7 +17,7 @@
 
     <groupId>com.rest4j</groupId>
     <artifactId>rest4j-core</artifactId>
-	<version>1.2-ecwid-14</version>
+	<version>1.2-ecwid-15</version>
 	<url>https://code.google.com/p/rest4j/</url>
 	<scm>
 		<connection>
@@ -132,6 +132,11 @@
 	</build>
 
 	<dependencies>
+		<dependency>
+			<groupId>javax.annotation</groupId>
+			<artifactId>javax.annotation-api</artifactId>
+			<version>1.3.2</version>
+		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty.orbit</groupId>
 			<artifactId>javax.servlet</artifactId>

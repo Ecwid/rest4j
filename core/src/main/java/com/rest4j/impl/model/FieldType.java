@@ -36,14 +36,22 @@ public enum FieldType {
 
     @XmlEnumValue("number")
     NUMBER("number"),
+
     @XmlEnumValue("string")
     STRING("string"),
+
     @XmlEnumValue("boolean")
     BOOLEAN("boolean"),
+
     @XmlEnumValue("date")
     DATE("date"),
+
     @XmlEnumValue("jsonObject")
-    JSON_OBJECT("jsonObject");
+    JSON_OBJECT("jsonObject"),
+
+    @XmlEnumValue("jsonArray")
+    JSON_ARRAY("jsonArray");
+
     private final String value;
 
     FieldType(String v) {

@@ -117,4 +117,10 @@ public interface Marshaller {
 	 * can be applied to JSON fields.
 	 */
 	JsonObjectApiType getJsonObjectType();
+
+	/**
+	 * Returns an API type representing numbers (type='jsonObject' in API XML). This type
+	 * can be applied to JSON fields.
+	 */
+	JsonArrayApiType getJsonArrayType();
 }
