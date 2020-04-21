@@ -188,6 +188,11 @@ public class MarshallerImpl implements Marshaller {
 	}
 
 	@Override
+	public JsonArrayApiType getJsonArrayType() {
+		return new JsonArrayApiTypeImpl(this);
+	}
+
+	@Override
 	public Object marshal(ApiType apiType, Object value) throws ApiException {
 		if (apiType instanceof ConcreteClassMapping) apiType = ((ConcreteClassMapping)apiType).objectApiType;
 		return ((ApiTypeImpl)apiType).marshal(value);
@@ -222,6 +227,9 @@ public class MarshallerImpl implements Marshaller {
 				break;
 			case JSON_OBJECT:
 				apiType = getJsonObjectType();
+				break;
+			case JSON_ARRAY:
+				apiType = getJsonArrayType();
 				break;
 			default:
 				throw new AssertionError();

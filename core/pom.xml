@@ -17,7 +17,7 @@
 
     <groupId>com.rest4j</groupId>
     <artifactId>rest4j-core</artifactId>
-	<version>1.2-ecwid-14</version>
+	<version>1.2-ecwid-15</version>
 	<url>https://code.google.com/p/rest4j/</url>
 	<scm>
 		<connection>
