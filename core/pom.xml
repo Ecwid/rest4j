@@ -54,7 +54,7 @@
 
 	<properties>
 		<spring.version>3.0.7.RELEASE</spring.version>
-		<jetty.version>7.6.10.v20130312</jetty.version>
+		<jetty.version>9.4.34.v20201102</jetty.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<parent>
