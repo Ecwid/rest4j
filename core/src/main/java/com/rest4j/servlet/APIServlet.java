@@ -55,7 +55,7 @@ public class APIServlet extends HttpServlet {
 			}
 			ServiceProvider serviceProvider = (ServiceProvider) serviceProviderClass.newInstance();
 
-			ApiFactory apiFactory = new ApiFactory(xmlResource, pathPrefix, serviceProvider);
+			ApiFactory apiFactory = new ApiFactory(xmlResource, pathPrefix, serviceProvider, null);
 			String facs = config.getInitParameter("objectFactories");
 			if (facs != null) {
 				for (String className: facs.split(",")) {

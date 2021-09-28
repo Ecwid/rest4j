@@ -71,6 +71,8 @@ public class MarshallerImpl implements Marshaller {
 		}
 	};
 
+	private final Cloner cloner;
+
 	public static class ModelConfig {
 		Model model;
 		Object customMapper;
@@ -81,24 +83,25 @@ public class MarshallerImpl implements Marshaller {
 		}
 	}
 
-	MarshallerImpl(List<ModelConfig> modelConfigs) throws ConfigurationException {
-		this(modelConfigs, new com.rest4j.ObjectFactory[0]);
+	MarshallerImpl(List<ModelConfig> modelConfigs, Cloner cloner) throws ConfigurationException {
+		this(modelConfigs, new com.rest4j.ObjectFactory[0], cloner);
 	}
 
-	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory factory) throws ConfigurationException {
-		this(modelConfigs, new com.rest4j.ObjectFactory[]{factory});
+	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory factory, Cloner cloner) throws ConfigurationException {
+		this(modelConfigs, new com.rest4j.ObjectFactory[]{factory}, cloner);
 	}
 
-	public MarshallerImpl(List<ModelConfig> modelConfig, ObjectFactory[] factories) throws ConfigurationException {
-		this(modelConfig, factories, null);
+	public MarshallerImpl(List<ModelConfig> modelConfig, ObjectFactory[] factories, Cloner cloner) throws ConfigurationException {
+		this(modelConfig, factories, null, cloner);
 	}
 
-	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories, ServiceProvider serviceProvider) throws ConfigurationException {
-		this(modelConfigs, factories, new FieldFilter[0], serviceProvider);
+	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories, ServiceProvider serviceProvider, Cloner cloner) throws ConfigurationException {
+		this(modelConfigs, factories, new FieldFilter[0], serviceProvider, cloner);
 	}
 
-	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories, FieldFilter[] fieldFilters, ServiceProvider serviceProvider) throws ConfigurationException {
+	MarshallerImpl(List<ModelConfig> modelConfigs, com.rest4j.ObjectFactory[] factories, FieldFilter[] fieldFilters, ServiceProvider serviceProvider, Cloner cloner) throws ConfigurationException {
 		this.serviceProvider = serviceProvider;
+		this.cloner = cloner;
 		for (com.rest4j.ObjectFactory of: factories) {
 			addObjectFactory(of);
 		}
@@ -115,7 +118,7 @@ public class MarshallerImpl implements Marshaller {
 				throw new ConfigurationException("Cannot find class " + model.getClazz());
 			}
 
-			ObjectApiTypeImpl objectType = new ObjectApiTypeImpl(this, model.getName(), clz, model, customMapper, objectFactoryChain, fieldFilterChain, serviceProvider);
+			ObjectApiTypeImpl objectType = new ObjectApiTypeImpl(this, model.getName(), clz, model, customMapper, objectFactoryChain, fieldFilterChain, serviceProvider, cloner);
 			if (model.getInstantiate() != null) {
 				Class instantiate;
 				try {
@@ -159,7 +162,7 @@ public class MarshallerImpl implements Marshaller {
 
 	@Override
 	public MapApiTypeImpl getMapType(ApiType type) {
-		return new MapApiTypeImpl(this, type);
+		return new MapApiTypeImpl(this, type, cloner);
 	}
 
 	@Override

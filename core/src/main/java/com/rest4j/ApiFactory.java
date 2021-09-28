@@ -56,6 +56,7 @@ public class ApiFactory {
 	String extSchema;
 	Class extObjectFactory;
 	private PermissionChecker permissionChecker;
+	private final Cloner cloner;
 
 	/**
 	 * Create a factory that can be used to create API objects. This constructor does not accept ObjectFactories.
@@ -69,10 +70,11 @@ public class ApiFactory {
 	 * @param serviceProvider Used to lookup services and custom field mappers during initialization step.
 	 *                        Services are looked up once during the call to createAPI().
 	 */
-	public ApiFactory(URL apiDescriptionXml, String pathPrefix, ServiceProvider serviceProvider) {
+	public ApiFactory(URL apiDescriptionXml, String pathPrefix, ServiceProvider serviceProvider, Cloner cloner) {
 		this.apiDescriptionXml = apiDescriptionXml;
 		this.pathPrefix = pathPrefix;
 		this.serviceProvider = serviceProvider;
+		this.cloner = cloner;
 		preprocessors.add(new DefaultsPreprocessor());
 	}
 
@@ -188,7 +190,8 @@ public class ApiFactory {
 			api = new APIImpl(root, pathPrefix, serviceProvider,
 					factories.toArray(new ObjectFactory[factories.size()]),
 					fieldFilters.toArray(new FieldFilter[fieldFilters.size()]),
-					permissionChecker
+					permissionChecker,
+					cloner
 					);
 			return api;
 		} catch (javax.xml.bind.UnmarshalException e) {

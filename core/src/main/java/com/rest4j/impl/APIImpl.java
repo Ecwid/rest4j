@@ -51,19 +51,19 @@ public class APIImpl implements API {
 	final ResourceFactory resourceFactory;
 	final APIParams params;
 
-	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider) throws ConfigurationException {
-		this(root, pathPrefix, serviceProvider, new ObjectFactory[0]);
+	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, Cloner cloner) throws ConfigurationException {
+		this(root, pathPrefix, serviceProvider, new ObjectFactory[0], cloner);
 	}
 
-	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories) throws ConfigurationException {
-		this(root, pathPrefix, serviceProvider, factories, new FieldFilter[0]);
+	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories, Cloner cloner) throws ConfigurationException {
+		this(root, pathPrefix, serviceProvider, factories, new FieldFilter[0], cloner);
 	}
 
-	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories, FieldFilter[] fieldFilters) throws ConfigurationException {
-		this(root, pathPrefix, serviceProvider, factories, fieldFilters, null); 
+	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories, FieldFilter[] fieldFilters, Cloner cloner) throws ConfigurationException {
+		this(root, pathPrefix, serviceProvider, factories, fieldFilters, null, cloner);
 	}
 	
-	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories, FieldFilter[] fieldFilters, PermissionChecker permissionChecker) throws ConfigurationException {
+	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories, FieldFilter[] fieldFilters, PermissionChecker permissionChecker, Cloner cloner) throws ConfigurationException {
 		this.pathPrefix = pathPrefix;
 		this.root = root;
 		if (root.getParams() == null) this.params = new APIParams();
@@ -84,7 +84,7 @@ public class APIImpl implements API {
 				modelConfig.add(new MarshallerImpl.ModelConfig(model, customMapper));
 			}
 		}
-		marshaller = new MarshallerImpl(modelConfig, factories, fieldFilters, serviceProvider);
+		marshaller = new MarshallerImpl(modelConfig, factories, fieldFilters, serviceProvider, cloner);
 
 		// create resourceFactory
 		resourceFactory = new ResourceFactory(marshaller);
