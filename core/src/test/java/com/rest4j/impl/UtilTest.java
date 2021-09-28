@@ -85,20 +85,6 @@ public class UtilTest {
 		Tree left,right;
 	}
 
-	@Test public void testClone() {
-		Tree test = new Tree();
-		test.name = StringUtils.repeat("TEST", 10000);
-		test.left = new Tree();
-		test.right = test.left;
-
-		ThreadMXBean threadMx = ManagementFactory.getThreadMXBean();
-		long start = threadMx.getCurrentThreadCpuTime();
-		int N = 10000;
-		for (int i=0; i<N; i++) test = Util.deepClone(test);
-		System.out.println("cloned in "+(threadMx.getCurrentThreadCpuTime()-start)/N+"ns");
-		assertSame(test.left, test.right);
-	}
-
 	void noParamsMethod() {}
 	void methodWithParams(String param1, String param2) {}
 
