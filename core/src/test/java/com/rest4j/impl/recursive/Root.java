@@ -17,13 +17,18 @@
 
 package com.rest4j.impl.recursive;
 
+import com.rest4j.impl.petapi.Duplicable;
+
+import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class Root {
+public class Root implements Duplicable<Root> {
 	int number;
 	Map<String, Integer> map;
 	Map<String, Leaf> objectMap;
@@ -68,5 +73,19 @@ public class Root {
 
 	public void setObjectMap(Map<String, Leaf> objectMap) {
 		this.objectMap = objectMap;
+	}
+
+	@Nonnull
+	@Override
+	public Root duplicate() {
+		var copy = new Root();
+		copy.number = number;
+		copy.map = map == null ? null : new HashMap<>(map);
+		copy.objectMap = objectMap == null
+				? null
+				: objectMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().duplicate()));
+		copy.object = object == null ? null : object.duplicate();
+		copy.array = array == null ? null : array.stream().map(Leaf::duplicate).collect(Collectors.toList());
+		return copy;
 	}
 }
