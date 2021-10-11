@@ -18,7 +18,6 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
-import com.rits.cloning.Cloner;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.LocalVariable;
@@ -33,7 +32,6 @@ import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
-
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -100,37 +98,6 @@ public class Util {
 		}
 		return owner;
 	}
-
-	public static Cloner cloner = new Cloner();
-
-	public static void dontClone(final Class<?>... c) {
-		cloner.dontClone(c);
-	}
-
-	static <T> T deepClone(T object) {
-		try {
-			return cloner.deepClone(object);
-		} catch (java.lang.IncompatibleClassChangeError e) {
-			System.out.println(object.getClass());
-			throw e;
-		}
-	}
-
-//	static <T> T deepClone(T object) {
-//		ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
-//		try {
-//			ObjectOutputStream oos = new ObjectOutputStream(baos);
-//			oos.writeObject(object);
-//			oos.close();
-//			ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-//			ObjectInputStream ois = new ObjectInputStream(bais);
-//			return (T)ois.readObject();
-//		} catch (RuntimeException e) {
-//			throw e;
-//		} catch (Exception e) {
-//			throw new RuntimeException(e);
-//		}
-//	}
 
 	public static Node find(Node element, String name) {
 		for (Node child: it(element.getChildNodes())) {

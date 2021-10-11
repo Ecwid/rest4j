@@ -18,7 +18,6 @@
 package com.rest4j.impl;
 
 import com.rest4j.ConfigurationException;
-import com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -69,7 +68,7 @@ public class DefaultsPreprocessorTest implements NamespaceContext {
 		Document xml = parse("dynamic-enums.xml");
 		preprocessor.process(null, xml);
 
-		XPathFactory xPathfactory = new XPathFactoryImpl();
+		XPathFactory xPathfactory = XPathFactory.newInstance();
 		XPath xpath = xPathfactory.newXPath();
 		xpath.setNamespaceContext(this);
 		NodeList nodes = (NodeList) xpath.compile("//model[@name='Test1']/fields/simple/values/api:value/text()").evaluate(xml, XPathConstants.NODESET);
@@ -86,7 +85,7 @@ public class DefaultsPreprocessorTest implements NamespaceContext {
 		Document xml = parse("path-params-mandatory.xml");
 		preprocessor.process(null, xml);
 
-		XPathFactory xPathfactory = new XPathFactoryImpl();
+		XPathFactory xPathfactory = XPathFactory.newInstance();
 		XPath xpath = xPathfactory.newXPath();
 		xpath.setNamespaceContext(this);
 

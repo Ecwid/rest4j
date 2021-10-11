@@ -46,8 +46,9 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 	final ServiceProvider serviceProvider;
 	private Class instantiate;
 	final FieldFilterChain fieldFilter;
+	private final Cloner cloner;
 
-	ObjectApiTypeImpl(MarshallerImpl marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory, FieldFilterChain fieldFilter, ServiceProvider serviceProvider) throws ConfigurationException {
+	ObjectApiTypeImpl(MarshallerImpl marshaller, String name, Class clz, Model model, Object fieldMapper, ObjectFactoryChain factory, FieldFilterChain fieldFilter, ServiceProvider serviceProvider, Cloner cloner) throws ConfigurationException {
 		super(marshaller);
 		this.serviceProvider = serviceProvider;
 		this.marshaller = marshaller;
@@ -58,6 +59,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 		mappings.add(new ConcreteClassMapping(marshaller, clz, model, fieldMapper, serviceProvider, this));
 		this.factory = factory;
 		this.fieldFilter = fieldFilter;
+		this.cloner = cloner;
 	}
 
 	@Override
@@ -121,7 +123,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 	public Object unmarshalPatch(Object original, JSONObject object) throws ApiException {
 		if (original == null) return null;
 
-		Object patched = Util.deepClone(original);
+		Object patched = cloner.clone(original);
 
 		getMapping(original.getClass()).unmarshalPatch(object, patched);
 

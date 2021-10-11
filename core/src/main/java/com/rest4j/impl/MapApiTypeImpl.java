@@ -18,6 +18,7 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
+import com.rest4j.Cloner;
 import com.rest4j.Marshaller;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.MapApiType;
@@ -39,10 +40,12 @@ import java.util.Map;
 public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType, PatchableType {
 	ApiType elementType;
 	final StringApiType stringApiType;
+	private final Cloner cloner;
 
-	MapApiTypeImpl(Marshaller marshaller, ApiType elementType) {
+	MapApiTypeImpl(Marshaller marshaller, ApiType elementType, Cloner cloner) {
 		super(marshaller);
 		this.elementType = elementType;
+		this.cloner = cloner;
 		stringApiType = marshaller.getStringType(null);
 	}
 
@@ -136,7 +139,7 @@ public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType, Patchable
 	public Object unmarshalPatch(Object original, JSONObject object) throws ApiException {
 		if (original == null) return null;
 
-		Object patched = Util.deepClone(original);
+		Object patched = cloner.clone(original);
 
 		Map map = (Map)patched;
 

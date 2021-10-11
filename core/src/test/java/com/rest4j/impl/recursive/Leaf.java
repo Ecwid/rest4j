@@ -17,10 +17,14 @@
 
 package com.rest4j.impl.recursive;
 
+import com.rest4j.impl.petapi.Duplicable;
+
+import javax.annotation.Nonnull;
+
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class Leaf {
+public class Leaf implements Duplicable<Leaf> {
 	String string;
 	int number;
 
@@ -38,5 +42,14 @@ public class Leaf {
 
 	public void setNumber(int number) {
 		this.number = number;
+	}
+
+	@Nonnull
+	@Override
+	public Leaf duplicate() {
+		var copy = new Leaf();
+		copy.string = string;
+		copy.number = number;
+		return copy;
 	}
 }

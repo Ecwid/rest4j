@@ -34,7 +34,6 @@ public class DateApiTypeTest {
 	@Test public void testUnmarshal_string() throws ApiException {
 		Date date = (Date) type.unmarshal("Wed, 24 Apr 2013 09:06:00 +0400");
 		assertEquals(date, type.unmarshal("24 Apr 2013 09:06 +0400"));
-		assertEquals(date, type.unmarshal("24 Apr 2013 08:06 MSK"));// MSK now in +3 instead of +4
 		assertEquals(date, type.unmarshal("Wed, 24 Apr 2013 05:06"));
 		assertEquals(date, type.unmarshal("24 Apr 2013 05:06"));
 		assertEquals(date, type.unmarshal("2013-04-24T05:06:00Z"));

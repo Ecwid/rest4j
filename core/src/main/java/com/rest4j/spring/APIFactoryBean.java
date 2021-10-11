@@ -70,6 +70,7 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 	API api;
 	private ApplicationContext context;
 	private PermissionChecker permissionChecker;
+	private Cloner cloner;
 
 	/**
 	 * Gets classpath to API XML description.
@@ -164,7 +165,7 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 					throw new ConfigurationException("Cannot find "+apiDescriptionXml+" in the classpath");
 				}
 			}
-			ApiFactory fac = new ApiFactory(url, getPathPrefix(), getServiceProvider());
+			ApiFactory fac = new ApiFactory(url, getPathPrefix(), getServiceProvider(), cloner);
 			Class extObjectFactoryClass = null;
 			if (extObjectFactory != null) {
 				extObjectFactoryClass = classLoader.loadClass(extObjectFactory);
@@ -271,5 +272,13 @@ public class APIFactoryBean implements FactoryBean<API>, ApplicationContextAware
 	
 	public void setPermissionChecker(PermissionChecker permissionChecker) {
 		this.permissionChecker = permissionChecker;
+	}
+
+	public Cloner getCloner() {
+		return cloner;
+	}
+
+	public void setCloner(Cloner cloner) {
+		this.cloner = cloner;
 	}
 }

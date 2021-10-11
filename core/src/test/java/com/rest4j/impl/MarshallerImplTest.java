@@ -100,7 +100,7 @@ public class MarshallerImplTest {
 				modelConfig.add(new MarshallerImpl.ModelConfig(model, mapper));
 			}
 		}
-		marshaller = new MarshallerImpl(modelConfig, ofs, filter == null ? new FieldFilter[0] : new FieldFilter[]{filter}, serviceProvider);
+		marshaller = new MarshallerImpl(modelConfig, ofs, filter == null ? new FieldFilter[0] : new FieldFilter[]{filter}, serviceProvider, new TestCloner());
 	}
 
 	@Test public void testParse_number() throws Exception {

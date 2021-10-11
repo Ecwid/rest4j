@@ -17,7 +17,7 @@
 
     <groupId>com.rest4j</groupId>
     <artifactId>rest4j-core</artifactId>
-	<version>1.2-ecwid-15</version>
+	<version>1.2-ecwid-17</version>
 	<url>https://code.google.com/p/rest4j/</url>
 	<scm>
 		<connection>
@@ -88,7 +88,7 @@
 				</descriptorRefs>
 			</configuration>
 		</plugin>
-		<plugin>
+		<!--<plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-gpg-plugin</artifactId>
 			<version>1.4</version>
@@ -101,7 +101,7 @@
 					</goals>
 				</execution>
 			</executions>
-		</plugin>
+		</plugin>-->
 		<plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-source-plugin</artifactId>
@@ -115,7 +115,7 @@
 				</execution>
 			</executions>
 		</plugin>
-		<plugin>
+		<!--<plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-javadoc-plugin</artifactId>
 			<version>2.9.1</version>
@@ -127,7 +127,7 @@
 					</goals>
 				</execution>
 			</executions>
-		</plugin>
+		</plugin>-->
 		</plugins>
 	</build>
 
@@ -138,12 +138,6 @@
 			<version>1.3.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty.orbit</groupId>
-			<artifactId>javax.servlet</artifactId>
-			<version>2.5.0.v201103041518</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
 			<version>2.1</version>
@@ -151,7 +145,7 @@
 		<dependency>
 			<groupId>org.apache.bcel</groupId>
 			<artifactId>bcel</artifactId>
-			<version>6.0-SNAPSHOT</version>
+			<version>6.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
@@ -168,11 +162,6 @@
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.7</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.com.robust-it</groupId>
-			<artifactId>cloning</artifactId>
-			<version>1.9.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -263,6 +252,12 @@
 			<artifactId>httpclient</artifactId>
 			<version>4.3.6</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 

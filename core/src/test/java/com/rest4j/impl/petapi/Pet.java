@@ -17,14 +17,16 @@
 
 package com.rest4j.impl.petapi;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-public class Pet {
+public class Pet implements Duplicable<Pet> {
 	int id;
 	String type = "dog";
 	String name;
@@ -123,5 +125,23 @@ public class Pet {
 
 	public void setExtraData(Map<String, String> extraData) {
 		this.extraData = extraData;
+	}
+
+	@Nonnull
+	@Override
+	public Pet duplicate() {
+		var copy = new Pet();
+		copy.id = id;
+		copy.type = type;
+		copy.name = name;
+		copy.petWeight = petWeight;
+		copy.gender = gender;
+		copy.friends = friends == null ? null : new ArrayList<>(friends);
+		copy.mated = mated == null ? null : new ArrayList<>(mated);
+		copy.ate = ate == null ? null : new ArrayList<>(ate);
+		copy.writeonly = writeonly;
+		copy.middlename = middlename;
+		copy.extraData = extraData == null ? null : new HashMap<>(extraData);
+		return copy;
 	}
 }
