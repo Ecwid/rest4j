@@ -5,5 +5,5 @@
 // Generated on: 2013.06.06 at 06:24:37 PM MSK 
 //
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://rest4j.com/api-description/ext")
+@jakarta.xml.bind.annotation.XmlSchema(namespace = "http://rest4j.com/api-description/ext")
 package com.rest4j.impl.ext;

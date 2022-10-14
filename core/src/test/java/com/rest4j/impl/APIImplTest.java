@@ -29,9 +29,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import java.io.*;
 import java.util.*;
 

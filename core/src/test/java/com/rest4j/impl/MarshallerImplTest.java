@@ -41,9 +41,9 @@ import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import java.util.*;
 
 import static org.junit.Assert.*;
