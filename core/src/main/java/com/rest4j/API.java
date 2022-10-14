@@ -33,7 +33,7 @@ public interface API {
 	 * utility classes already do that job for you. But you are free to implement you own controller/servlet
 	 * code that calls serve().
 	 *
-	 * @param request The request, usually obtained with {@link ApiRequest#from(javax.servlet.http.HttpServletRequest)}
+	 * @param request The request, usually obtained with {@link ApiRequest#from(jakarta.servlet.http.HttpServletRequest)}
 	 * @return An encapsulated {@link Resource}. Null when the request should not have a body.
 	 * @throws IOException On error reading the request
 	 * @throws ApiException Any business-related error (including those propagated from Service). This kind

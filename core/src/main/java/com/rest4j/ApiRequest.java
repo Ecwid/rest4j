@@ -21,13 +21,13 @@ import com.rest4j.impl.ApiRequestServletImpl;
 import com.rest4j.json.JSONArray;
 import com.rest4j.json.JSONObject;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 
 /**
- * Encapsulates the API request. You usually create instances with {@link ApiRequest#from(javax.servlet.http.HttpServletRequest)}.
+ * Encapsulates the API request. You usually create instances with {@link ApiRequest#from(jakarta.servlet.http.HttpServletRequest)}.
  * It is OK to wrap ApiRequests with your custom logic - {@link com.rest4j.impl.DelegatingApiRequest}.
  * This object is passed to {@link API#serve(ApiRequest)} by a servlet or a Spring controller.
  *
