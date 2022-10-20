@@ -137,7 +137,7 @@ public class Generator implements URIResolver {
 	}
 
 	public void generate() throws Exception {
-		ApiFactory fac = new ApiFactory(apiXml, null, null);
+		ApiFactory fac = new ApiFactory(apiXml, null, null, null);
 		for (String className: preprocessors) {
 			Preprocessor p = (Preprocessor) Class.forName(className).newInstance();
 			fac.addPreprocessor(p);
