@@ -27,6 +27,7 @@ import com.rest4j.json.JSONObject;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.ArrayApiType;
 import com.rest4j.type.SimpleApiType;
+import io.prometheus.client.Summary;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -44,6 +45,17 @@ import java.util.regex.Pattern;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class APIImpl implements API {
+	static final Summary requestDuration = Summary.build()
+			.namespace("rest4j")
+			.subsystem("http")
+			.name("request_duration_seconds")
+			.help("Requests duration in seconds.")
+			.labelNames("http_method", "service_name", "method_name")
+			.quantile(0.5, 0.01)
+			.quantile(0.95, 0.01)
+			.quantile(0.99, 0.01)
+			.register();
+
 	final com.rest4j.impl.model.API root;
 	final String pathPrefix;
 	final MarshallerImpl marshaller;
@@ -62,7 +74,7 @@ public class APIImpl implements API {
 	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories, FieldFilter[] fieldFilters, Cloner cloner) throws ConfigurationException {
 		this(root, pathPrefix, serviceProvider, factories, fieldFilters, null, cloner);
 	}
-	
+
 	public APIImpl(com.rest4j.impl.model.API root, String pathPrefix, ServiceProvider serviceProvider, ObjectFactory[] factories, FieldFilter[] fieldFilters, PermissionChecker permissionChecker, Cloner cloner) throws ConfigurationException {
 		this.pathPrefix = pathPrefix;
 		this.root = root;
@@ -93,7 +105,7 @@ public class APIImpl implements API {
 		for (Object child: root.getEndpointAndModel()) {
 			if (child instanceof Endpoint) {
 				Endpoint endpoint = (Endpoint)child;
-				endpoints.add(new EndpointMapping(endpoint, serviceProvider, permissionChecker));
+				endpoints.add(new InstrumentedEndpointMapping(endpoint, serviceProvider, permissionChecker));
 			}
 		}
 	}
@@ -217,6 +229,25 @@ public class APIImpl implements API {
 
 	interface ArgHandler {
 		Object get(ApiRequest request, Object getResponse, Params params) throws IOException, ApiException;
+	}
+
+	class InstrumentedEndpointMapping extends EndpointMapping {
+		private final Summary.Child duration;
+
+		InstrumentedEndpointMapping(Endpoint ep, ServiceProvider serviceProvider, PermissionChecker permissionChecker) throws ConfigurationException {
+			super(ep, serviceProvider, permissionChecker);
+			this.duration = requestDuration.labels(httpMethod, endpoint.getService().getName(), method.getName());
+		}
+
+		@Override
+		Object invokeRaw(ApiRequest request, Object getResult) throws IOException, ApiException {
+			Summary.Timer requestTimer = duration.startTimer();
+			try {
+				return super.invokeRaw(request, getResult);
+			} finally {
+				requestTimer.observeDuration();
+			}
+		}
 	}
 
 	class EndpointMapping {
@@ -510,7 +541,7 @@ public class APIImpl implements API {
 			Object result;
 			try {
 				Object[] argValues = new Object[args.length];
-				if (permissionChecker != null) { 
+				if (permissionChecker != null) {
 					permissionChecker.check(this.endpoint, request);
 				}
 				for (int i=0; i<args.length; i++) {
