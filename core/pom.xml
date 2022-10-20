@@ -15,9 +15,8 @@
 	-->
 
 
-    <groupId>com.rest4j</groupId>
-    <artifactId>rest4j-core</artifactId>
-	<version>1.2-ecwid-17</version>
+	<artifactId>rest4j-core</artifactId>
+	<version>1.2-ecwid-18</version>
 	<url>https://code.google.com/p/rest4j/</url>
 	<scm>
 		<connection>
@@ -60,7 +59,7 @@
 	<parent>
 		<artifactId>rest4j</artifactId>
 		<groupId>com.rest4j</groupId>
-		<version>1.2-ecwid-17</version>
+		<version>1.2-ecwid-18</version>
 	</parent>
 	<build>
 		<plugins>
