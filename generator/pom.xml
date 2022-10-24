@@ -8,7 +8,7 @@
 	<parent>
 		<artifactId>rest4j</artifactId>
 		<groupId>com.rest4j</groupId>
-		<version>1.2-ecwid-4</version>
+		<version>1.2-ecwid-18</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
@@ -22,7 +22,6 @@
 	-->
 
 
-	<groupId>com.rest4j</groupId>
 	<artifactId>rest4j-generator</artifactId>
 	<packaging>jar</packaging>
 	<url>https://code.google.com/p/rest4j/generator/</url>
@@ -88,6 +87,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.4</version>
 				<executions>
 					<execution>
 						<id>sign-artifacts</id>
@@ -101,6 +101,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -113,6 +114,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -134,7 +136,7 @@
 		<dependency>
 			<groupId>org.apache.ant</groupId>
 			<artifactId>ant</artifactId>
-			<version>1.10.9</version>
+			<version>1.10.12</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
