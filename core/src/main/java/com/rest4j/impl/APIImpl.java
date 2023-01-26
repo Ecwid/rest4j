@@ -220,7 +220,11 @@ public class APIImpl implements API {
 				throw new ApiException("Not modified").setHttpStatus(304).addHeader("ETag", etag);
 			}
 		}
-		return new ApiResponseImpl(this, request, result).addHeader("Vary", "Accept-Encoding");
+		ApiResponseImpl response = new ApiResponseImpl(this, request, result);
+		if (endpoint.endpoint.getStatus() != null) {
+			response.setStatus(endpoint.endpoint.getStatus());
+		}
+		return response.addHeader("Vary", "Accept-Encoding");
 	}
 
 	APIParams getParams() {

@@ -132,6 +132,11 @@ This tag describes the request body format. If absent, the request body is eithe
 missing or irrelevant. GET endpoints should not contain this tag.
 				</xsd:documentation></xsd:annotation>
 			</xsd:element>
+			<xsd:element name="status" type="xsd:int" minOccurs="0" maxOccurs="1" default="200">
+				<xsd:annotation><xsd:documentation>
+An HTTP status code for a successful response.
+				</xsd:documentation></xsd:annotation>
+			</xsd:element>
 			<xsd:element name="response" type="ContentType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation><xsd:documentation>
 This tag describes the response body format. If absent, the response body is either
