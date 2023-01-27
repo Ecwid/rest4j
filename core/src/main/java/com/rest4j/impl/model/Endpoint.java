@@ -29,6 +29,7 @@ import javax.xml.bind.annotation.XmlType;
  *         &lt;element name="description" type="{http://rest4j.com/api-description}Description"/>
  *         &lt;element name="parameters" type="{http://rest4j.com/api-description}Parameters"/>
  *         &lt;element name="body" type="{http://rest4j.com/api-description}ContentType" minOccurs="0"/>
+ *         &lt;element name="status" type="{http://www.w3.org/2001/XMLSchema}int" minOccurs="0"/>
  *         &lt;element name="response" type="{http://rest4j.com/api-description}ContentType" minOccurs="0"/>
  *         &lt;element name="errors" type="{http://rest4j.com/api-description}Errors"/>
  *         &lt;element name="service" type="{http://rest4j.com/api-description}ServiceEntry"/>
@@ -50,7 +51,8 @@ import javax.xml.bind.annotation.XmlType;
     "route",
     "description",
     "parameters",
-    "body",
+    "body", 
+    "status",
     "response",
     "errors",
     "service",
@@ -65,6 +67,8 @@ public class Endpoint {
     @XmlElement(required = true)
     protected Parameters parameters;
     protected ContentType body;
+    @XmlElement
+    protected Integer status;
     protected ContentType response;
     @XmlElement(required = true)
     protected Errors errors;
@@ -174,6 +178,22 @@ public class Endpoint {
      */
     public void setBody(ContentType value) {
         this.body = value;
+    }
+
+    /**
+     * Gets the value of the status property.
+     *
+     */
+    public Integer getStatus() {
+        return status;
+    }
+
+    /**
+     * Sets the value of the successfulStatus property.
+     *
+     */
+    public void setStatus(Integer value) {
+        this.status = value;
     }
 
     /**
