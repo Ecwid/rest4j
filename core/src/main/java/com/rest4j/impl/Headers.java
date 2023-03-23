@@ -36,7 +36,7 @@ public class Headers {
 
 	public void outputHeaders(HttpServletResponse response) {
 		for (Header h: headers) {
-			response.addHeader(h.name, h.value);
+			response.setHeader(h.name, h.value);
 		}
 	}
 
