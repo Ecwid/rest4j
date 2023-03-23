@@ -48,7 +48,7 @@ public class TransactionalController extends Controller {
 			throw e;
 		} catch (Exception e) {
 			try {
-				httpServletResponse.setStatus(500, e.getMessage());
+				httpServletResponse.setStatus(500);
 			} catch (Exception ex) {
 				throw e; // do not mask the original exception
 			}
