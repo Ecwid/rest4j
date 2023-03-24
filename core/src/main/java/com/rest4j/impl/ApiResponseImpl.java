@@ -95,8 +95,7 @@ public class ApiResponseImpl implements ApiResponse {
 
 	@Override
 	public void outputBody(HttpServletResponse response) throws IOException {
-		if (statusMessage == null) response.setStatus(status);
-		else response.setStatus(status, statusMessage);
+		response.setStatus(status);
 		headers.outputHeaders(response);
 		if (this.response == null) return;
 		response.addHeader("Content-type", this.response.getContentType());
