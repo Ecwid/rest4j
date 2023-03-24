@@ -17,9 +17,9 @@
 
 package com.rest4j.impl;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -38,8 +38,10 @@ public class StringApiTypeImplTest {
 		assertEquals("SIMPL", type.cast("SIMPL", String.class));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testCast_more_then_one() throws Exception {
-		type.cast("AAA", Character.class);
+		assertThrows(IllegalArgumentException.class, () -> {
+			type.cast("AAA", Character.class);
+		});
 	}
 }

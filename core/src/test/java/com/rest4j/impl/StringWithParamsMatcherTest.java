@@ -18,7 +18,7 @@
 package com.rest4j.impl;
 
 import com.rest4j.impl.model.StringWithParams;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>

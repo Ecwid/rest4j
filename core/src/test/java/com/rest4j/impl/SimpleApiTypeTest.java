@@ -19,10 +19,10 @@ package com.rest4j.impl;
 
 import com.rest4j.impl.petapi.RelationType;
 import com.rest4j.type.SimpleApiType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>

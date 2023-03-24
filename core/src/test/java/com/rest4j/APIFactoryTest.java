@@ -20,12 +20,12 @@ package com.rest4j;
 import com.rest4j.impl.ext.FieldExt;
 import com.rest4j.impl.petapi.DynamicPetMapper;
 import com.rest4j.type.Field;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>

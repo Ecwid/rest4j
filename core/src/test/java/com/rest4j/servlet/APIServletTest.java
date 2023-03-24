@@ -10,27 +10,28 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
 import com.rest4j.json.JSONArray;
 import com.rest4j.json.JSONObject;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
-@Ignore // broke after jetty upgrade
+@Disabled // broke after jetty upgrade
 public class APIServletTest {
 
 	private static int jettyPort;
 	private static Server server;
 
-	@BeforeClass public static void initServer() throws Exception {
+	@BeforeAll
+	public static void initServer() throws Exception {
 		server = new Server(jettyPort = Integer.parseInt(System.getProperty("jetty.port", "8087")));
 		WebAppContext webapp = new WebAppContext();
 		webapp.setContextPath("/");
@@ -43,7 +44,7 @@ public class APIServletTest {
 		server.start();
 	}
 
-	@AfterClass	public static void dispose() throws Exception {
+	@AfterAll	public static void dispose() throws Exception {
 		server.stop();
 	}
 

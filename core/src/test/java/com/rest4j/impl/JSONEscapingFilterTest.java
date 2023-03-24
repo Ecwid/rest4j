@@ -17,13 +17,13 @@
 
 package com.rest4j.impl;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 /**
@@ -34,7 +34,7 @@ public class JSONEscapingFilterTest {
 	JSONEscapingFilter filter = new JSONEscapingFilter(reader);
 	char[] cbuf;
 
-	@Before public void init() {
+	@BeforeEach public void init() {
 		cbuf = new char[100];
 		Arrays.fill(cbuf, '=');
 	}

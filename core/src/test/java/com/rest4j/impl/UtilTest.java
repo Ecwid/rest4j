@@ -19,7 +19,7 @@ package com.rest4j.impl;
 
 import com.rest4j.impl.petapi.RelationType;
 import org.apache.commons.lang.StringUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -27,7 +27,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -43,20 +43,26 @@ public class UtilTest {
 		assertSame(List.class, Util.getClass(getClass().getDeclaredField("listField").getGenericType()));
 	}
 
-	@Test(expected=AssertionError.class) public void testGetEnumConstant_failure() {
-		Util.getEnumConstant(RelationType.class, "zzz");
+	@Test public void testGetEnumConstant_failure() {
+		assertThrows(AssertionError.class, () -> {
+			Util.getEnumConstant(RelationType.class, "zzz");
+		});
 	}
 
 	@Test public void testGetEnumConstant_success() {
 		assertEquals(RelationType.mated, Util.getEnumConstant(RelationType.class, "mated"));
 	}
 
-	@Test(expected=IllegalArgumentException.class) public void testGetParameterNames_not_found() throws IOException {
-		Util.getParameterNames(UtilTest.class, "zzz");
+	@Test public void testGetParameterNames_not_found() throws IOException {
+		assertThrows(IllegalArgumentException.class, () -> {
+			Util.getParameterNames(UtilTest.class, "zzz");
+		});
 	}
 
-	@Test(expected=IllegalArgumentException.class) public void testGetParameterNames_static() throws IOException {
-		Util.getParameterNames(Util.class, "getParameterNames");
+	@Test public void testGetParameterNames_static() throws IOException {
+		assertThrows(IllegalArgumentException.class, () -> {
+			Util.getParameterNames(Util.class, "getParameterNames");
+		});
 	}
 
 	@Test public void testGetParameterNames_no_params() throws IOException {

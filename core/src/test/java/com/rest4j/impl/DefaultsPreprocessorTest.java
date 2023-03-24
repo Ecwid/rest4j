@@ -18,7 +18,7 @@
 package com.rest4j.impl;
 
 import com.rest4j.ConfigurationException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -34,8 +34,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
