@@ -21,6 +21,8 @@ import com.rest4j.impl.APIImpl;
 import com.rest4j.impl.DefaultsPreprocessor;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -216,15 +218,23 @@ public class ApiFactory {
 	 * @return The validated and preprocessed DOM.
 	 */
 	public Document getDocument() throws ParserConfigurationException, SAXException, IOException, ConfigurationException {
+		String uri;
+		try {
+			uri = apiDescriptionXml.toURI().toString();
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
+
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		documentBuilderFactory.setNamespaceAware(true);
+		documentBuilderFactory.setXIncludeAware(true);
 		DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-		Document xml = null;
-		try {
-			xml = documentBuilder.parse(apiDescriptionXml.toURI().toString());
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
+		Document xml = documentBuilder.parse(uri);
+
+		// Bypass the limitation of xerces parser, which does not fully support the selection of specific tree nodes using the xpointer attribute.
+		// Replace each non-root element with the `api` tag with a list of its child elements.
+		moveApiChildrenUp(xml);
+
 		for (Preprocessor pre: preprocessors) {
 			pre.process(this, xml);
 		}
@@ -238,4 +248,23 @@ public class ApiFactory {
 	public void setPermissionChecker(PermissionChecker permissionChecker) {
 		this.permissionChecker = permissionChecker;
 	}
+
+	private static void moveApiChildrenUp(Document document) {
+		NodeList apiList = document.getElementsByTagName("api");
+		for (int i = apiList.getLength() - 1; i >= 0; i--) {
+			Node apiNode = apiList.item(i);
+			if (!apiNode.getParentNode().getNodeName().equals("#document")) { // Ignore root api tag
+				Node parentNode = apiNode.getParentNode();
+				Node nextSibling = apiNode.getNextSibling();
+				NodeList apiChildren = apiNode.getChildNodes();
+				for (int j = 0; j < apiChildren.getLength(); j++) {
+					Node apiChild = apiChildren.item(j);
+					Node importedNode = document.importNode(apiChild, true);
+					parentNode.insertBefore(importedNode, nextSibling);
+				}
+				parentNode.removeChild(apiNode);
+			}
+		}
+	}
+
 }
