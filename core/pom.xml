@@ -52,7 +52,7 @@
 	</developers>
 
 	<properties>
-		<spring.version>5.3.22</spring.version>
+		<spring.version>5.3.27</spring.version>
 		<jetty.version>10.0.11</jetty.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
