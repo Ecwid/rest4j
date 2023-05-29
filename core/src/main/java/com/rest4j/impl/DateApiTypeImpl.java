@@ -22,7 +22,7 @@ import com.rest4j.Marshaller;
 import com.rest4j.type.DateApiType;
 import com.rest4j.json.JSONObject;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

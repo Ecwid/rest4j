@@ -23,8 +23,8 @@ import com.rest4j.ApiResponse;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * An utility class that can be used as a Spring controller. Supports Spring transactions. Rollbacks

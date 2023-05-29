@@ -24,18 +24,18 @@ import com.rest4j.impl.petapi.*;
 import com.rest4j.json.JSONArray;
 import com.rest4j.json.JSONException;
 import com.rest4j.json.JSONObject;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import java.io.*;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -84,7 +84,7 @@ public class APIImplTest {
 	private boolean called;
 	private Cloner cloner;
 
-	@Before
+	@BeforeEach
 	public void init() throws JAXBException, ConfigurationException {
 		pet = new Pet();
 		pet.setName("Max");
@@ -249,13 +249,15 @@ public class APIImplTest {
 			fail();
 		} catch (ApiException ex) {
 			assertEquals(status, ex.getHttpStatus());
-			if (msg != null) assertTrue(ex.getMessage(), ex.getMessage().contains(msg));
+			if (msg != null) assertTrue(ex.getMessage().contains(msg), ex.getMessage());
 		}
 	}
 
-	@Test(expected=ApiException.class) public void testServe_wrong_prefix() throws IOException, ApiException {
-		ApiRequest request = mockRequest("GET", "/xxx");
-		api.serve(request);
+	@Test public void testServe_wrong_prefix() throws IOException, ApiException {
+		assertThrows(ApiException.class, () -> {
+			ApiRequest request = mockRequest("GET", "/xxx");
+			api.serve(request);
+		});
 	}
 
 	@Test public void testServe_options() throws IOException, ApiException {
@@ -580,7 +582,7 @@ public class APIImplTest {
 		assertEquals("{\"id\":0}", getBody(response));
 	}
 
-	@Ignore
+	@Disabled
 	@Test public void testServe_jsonp_plain_text() throws Exception {
 		iniJsonpApi();
 		ApiRequest request = mockRequest("GET", "/api/v2/pet/text");
@@ -590,7 +592,7 @@ public class APIImplTest {
 		assertEquals("callback_func(\"Just a pet\\n\")", getBody(response));
 	}
 
-	@Ignore
+	@Disabled
 	@Test public void testServe_jsonp_binary() throws Exception {
 		iniJsonpApi();
 		ApiRequest request = mockRequest("GET", "/api/v2/pet/binary");

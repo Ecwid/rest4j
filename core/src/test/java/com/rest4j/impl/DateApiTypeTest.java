@@ -18,12 +18,12 @@
 package com.rest4j.impl;
 
 import com.rest4j.ApiException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>

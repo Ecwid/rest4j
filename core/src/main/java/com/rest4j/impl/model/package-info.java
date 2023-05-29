@@ -5,5 +5,5 @@
 // Generated on: 2013.10.15 at 09:57:00 AM MSK 
 //
 
-@javax.xml.bind.annotation.XmlSchema(namespace = "http://rest4j.com/api-description", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
+@jakarta.xml.bind.annotation.XmlSchema(namespace = "http://rest4j.com/api-description", elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package com.rest4j.impl.model;

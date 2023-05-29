@@ -27,9 +27,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -196,7 +196,7 @@ public class ApiFactory {
 					cloner
 					);
 			return api;
-		} catch (javax.xml.bind.UnmarshalException e) {
+		} catch (jakarta.xml.bind.UnmarshalException e) {
 			if (e.getLinkedException() instanceof SAXParseException) {
 				SAXParseException spe = (SAXParseException)e.getLinkedException();
 				throw new ConfigurationException("Cannot parse "+apiDescriptionXml, spe);

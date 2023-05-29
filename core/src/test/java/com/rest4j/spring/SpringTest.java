@@ -19,14 +19,14 @@ package com.rest4j.spring;
 
 import com.rest4j.json.JSONArray;
 import com.rest4j.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.servlet.mvc.Controller;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -36,7 +36,7 @@ public class SpringTest {
 	private ClassPathXmlApplicationContext context;
 	private Controller controller;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		context = new ClassPathXmlApplicationContext("com/rest4j/spring/test-context.xml");
 		controller = (org.springframework.web.servlet.mvc.Controller) context.getBean("controller");

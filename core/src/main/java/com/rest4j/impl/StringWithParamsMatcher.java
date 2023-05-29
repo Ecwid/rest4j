@@ -19,7 +19,7 @@ package com.rest4j.impl;
 
 import com.rest4j.impl.model.StringWithParams;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;

@@ -35,18 +35,18 @@ import com.rest4j.type.ObjectApiType;
 import com.rest4j.json.JSONArray;
 import com.rest4j.json.JSONException;
 import com.rest4j.json.JSONObject;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -77,7 +77,7 @@ public class MarshallerImplTest {
 	};
 	private FieldFilter filter;
 
-	@Before
+	@BeforeEach
 	public void init() throws JAXBException, ConfigurationException {
 		createMarshaller("petapi.xml");
 	}
@@ -249,7 +249,7 @@ public class MarshallerImplTest {
 		};
 	}
 
-	@Ignore // broken in "New type 'jsonObject' for simple fields", added "[extraData":null,"]"
+	@Disabled // broken in "New type 'jsonObject' for simple fields", added "[extraData":null,"]"
 	@Test public void testMarshal_pet() throws Exception {
 		JSONObject pet = (JSONObject) marshaller.getObjectType("Pet").marshal(createMax());
 		assertFalse(pet.has("writeonly"));
@@ -484,7 +484,7 @@ public class MarshallerImplTest {
 			createMarshaller("converters-wrong-inner-type.xml");
 			fail();
 		} catch (ConfigurationException ce) {
-			assertTrue(ce.getMessage(), ce.getMessage().startsWith("Wrong getter type: class java.util.Date"));
+			assertTrue(ce.getMessage().startsWith("Wrong getter type: class java.util.Date"), ce.getMessage());
 		}
 	}
 
@@ -493,7 +493,7 @@ public class MarshallerImplTest {
 			createMarshaller("converters-wrong-outer-type.xml");
 			fail();
 		} catch (ConfigurationException ce) {
-			assertTrue(ce.getMessage(), ce.getMessage().startsWith("The property Some.simpleConvert type does not correspond to converter"));
+			assertTrue(ce.getMessage().startsWith("The property Some.simpleConvert type does not correspond to converter"), ce.getMessage());
 		}
 	}
 
@@ -502,7 +502,7 @@ public class MarshallerImplTest {
 			createMarshaller("converters-wrong-mapper-type.xml");
 			fail();
 		} catch (ConfigurationException ce) {
-			assertTrue(ce.getMessage(), ce.getMessage().startsWith("Wrong getter type: class java.util.Date"));
+			assertTrue(ce.getMessage().startsWith("Wrong getter type: class java.util.Date"), ce.getMessage());
 		}
 	}
 
@@ -588,7 +588,7 @@ public class MarshallerImplTest {
 		assertEquals(LinkedList.class, pet.getFriends().getClass());
 	}
 
-	@Ignore // broken in "New type 'jsonObject' for simple fields", added "[extraData":null,"]"
+	@Disabled // broken in "New type 'jsonObject' for simple fields", added "[extraData":null,"]"
 	@Test public void testMarshal_with_field_filter() throws Exception {
 		filter = new FieldFilter() {
 			@Override
