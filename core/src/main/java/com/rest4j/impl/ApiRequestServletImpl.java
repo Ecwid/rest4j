@@ -25,6 +25,8 @@ import com.rest4j.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang.StringUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -73,6 +75,11 @@ public class ApiRequestServletImpl extends ApiRequest {
 		if (objectInput != null) return objectInput;
 		checkJSON();
 		String json = getString();
+
+		if (StringUtils.isBlank(json)) {
+			return null;
+		}
+
 		try {
 			return objectInput = new JSONObject(json);
 		} catch (JSONException e) {
@@ -85,6 +92,11 @@ public class ApiRequestServletImpl extends ApiRequest {
 		if (arrayInput != null) return arrayInput;
 		checkJSON();
 		String json = getString();
+
+		if (StringUtils.isBlank(json)) {
+			return null;
+		}
+
 		try {
 			return arrayInput = new JSONArray(json);
 		} catch (JSONException e) {
