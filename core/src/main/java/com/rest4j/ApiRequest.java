@@ -64,8 +64,8 @@ public abstract class ApiRequest {
 	public abstract String header(String name);
 
 	/**
-	 * Return the JSON object that was sent as the request body (e.g. using 'PUT' or 'POST' methods). null if there
-	 * is no body. This method is called only once, when Rest4j expects JSON object in the.
+	 * Return the JSON object that was sent as the request body (e.g. using 'PUT' or 'POST' methods).
+	 * This method is called only once, when Rest4j expects JSON object in the input.
 	 * The default implementations calls getReader on the HttpServletRequest.
 	 *
 	 * @throws ApiException If the body is not in the JSON object format.
@@ -73,8 +73,8 @@ public abstract class ApiRequest {
 	public abstract JSONObject objectInput() throws IOException, ApiException;
 
 	/**
-	 * Return the JSON array that was sent as the request body (e.g. using 'PUT' or 'POST' methods). null if there
-	 * is no body. This method is called only once, when Rest4j expects JSON array on input.
+	 * Return the JSON array that was sent as the request body (e.g. using 'PUT' or 'POST' methods).
+	 * This method is called only once, when Rest4j expects JSON array in the input.
 	 * The default implementations calls getReader on the HttpServletRequest.
 	 *
 	 * @throws ApiException If the body is not in the JSON array format.
