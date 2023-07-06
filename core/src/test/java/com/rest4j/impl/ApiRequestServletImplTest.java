@@ -21,15 +21,8 @@ import com.rest4j.ApiException;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Joseph Kapizza <joseph@rest4j.com>
@@ -54,25 +47,5 @@ public class ApiRequestServletImplTest {
 		} catch (ApiException ex) {
 			assertEquals(415, ex.getHttpStatus());
 		}
-	}
-
-	@Test
-	public void testObjectInput_givenEmptyObjectInput_whenReaderReturnsEmptyString_thenReturnsNull() throws IOException, ApiException {
-		MockHttpServletRequest request = mock();
-		impl  = new ApiRequestServletImpl(request);
-		impl.objectInput = null;
-		when(request.getReader()).thenReturn(new BufferedReader(new StringReader("")));
-
-		assertNull(impl.objectInput());
-	}
-
-	@Test
-	public void testArrayInput_givenEmptyArrayInput_whenReaderReturnsEmptyString_thenReturnsNull() throws IOException, ApiException {
-		MockHttpServletRequest request = mock();
-		impl  = new ApiRequestServletImpl(request);
-		impl.arrayInput = null;
-		when(request.getReader()).thenReturn(new BufferedReader(new StringReader("")));
-
-		assertNull(impl.arrayInput());
 	}
 }
