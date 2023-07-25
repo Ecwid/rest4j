@@ -19,7 +19,7 @@ package com.rest4j;
 
 import com.rest4j.impl.APIImpl;
 import com.rest4j.impl.DefaultsPreprocessor;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

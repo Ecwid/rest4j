@@ -18,7 +18,7 @@
 package com.rest4j.impl;
 
 import com.rest4j.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;

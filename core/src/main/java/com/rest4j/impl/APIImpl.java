@@ -28,8 +28,8 @@ import com.rest4j.type.ApiType;
 import com.rest4j.type.ArrayApiType;
 import com.rest4j.type.SimpleApiType;
 import io.prometheus.client.Summary;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -376,7 +376,7 @@ public class APIImpl implements API {
 					final SimpleApiType paramApiType;
 					final Object defaultValue;
 					try {
-						defaultValue = param.getDefault() == null ? null : parseParam(param, StringEscapeUtils.unescapeJavaScript(param.getDefault()));
+						defaultValue = param.getDefault() == null ? null : parseParam(param, StringEscapeUtils.unescapeEcmaScript(param.getDefault()));
 						paramApiType = marshaller.createSimpleType(param.getType(), enumValues);
 					} catch (ApiException e) {
 						throw new ConfigurationException("Cannot parse default param value "+param.getDefault()+": "+e.getMessage());
