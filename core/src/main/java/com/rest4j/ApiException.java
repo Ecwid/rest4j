@@ -35,11 +35,19 @@ public class ApiException extends Exception {
 
 	public ApiException(String message) {
 		super(message);
-		this.status = status;
+	}
+
+	public ApiException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
 	public ApiException(String message, JSONResource jsonResponse) {
 		this(message);
+		this.jsonResponse = jsonResponse;
+	}
+
+	public ApiException(String message, JSONResource jsonResponse, Throwable cause) {
+		this(message, cause);
 		this.jsonResponse = jsonResponse;
 	}
 
