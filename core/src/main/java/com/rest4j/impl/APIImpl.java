@@ -562,7 +562,9 @@ public class APIImpl implements API {
 				if (error != null) {
 					ObjectApiTypeImpl objectType = marshaller.getObjectType(error.getType());
 					JSONObject errJSON = (JSONObject) objectType.marshal(cause);
-					throw new ApiException(cause.getMessage(), new JSONResource(errJSON, objectType.getSubtype(cause.getClass()))).setHttpStatus(error.getStatus());
+					ApiType apiType = objectType.getSubtype(cause.getClass());
+					JSONResource jsonResponse = new JSONResource(errJSON, apiType);
+					throw new ApiException(cause.getMessage(), jsonResponse, cause).setHttpStatus(error.getStatus());
 				}
 				if (ite.getCause() instanceof RuntimeException) {
 					throw (RuntimeException)ite.getCause();
