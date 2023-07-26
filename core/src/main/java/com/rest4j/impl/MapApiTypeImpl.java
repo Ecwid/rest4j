@@ -23,7 +23,7 @@ import com.rest4j.Marshaller;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.MapApiType;
 import com.rest4j.type.StringApiType;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import com.rest4j.json.JSONException;
 import com.rest4j.json.JSONObject;
 
@@ -109,7 +109,7 @@ public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType, Patchable
 				try {
 					map.put(key, marshaller.unmarshal(elementType, element));
 				} catch (ApiException apiex) {
-					throw Util.replaceValue(apiex, "{value}[\"" + StringEscapeUtils.escapeJavaScript(key) + "\"]");
+					throw Util.replaceValue(apiex, "{value}[\"" + StringEscapeUtils.escapeEcmaScript(key) + "\"]");
 				}
 			}
 			return map;
@@ -163,13 +163,13 @@ public class MapApiTypeImpl extends ApiTypeImpl implements MapApiType, Patchable
 					try {
 						map.put(key, marshaller.unmarshalPatch(ptype, originalVal, (JSONObject)element));
 					} catch (ApiException apiex) {
-						throw Util.replaceValue(apiex, "{value}[\"" + StringEscapeUtils.escapeJavaScript(key) + "\"]");
+						throw Util.replaceValue(apiex, "{value}[\"" + StringEscapeUtils.escapeEcmaScript(key) + "\"]");
 					}
 				} else {
 					try {
 						map.put(key, marshaller.unmarshal(elementType, element));
 					} catch (ApiException apiex) {
-						throw Util.replaceValue(apiex, "{value}[\"" + StringEscapeUtils.escapeJavaScript(key) + "\"]");
+						throw Util.replaceValue(apiex, "{value}[\"" + StringEscapeUtils.escapeEcmaScript(key) + "\"]");
 					}
 				}
 			}

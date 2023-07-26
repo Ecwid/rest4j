@@ -18,7 +18,7 @@
 package com.rest4j.impl;
 
 import com.rest4j.impl.petapi.RelationType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
