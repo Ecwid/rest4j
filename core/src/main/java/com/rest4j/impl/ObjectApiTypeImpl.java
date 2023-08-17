@@ -25,8 +25,8 @@ import com.rest4j.json.JSONException;
 import com.rest4j.json.JSONObject;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,7 +40,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 	final String name;
 	final Class clz;
 	// there could be several concrete subclasses corresponding to an abstract class
-	final ArrayList<ConcreteClassMapping> mappings = new ArrayList<ConcreteClassMapping>();
+	final ConcurrentHashMap<Class, ConcreteClassMapping> mappings = new ConcurrentHashMap<Class, ConcreteClassMapping>();
 	final ObjectFactoryChain factory;
 	final Object fieldMapper;
 	final ServiceProvider serviceProvider;
@@ -56,7 +56,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 		this.clz = clz;
 		this.model = model;
 		this.fieldMapper = fieldMapper;
-		mappings.add(new ConcreteClassMapping(marshaller, clz, model, fieldMapper, serviceProvider, this));
+		mappings.put(clz, new ConcreteClassMapping(marshaller, clz, model, fieldMapper, serviceProvider, this));
 		this.factory = factory;
 		this.fieldFilter = fieldFilter;
 		this.cloner = cloner;
@@ -152,18 +152,20 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 	}
 
 	ConcreteClassMapping getMapping(Class clz) throws ApiException {
-		for (ConcreteClassMapping ccm: mappings) {
-			if (ccm.clz == clz) return ccm;
+		ConcreteClassMapping mapping = mappings.get(clz);
+		if (mapping != null) {
+			return mapping;
 		}
 		synchronized(this) {
-			for (ConcreteClassMapping ccm: mappings) {
-				if (ccm.clz == clz) return ccm;
+			mapping = mappings.get(clz);
+			if (mapping != null) {
+				return mapping;
 			}
 
 			try {
 				ConcreteClassMapping ccm = new ConcreteClassMapping(marshaller, clz, model, fieldMapper, serviceProvider, this);
 				ccm.link();
-				mappings.add(ccm);
+				mappings.put(clz, ccm);
 				return ccm;
 			} catch (ConfigurationException e) {
 				log.log(Level.SEVERE, "Cannot map class "+clz, e);
@@ -174,7 +176,7 @@ public class ObjectApiTypeImpl extends ApiTypeImpl implements ObjectApiType, Pat
 	}
 
 	void link() throws ConfigurationException {
-		for (ConcreteClassMapping ccm: mappings) {
+		for (ConcreteClassMapping ccm: mappings.values()) {
 			ccm.link();
 		}
 	}
