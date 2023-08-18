@@ -93,45 +93,54 @@ public class ApiResponseImpl implements ApiResponse {
 		return response;
 	}
 
+	/**
+	 * Writes the output body to the given HttpServletResponse.
+	 *
+	 * @param response the HttpServletResponse object to write the output body to
+	 * @throws IOException if an I/O error occurs
+	 */
 	@Override
 	public void outputBody(HttpServletResponse response) throws IOException {
+		if (this.response == null) return;
 		response.setStatus(status);
 		headers.outputHeaders(response);
-		if (this.response == null) return;
 		response.addHeader("Content-type", this.response.getContentType());
 		if (addEtag) {
 			String etag = this.response.getETag();
 			if (etag != null) response.addHeader("ETag", etag);
 		}
 
-		OutputStream outputStream;
-		byte[] resourceBytes = ((JSONResource) this.response).getJSONObject().toString().getBytes();
-		int contentLength = resourceBytes.length;
-		if (compress) {
-			response.addHeader("Content-encoding", "gzip");
-			ByteArrayOutputStream outputByteStream = new ByteArrayOutputStream();
-			GZIPOutputStream gzipOutputStream = new GZIPOutputStream(outputByteStream);
-			gzipOutputStream.write(resourceBytes);
-			gzipOutputStream.finish(); // финиш нужен чтобы результат закрепился!
-			contentLength = outputByteStream.toByteArray().length;
-			gzipOutputStream.close();
-			outputByteStream.close();
-
-			outputStream = new GZIPOutputStream(response.getOutputStream());
-		} else {
-			outputStream = response.getOutputStream();
-		}
-		response.addHeader("Content-Length", String.valueOf(contentLength));
-
+		// Set prettify before any action on this.response
 		if (this.response instanceof JSONResource) {
 			((JSONResource)this.response).setPrettify(prettify);
 		}
-		if (callbackFunctionName == null) {
-			this.response.write(outputStream);
-		} else {
-			this.response.writeJSONP(outputStream, callbackFunctionName);
+
+		try (final ByteArrayOutputStream buf = new ByteArrayOutputStream()) {
+			final OutputStream outputStream;
+			if (compress) {
+				response.addHeader("Content-encoding", "gzip");
+				outputStream = new GZIPOutputStream(buf);
+			} else {
+				outputStream = buf;
+			}
+
+			// Write to preselected in memory stream gzip or not
+			try (OutputStream stream = outputStream) {
+				if (callbackFunctionName == null) {
+					this.response.write(stream);
+				} else {
+					this.response.writeJSONP(stream, callbackFunctionName);
+				}
+			}
+
+			// Write pre calculated content length to response
+			response.addHeader("Content-Length", String.valueOf(buf.size()));
+
+			// Copy prepared answer from memory to http response stream
+			try (OutputStream responseStream = response.getOutputStream()) {
+				buf.writeTo(responseStream);
+			}
 		}
-		outputStream.close();
 	}
 
 }
