@@ -582,7 +582,6 @@ public class APIImplTest {
 		assertEquals("{\"id\":0}", getBody(response));
 	}
 
-	@Disabled
 	@Test public void testServe_jsonp_plain_text() throws Exception {
 		iniJsonpApi();
 		ApiRequest request = mockRequest("GET", "/api/v2/pet/text");
@@ -592,7 +591,6 @@ public class APIImplTest {
 		assertEquals("callback_func(\"Just a pet\\n\")", getBody(response));
 	}
 
-	@Disabled
 	@Test public void testServe_jsonp_binary() throws Exception {
 		iniJsonpApi();
 		ApiRequest request = mockRequest("GET", "/api/v2/pet/binary");
