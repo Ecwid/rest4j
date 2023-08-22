@@ -101,9 +101,9 @@ public class ApiResponseImpl implements ApiResponse {
 	 */
 	@Override
 	public void outputBody(HttpServletResponse response) throws IOException {
-		if (this.response == null) return;
 		response.setStatus(status);
 		headers.outputHeaders(response);
+		if (this.response == null) return; // Used for OPTIONS method
 		response.addHeader("Content-type", this.response.getContentType());
 		if (addEtag) {
 			String etag = this.response.getETag();
