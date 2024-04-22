@@ -27,7 +27,10 @@ import com.rest4j.json.JSONObject;
 import com.rest4j.type.ApiType;
 import com.rest4j.type.ArrayApiType;
 import com.rest4j.type.SimpleApiType;
-import io.prometheus.client.Summary;
+import io.prometheus.metrics.core.datapoints.DistributionDataPoint;
+import io.prometheus.metrics.core.datapoints.Timer;
+import io.prometheus.metrics.core.metrics.Summary;
+import io.prometheus.metrics.model.snapshots.Unit;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,11 +48,10 @@ import java.util.regex.Pattern;
  * @author Joseph Kapizza <joseph@rest4j.com>
  */
 public class APIImpl implements API {
-	static final Summary requestDuration = Summary.build()
-			.namespace("rest4j")
-			.subsystem("http")
-			.name("request_duration_seconds")
+	static final Summary requestDuration = Summary.builder()
+			.name("rest4j_http_request_duration_seconds")
 			.help("Requests duration in seconds.")
+			.unit(Unit.SECONDS)
 			.labelNames("http_method", "service_name", "method_name")
 			.quantile(0.5, 0.01)
 			.quantile(0.95, 0.01)
@@ -236,20 +238,17 @@ public class APIImpl implements API {
 	}
 
 	class InstrumentedEndpointMapping extends EndpointMapping {
-		private final Summary.Child duration;
+		private final DistributionDataPoint duration;
 
 		InstrumentedEndpointMapping(Endpoint ep, ServiceProvider serviceProvider, PermissionChecker permissionChecker) throws ConfigurationException {
 			super(ep, serviceProvider, permissionChecker);
-			this.duration = requestDuration.labels(httpMethod, endpoint.getService().getName(), method.getName());
+			this.duration = requestDuration.labelValues(httpMethod, endpoint.getService().getName(), method.getName());
 		}
 
 		@Override
 		Object invokeRaw(ApiRequest request, Object getResult) throws IOException, ApiException {
-			Summary.Timer requestTimer = duration.startTimer();
-			try {
+			try(Timer timer = duration.startTimer()) {
 				return super.invokeRaw(request, getResult);
-			} finally {
-				requestTimer.observeDuration();
 			}
 		}
 	}
