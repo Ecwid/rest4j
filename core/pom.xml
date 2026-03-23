@@ -16,7 +16,7 @@
 
 
 	<artifactId>rest4j-core</artifactId>
-	<version>1.2-ecwid-28</version>
+	<version>1.2-ecwid-29</version>
 	<url>https://code.google.com/p/rest4j/</url>
 	<scm>
 		<connection>
@@ -52,14 +52,13 @@
 	</developers>
 
 	<properties>
-		<spring.version>6.0.8</spring.version>
-		<jetty.version>11.0.13</jetty.version>
+		<spring.version>7.0.6</spring.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<parent>
 		<artifactId>rest4j</artifactId>
 		<groupId>com.rest4j</groupId>
-		<version>1.2-ecwid-28</version>
+		<version>1.2-ecwid-29</version>
 	</parent>
 	<build>
 		<plugins>
@@ -236,24 +235,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 			<version>${spring.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-server</artifactId>
-			<version>${jetty.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-servlet</artifactId>
-			<version>${jetty.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-webapp</artifactId>
-			<version>${jetty.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

@@ -5,7 +5,7 @@
     <groupId>com.rest4j</groupId>
     <artifactId>rest4j</artifactId>
 	<packaging>pom</packaging>
-	<version>1.2-ecwid-28</version>
+	<version>1.2-ecwid-29</version>
 	<url>https://code.google.com/p/rest4j/</url>
 	<scm>
 		<connection>
@@ -45,8 +45,7 @@
 	</developers>
 
 	<properties>
-		<spring.version>3.0.7.RELEASE</spring.version>
-		<jetty.version>7.6.10.v20130312</jetty.version>
+		<spring.version>7.0.6</spring.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<parent>
